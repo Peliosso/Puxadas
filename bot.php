@@ -38,6 +38,40 @@ function answer($id){
     tg("answerCallbackQuery", ["callback_query_id"=>$id]);
 }
 
+/* ================= TUTORIAL / BLOQUEIO ================= */
+
+function tutorial($chat, $cmd){
+    $t = [
+        "/cpf" => "📘 <b>Como usar /cpf</b>\n\nExemplo:\n<code>/cpf 00000000000</code>",
+        "/nome" => "📘 <b>Como usar /nome</b>\n\nExemplo:\n<code>/nome João Silva</code>",
+        "/rg" => "📘 <b>Como usar /rg</b>\n\nExemplo:\n<code>/rg 1234567</code>",
+        "/cnh" => "📘 <b>Como usar /cnh</b>\n\nExemplo:\n<code>/cnh 123456789</code>",
+        "/telefone" => "📘 <b>Como usar /telefone</b>\n\nExemplo:\n<code>/telefone 11999999999</code>",
+        "/email" => "📘 <b>Como usar /email</b>\n\nExemplo:\n<code>/email teste@email.com</code>",
+        "/placa" => "📘 <b>Como usar /placa</b>\n\nExemplo:\n<code>/placa ABC1D23</code>",
+        "/pix" => "📘 <b>Como usar /pix</b>\n\nExemplo:\n<code>/pix chavepix</code>",
+    ];
+
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>$t[$cmd] ?? "📘 Use o comando corretamente.",
+        "parse_mode"=>"HTML"
+    ]);
+}
+
+function bloquearConsulta($chat){
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>"🔒 <b>Consulta bloqueada</b>\n\nPara realizar consultas, adquira um plano.",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [["text"=>"⭐ Adquirir Plano","callback_data"=>"planos"]]
+            ]
+        ])
+    ]);
+}
+
 /* ================= MENU PRINCIPAL ================= */
 
 function menuPrincipal($chat, $nome="usuário", $edit=false, $msg=null){
@@ -89,16 +123,13 @@ $text =
 
 <i>Clique em algumas das opções e veja como funciona:</i>
 
-• /CPF
-• /foto
-• /RG 
-• /CNH  
+• /cpf
+• /rg 
+• /cnh  
 • /nome   
-• /nascimento  
-• /telefones  
+• /telefone  
 • /email
 • /placa
-• /renavam
 • /pix";
 
 $kb = [
@@ -122,8 +153,6 @@ function catalogo2($chat,$msg){
 $text =
 "🚀 • <b>CONSULTAS — 2/2</b>
 
-<i>Clique em algumas das opções e veja como funciona:</i>
-
 ♻️ • <b>Grátis</b>
 
 /cep
@@ -132,9 +161,9 @@ $text =
 
 $kb = [
  "inline_keyboard"=>[
-   [["text"=>"⬅️ Anterior","callback_data"=>"catalogo_1"],["text"=>"➡️ Próxima","callback_data"=>"catalogo_3"]],
-   [["text"=>"🔒 Ativar Plano","callback_data"=>"planos"]],
-   [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]],
+   [["⬅️ Anterior","callback_data"=>"catalogo_1"]],
+   [["🔒 Ativar Plano","callback_data"=>"planos"]],
+   [["⬅️ Menu","callback_data"=>"voltar_menu"]],
  ]
 ];
 
@@ -155,6 +184,29 @@ if($message && in_array($message["text"],["/start","/menu"])){
     exit;
 }
 
+/* ================= COMANDOS (TUTORIAL x BLOQUEIO) ================= */
+
+if($message && isset($message["text"]) && str_starts_with($message["text"], "/")){
+
+    $chat = $message["chat"]["id"];
+    $txt  = trim($message["text"]);
+
+    $p = explode(" ", $txt, 2);
+    $cmd  = strtolower($p[0]);
+    $args = $p[1] ?? null;
+
+    $vip = ["/cpf","/nome","/rg","/cnh","/telefone","/email","/placa","/pix"];
+
+    if(in_array($cmd, $vip)){
+        if(!$args){
+            tutorial($chat, $cmd);
+        } else {
+            bloquearConsulta($chat);
+        }
+        exit;
+    }
+}
+
 /* ================= CALLBACKS ================= */
 
 if($callback){
@@ -167,17 +219,16 @@ if($callback){
  switch($callback["data"]){
     case "catalogo_1": catalogo1($chat,$msg); break;
     case "catalogo_2": catalogo2($chat,$msg); break;
-    case "catalogo_3": catalogo3($chat,$msg); break;
 
     case "planos":
         tg("editMessageCaption",[
           "chat_id"=>$chat,
           "message_id"=>$msg,
-          "caption"=>"😱 • <b>PLANO VITALÍCIO</b>\n\nValor único: R$ {$GLOBALS['PIX_VALOR']}\n\nAcesso total\nUso ilimitado\n\nPIX:\n{$GLOBALS['PIX_CHAVE']}\n{$GLOBALS['PIX_NOME']}",
+          "caption"=>"😱 • <b>PLANO VITALÍCIO</b>\n\nValor único: R$ {$PIX_VALOR}\n\nAcesso total\nUso ilimitado\n\nPIX:\n{$PIX_CHAVE}\n{$PIX_NOME}",
           "parse_mode"=>"HTML",
           "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-              [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+              [["⬅️ Menu","callback_data"=>"voltar_menu"]]
             ]
           ])
         ]);
