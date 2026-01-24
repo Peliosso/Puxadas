@@ -54,6 +54,7 @@ function tutorial($chat,$cmd){
         "/pix"=>"<b>/pix</b>\nExemplo:\n<code>/pix chavepix</code>",
         "/cep"=>"<b>/cep</b>\nExemplo:\n<code>/cep 01001000</code>",
         "/cnpj"=>"<b>/cnpj</b>\nExemplo:\n<code>/cnpj 00000000000100</code>",
+        "/ip"=>"<b>/ip</b>\nExemplo:\n<code>/ip 8.8.8.8</code>",
     ];
 
     tg("sendMessage",[
@@ -287,6 +288,101 @@ Créditos: Astro Search
     unlink($file);
 }
 
+function consultaIP($chat, $ip){
+    global $STICKER_LOADING;
+
+    // Sticker carregando
+    $sticker = tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+    // Validação simples
+    if(!filter_var($ip, FILTER_VALIDATE_IP)){
+        if($stickerMsgId){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
+        }
+
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ IP inválido.\nUse: <code>/ip 8.8.8.8</code>",
+            "parse_mode"=>"HTML"
+        ]);
+        return;
+    }
+
+    // Consulta IP (API grátis)
+    $resp = @file_get_contents("http://ip-api.com/json/{$ip}?lang=pt-BR");
+    $data = json_decode($resp, true);
+
+    // Apaga sticker
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
+
+    if(!$data || $data["status"] !== "success"){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Não foi possível localizar esse IP."
+        ]);
+        return;
+    }
+
+    // TXT formatado
+    $txt =
+"CONSULTA DE IP — ASTRO SEARCH
+================================
+
+IP: {$data["query"]}
+País: {$data["country"]}
+Região: {$data["regionName"]}
+Cidade: {$data["city"]}
+CEP: {$data["zip"]}
+Latitude: {$data["lat"]}
+Longitude: {$data["lon"]}
+Fuso horário: {$data["timezone"]}
+Provedor: {$data["isp"]}
+Organização: {$data["org"]}
+AS: {$data["as"]}
+
+--------------------------------
+Consulta gratuita
+Fonte: ip-api.com
+Créditos: Astro Search
+";
+
+    // Cria arquivo
+    $file = tempnam(sys_get_temp_dir(), "ip_");
+    file_put_contents($file, $txt);
+
+    // Envia TXT
+    tg("sendDocument",[
+        "chat_id"=>$chat,
+        "document"=>new CURLFile($file, "text/plain", "ip_{$ip}.txt"),
+        "caption"=>"🌐 <b>Consulta de IP concluída</b>\n\nCréditos: <b>Astro Search</b>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/silenciante"]
+                ]
+            ]
+        ])
+    ]);
+
+    unlink($file);
+}
+
 function consultaCEP($chat, $cep){
     global $STICKER_LOADING;
 
@@ -406,6 +502,11 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
 
 if($cmd === "/cnpj"){
     $arg ? consultaCNPJ($chat, $arg) : tutorial($chat, "/cnpj");
+    exit;
+}
+
+if($cmd === "/ip"){
+    $arg ? consultaIP($chat, $arg) : tutorial($chat, "/ip");
     exit;
 }
 
