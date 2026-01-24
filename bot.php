@@ -83,9 +83,9 @@ Eu sou o Astro Search, o sistema de consultas mais avançado do Telegram.
 
 function catalogo1($chat,$msg){
 $text =
-"<b>CONSULTAS — 1/2</b>
+"🚀 • <b>CONSULTAS — 1/2</b>
 
-<b>VIPs</b>
+🔱 • <b>VIPs</b>
 
 • /CPF
 • /foto
@@ -118,9 +118,9 @@ tg("editMessageCaption",[
 
 function catalogo2($chat,$msg){
 $text =
-"<b>CONSULTAS — 2/2</b>
+"🚀 • <b>CONSULTAS — 2/2</b>
 
-<b>Grátis</b>
+♻️ • <b>Grátis</b>
 
 /cep
 /cnpj
