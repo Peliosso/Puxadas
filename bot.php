@@ -31,8 +31,9 @@ function tg($method, $data){
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => $data
     ]);
-    curl_exec($ch);
+    $res = curl_exec($ch);
     curl_close($ch);
+    return $res;
 }
 
 function answer($id){
@@ -176,13 +177,14 @@ function catalogo2($chat,$msg){
 function consultaCEP($chat, $cep){
     global $STICKER_LOADING;
 
-    // Envia sticker temporário
+    // Sticker carregando
     $sticker = tg("sendSticker",[
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
     ]);
 
-    $stickerMsgId = json_decode($sticker, true)["result"]["message_id"] ?? null;
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
     // Limpa CEP
     $cep = preg_replace('/\D/','',$cep);
@@ -204,7 +206,7 @@ function consultaCEP($chat, $cep){
     }
 
     // Consulta ViaCEP
-    $resp = file_get_contents("https://viacep.com.br/ws/{$cep}/json/");
+    $resp = @file_get_contents("https://viacep.com.br/ws/{$cep}/json/");
     $data = json_decode($resp, true);
 
     // Apaga sticker
@@ -215,36 +217,54 @@ function consultaCEP($chat, $cep){
         ]);
     }
 
-    if(isset($data["erro"])){
+    if(!$data || isset($data["erro"])){
         tg("sendMessage",[
             "chat_id"=>$chat,
-            "text"=>"❌ CEP não encontrado.",
+            "text"=>"❌ CEP não encontrado."
         ]);
         return;
     }
 
-    // JSON formatado + créditos
-    $json = [
-        "status" => "success",
-        "consulta" => "cep",
-        "dados" => [
-            "cep" => $data["cep"],
-            "logradouro" => $data["logradouro"],
-            "bairro" => $data["bairro"],
-            "cidade" => $data["localidade"],
-            "estado" => $data["uf"],
-            "ibge" => $data["ibge"],
-            "ddd" => $data["ddd"]
-        ],
-        "creditos" => "Astro Search",
-        "fonte" => "ViaCEP"
-    ];
+    // Conteúdo TXT
+    $txt =
+"CONSULTA DE CEP — ASTRO SEARCH
+================================
 
-    tg("sendMessage",[
+CEP: {$data["cep"]}
+Logradouro: {$data["logradouro"]}
+Bairro: {$data["bairro"]}
+Cidade: {$data["localidade"]}
+Estado: {$data["uf"]}
+DDD: {$data["ddd"]}
+IBGE: {$data["ibge"]}
+
+--------------------------------
+Consulta gratuita
+Fonte: ViaCEP
+Créditos: Astro Search
+";
+
+    // Cria arquivo
+    $file = tempnam(sys_get_temp_dir(), "cep_");
+    file_put_contents($file, $txt);
+
+    // Envia arquivo
+    tg("sendDocument",[
         "chat_id"=>$chat,
-        "text"=>"<pre>".json_encode($json, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE)."</pre>",
-        "parse_mode"=>"HTML"
+        "document"=>new CURLFile($file, "text/plain", "cep_{$cep}.txt"),
+        "caption"=>"📍 <b>Consulta de CEP concluída</b>\n\nCréditos: <b>Astro Search</b>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/silenciante"]
+                ]
+            ]
+        ])
     ]);
+
+    unlink($file);
 }
 
 /* ================= START ================= */
@@ -292,6 +312,13 @@ if($callback){
         case "catalogo_1": catalogo1($chat,$msg); break;
         case "catalogo_2": catalogo2($chat,$msg); break;
         case "catalogo_3": catalogo3($chat,$msg); break;
+        
+        case "apagar_msg":
+    tg("deleteMessage",[
+        "chat_id"=>$chat,
+        "message_id"=>$msg
+    ]);
+break;
 
         case "planos":
 
