@@ -8,12 +8,14 @@ ini_set('display_errors', 1);
 
 $TOKEN = "8241553232:AAGvxGZhHWJkAzKxQ-RsE-Efvy-e4q2XI4U";
 $API   = "https://api.telegram.org/bot{$TOKEN}";
-$START_PHOTO = "https://i.imgur.com/SEU_LINK.jpg";
+
+/* Se quiser foto no /start, use URL ou envie local depois */
+$START_PHOTO_URL = "https://i.imgur.com/SEU_LINK.jpg";
 
 /* PIX */
 $PIX_VALOR = "25,00";
-$PIX_CHAVE = "70192823698";
-$PIX_NOME  = "Isabelly";
+$PIX_CHAVE = "sua-chave-pix@exemplo.com";
+$PIX_NOME  = "SEARCH PANEL";
 
 /* ==========================
    UPDATE
@@ -48,24 +50,23 @@ function answer($id) {
 ========================== */
 
 function mainMenu($chat_id, $edit = false, $msg_id = null) {
+    global $START_PHOTO_URL;
+
     $text =
-"╔════════════════╗
-🔎 <b>SEARCH PANEL</b>
+"<b>SEARCH PANEL</b>
 Sistema Premium de Consultas
-╚═════════════════╝
 
-⚡ Plataforma privada
-📸 Forte presença visual
-🔐 Acesso controlado por plano
+Plataforma privada com acesso controlado por plano.
+Interface organizada, rápida e direta.
 
-👇 Escolha uma opção:";
+Selecione uma opção abaixo:";
 
     $kb = [
         "inline_keyboard" => [
-            [["text"=>"🔍 CONSULTAS","callback_data"=>"consultas"]],
-            [["text"=>"⭐ PLANOS","callback_data"=>"planos"]],
-            [["text"=>"👤 MINHA CONTA","callback_data"=>"conta"]],
-            [["text"=>"🛠 SUPORTE","callback_data"=>"suporte"]],
+            [["text"=>"CONSULTAS","callback_data"=>"consultas"]],
+            [["text"=>"PLANOS","callback_data"=>"planos"]],
+            [["text"=>"MINHA CONTA","callback_data"=>"conta"]],
+            [["text"=>"SUPORTE","callback_data"=>"suporte"]],
         ]
     ];
 
@@ -80,7 +81,7 @@ Sistema Premium de Consultas
     } else {
         api("sendPhoto", [
             "chat_id"=>$chat_id,
-            "photo"=>$GLOBALS["START_PHOTO"],
+            "photo"=>$START_PHOTO_URL,
             "caption"=>$text,
             "parse_mode"=>"HTML",
             "reply_markup"=>json_encode($kb)
@@ -91,7 +92,7 @@ Sistema Premium de Consultas
 function consultasMenu($chat_id, $msg_id) {
 
     $text =
-"<b>CATÁLOGO DE CONSULTAS DISPONÍVEIS</b>
+"<b>CATÁLOGO DE CONSULTAS</b>
 
 ━━━━━━━━━━━━━━━━━━━━
 <b>IDENTIFICAÇÃO CIVIL</b>
@@ -159,26 +160,22 @@ function consultasMenu($chat_id, $msg_id) {
 ━━━━━━━━━━━━━━━━━━━━
 <b>ACESSO RESTRITO</b>
 ━━━━━━━━━━━━━━━━━━━━
-Todas as consultas acima são liberadas
+Todas as consultas são liberadas
 exclusivamente para usuários com plano ativo.";
 
-    $keyboard = [
-        "inline_keyboard" => [
-            [
-                ["text" => "ADQUIRIR PLANO", "callback_data" => "planos"]
-            ],
-            [
-                ["text" => "VOLTAR AO MENU", "callback_data" => "voltar"]
-            ]
+    $kb = [
+        "inline_keyboard"=>[
+            [["text"=>"ADQUIRIR PLANO","callback_data"=>"planos"]],
+            [["text"=>"VOLTAR AO MENU","callback_data"=>"voltar"]]
         ]
     ];
 
     api("editMessageText", [
-        "chat_id" => $chat_id,
-        "message_id" => $msg_id,
-        "text" => $text,
-        "parse_mode" => "HTML",
-        "reply_markup" => json_encode($keyboard)
+        "chat_id"=>$chat_id,
+        "message_id"=>$msg_id,
+        "text"=>$text,
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode($kb)
     ]);
 }
 
@@ -212,11 +209,11 @@ if ($callback) {
                 "chat_id"=>$chat_id,
                 "message_id"=>$msg_id,
                 "parse_mode"=>"HTML",
-                "text"=>"⭐ <b>PLANO VITALÍCIO</b>\n\n💰 R$ {$PIX_VALOR}\n\n✔ Acesso total\n✔ Uso ilimitado\n✔ Pagamento único\n\n<b>PIX:</b>\n{$PIX_CHAVE}\n<b>Nome:</b> {$PIX_NOME}",
+                "text"=>"<b>PLANO VITALÍCIO</b>\n\nValor único: R$ {$PIX_VALOR}\n\nAcesso completo ao catálogo\nUso ilimitado\nSem mensalidade\n\n<b>PIX:</b>\n{$PIX_CHAVE}\n<b>Nome:</b> {$PIX_NOME}\n\nApós o pagamento, envie o comprovante ao suporte.",
                 "reply_markup"=>json_encode([
                     "inline_keyboard"=>[
-                        [["text"=>"🛠 SUPORTE","callback_data"=>"suporte"]],
-                        [["text"=>"⬅️ VOLTAR","callback_data"=>"voltar"]]
+                        [["text"=>"SUPORTE","callback_data"=>"suporte"]],
+                        [["text"=>"VOLTAR AO MENU","callback_data"=>"voltar"]]
                     ]
                 ])
             ]);
@@ -227,10 +224,10 @@ if ($callback) {
                 "chat_id"=>$chat_id,
                 "message_id"=>$msg_id,
                 "parse_mode"=>"HTML",
-                "text"=>"👤 <b>MINHA CONTA</b>\n\nPlano: Gratuito\nStatus: Ativo\nAcesso: Bloqueado",
+                "text"=>"<b>MINHA CONTA</b>\n\nPlano: Gratuito\nStatus: Ativo\nAcesso: Limitado\n\nAtive um plano para liberar o catálogo completo.",
                 "reply_markup"=>json_encode([
                     "inline_keyboard"=>[
-                        [["text"=>"⬅️ VOLTAR","callback_data"=>"voltar"]]
+                        [["text"=>"VOLTAR AO MENU","callback_data"=>"voltar"]]
                     ]
                 ])
             ]);
@@ -241,10 +238,10 @@ if ($callback) {
                 "chat_id"=>$chat_id,
                 "message_id"=>$msg_id,
                 "parse_mode"=>"HTML",
-                "text"=>"🛠 <b>SUPORTE</b>\n\nEnvie seu comprovante ou dúvida aqui.",
+                "text"=>"<b>SUPORTE</b>\n\nEnvie seu comprovante de pagamento ou sua dúvida por aqui.",
                 "reply_markup"=>json_encode([
                     "inline_keyboard"=>[
-                        [["text"=>"⬅️ VOLTAR","callback_data"=>"voltar"]]
+                        [["text"=>"VOLTAR AO MENU","callback_data"=>"voltar"]]
                     ]
                 ])
             ]);
@@ -260,4 +257,4 @@ if ($callback) {
 }
 
 http_response_code(200);
-echo "OK"; tu
+echo "OK";
