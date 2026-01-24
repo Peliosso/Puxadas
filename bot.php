@@ -240,3 +240,7 @@ if ($callback && $callback["data"] == "menu_suporte") {
 if ($callback && $callback["data"] == "voltar_menu") {
     sendMessage($callback["message"]["chat"]["id"], "Use /menu para voltar ao menu principal.");
 }
+
+http_response_code(200);
+echo "OK";
+exit;
