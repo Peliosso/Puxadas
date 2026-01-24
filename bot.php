@@ -5,8 +5,11 @@ error_reporting(0);
 
 $TOKEN = "8241553232:AAGvxGZhHWJkAzKxQ-RsE-Efvy-e4q2XI4U";
 $API   = "https://api.telegram.org/bot{$TOKEN}";
+
+/* IMAGEM VÁLIDA */
 $START_PHOTO = "https://conventional-magenta-fxkyikrbqe.edgeone.app/E8D6A8B8-36F3-4AE0-8493-E2C66DF18EF3.png";
 
+/* PIX */
 $PIX_VALOR = "25,00";
 $PIX_CHAVE = "sua-chave-pix@exemplo.com";
 $PIX_NOME  = "SEARCH PANEL";
@@ -19,7 +22,7 @@ $callback = $update["callback_query"] ?? null;
 
 /* ================= API ================= */
 
-function tg($method, $data) {
+function tg($method, $data){
     global $API;
     $ch = curl_init($API."/".$method);
     curl_setopt_array($ch, [
@@ -35,16 +38,18 @@ function answer($id){
     tg("answerCallbackQuery", ["callback_query_id"=>$id]);
 }
 
-function menuPrincipal($chat, $nome = "usuário", $edit = false, $msg = null){
+/* ================= MENU PRINCIPAL ================= */
+
+function menuPrincipal($chat, $nome="usuário", $edit=false, $msg=null){
     global $START_PHOTO;
 
     $text =
 "<b>🚀 • Astro Search</b>
 
-Olá!
-Eu sou o Astro Search, o melhor sistema de consultas do Telegram.
+Olá, <b>{$nome}</b>!
+Eu sou o Astro Search, o sistema de consultas mais avançado do Telegram.
 
-<i>👇 • Escolha uma opção abaixo:</i>";
+<i>👇 Escolha uma opção abaixo:</i>";
 
     $kb = [
         "inline_keyboard"=>[
@@ -55,7 +60,7 @@ Eu sou o Astro Search, o melhor sistema de consultas do Telegram.
         ]
     ];
 
-    if ($edit) {
+    if($edit){
         tg("editMessageCaption",[
             "chat_id"=>$chat,
             "message_id"=>$msg,
@@ -74,34 +79,28 @@ Eu sou o Astro Search, o melhor sistema de consultas do Telegram.
     }
 }
 
-/* ================= CATÁLOGO ================= */
+/* ================= CATÁLOGOS ================= */
 
 function catalogo1($chat,$msg){
 $text =
-"<b>🔎 • CONSULTAS DISPONÍVEIS — 1/3</b>
+"<b>CONSULTAS — 1/3</b>
 
-<b>👩🏼 • IDENTIFICAÇÃO</b>
-• CPF
-• CPF (Base Secundária)
-• RG
-• CNH
-• Número de Segurança CNH
-• Nome Completo
-• Nomes Abreviados
-• Data de Nascimento
+<b>IDENTIFICAÇÃO</b>
+• CPF / CPF Secundário  
+• RG / CNH  
+• Nome Completo / Abreviado  
+• Data de Nascimento  
 
-<b>☎️ • CONTATO</b>
-• Telefone Móvel
-• Telefone Móvel 2
-• Telefone Fixo
-• E-mail
+<b>CONTATO</b>
+• Telefones  
+• E-mail  
 • CEP";
 
 $kb = [
  "inline_keyboard"=>[
    [["text"=>"➡️ Próxima","callback_data"=>"catalogo_2"]],
    [["text"=>"🔒 Ativar Plano","callback_data"=>"planos"]],
-   [["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"]],
+   [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]],
  ]
 ];
 
@@ -116,27 +115,24 @@ tg("editMessageCaption",[
 
 function catalogo2($chat,$msg){
 $text =
-"<b>CONSULTAS DISPONÍVEIS — 2/3</b>
+"<b>CONSULTAS — 2/3</b>
 
-<b>🚛 • VEÍCULOS</b>
-• Placa (Dados completos)
-• RENAVAM
-• Frota Veicular
-• Vistoria
-• Radar Veicular
+<b>VEÍCULOS</b>
+• Placa Completa  
+• RENAVAM  
+• Frota / Radar / Vistoria  
 
-<b>💸 • FINANCEIRO</b>
-• Score de Crédito
-• Histórico Financeiro
-• Dívidas
-• Comprovantes PIX
-• IRPF";
+<b>FINANCEIRO</b>
+• Score  
+• Dívidas  
+• IRPF  
+• Comprovantes PIX";
 
 $kb = [
  "inline_keyboard"=>[
    [["text"=>"⬅️ Anterior","callback_data"=>"catalogo_1"],["text"=>"➡️ Próxima","callback_data"=>"catalogo_3"]],
    [["text"=>"🔒 Ativar Plano","callback_data"=>"planos"]],
-   [["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"]],
+   [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]],
  ]
 ];
 
@@ -151,27 +147,24 @@ tg("editMessageCaption",[
 
 function catalogo3($chat,$msg){
 $text =
-"<b>CONSULTAS DISPONÍVEIS — 3/3</b>
+"<b>CONSULTAS — 3/3</b>
 
-<b>⚖️ • GOVERNAMENTAL</b>
-• Receita Federal
-• INSS
-• RAIS
-• Vacinação
-• Processos Judiciais
-• Mandados
-• Boletins de Ocorrência
+<b>GOVERNAMENTAL</b>
+• Receita Federal  
+• INSS / RAIS  
+• Processos / Mandados  
+• BO / Vacinação  
 
-<b>🧿 • AVANÇADO</b>
-• Cruzamento de Dados
-• Relacionamentos
-• Presença Visual Associada";
+<b>AVANÇADO</b>
+• Cruzamentos  
+• Relacionamentos  
+• Presença Visual";
 
 $kb = [
  "inline_keyboard"=>[
    [["text"=>"⬅️ Anterior","callback_data"=>"catalogo_2"]],
    [["text"=>"🔒 Ativar Plano","callback_data"=>"planos"]],
-   [["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"]],
+   [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]],
  ]
 ];
 
@@ -187,7 +180,8 @@ tg("editMessageCaption",[
 /* ================= START ================= */
 
 if($message && in_array($message["text"],["/start","/menu"])){
-    menuPrincipal($message["chat"]["id"]);
+    $nome = $message["from"]["first_name"] ?? "usuário";
+    menuPrincipal($message["chat"]["id"], $nome);
     exit;
 }
 
@@ -198,6 +192,7 @@ if($callback){
 
  $chat = $callback["message"]["chat"]["id"];
  $msg  = $callback["message"]["message_id"];
+ $nome = $callback["from"]["first_name"] ?? "usuário";
 
  switch($callback["data"]){
     case "catalogo_1": catalogo1($chat,$msg); break;
@@ -208,18 +203,18 @@ if($callback){
         tg("editMessageCaption",[
           "chat_id"=>$chat,
           "message_id"=>$msg,
-          "caption"=>"<b>PLANO VITALÍCIO</b>\n\nValor único: R$ {$GLOBALS['PIX_VALOR']}\n\nAcesso total ao catálogo\nUso ilimitado\n\nPIX:\n{$GLOBALS['PIX_CHAVE']}\n{$GLOBALS['PIX_NOME']}",
+          "caption"=>"<b>PLANO VITALÍCIO</b>\n\nValor único: R$ {$GLOBALS['PIX_VALOR']}\n\nAcesso total\nUso ilimitado\n\nPIX:\n{$GLOBALS['PIX_CHAVE']}\n{$GLOBALS['PIX_NOME']}",
           "parse_mode"=>"HTML",
           "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-              [["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"]]
+              [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
             ]
           ])
         ]);
     break;
 
     case "voltar_menu":
-        menuPrincipal($chat,true,$msg);
+        menuPrincipal($chat,$nome,true,$msg);
     break;
  }
  exit;
