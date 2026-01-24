@@ -163,7 +163,7 @@ function catalogo2($chat,$msg){
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-                [["text"=>"⬅️ Anterior","callback_data"=>"catalogo_2"]],
+                [["text"=>"⬅️ Anterior","callback_data"=>"catalogo_1"]],
                 [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]],
             ]
         ])
