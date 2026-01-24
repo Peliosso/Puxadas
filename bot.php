@@ -259,11 +259,6 @@ if($message && in_array($message["text"],["/start","/menu"])){
 
 /* ================= COMANDOS ================= */
 
-if($cmd === "/cep"){
-    $arg ? consultaCEP($chat, $arg) : tutorial($chat, "/cep");
-    exit;
-}
-
 if($message && isset($message["text"]) && str_starts_with($message["text"], "/")){
     $chat = $message["chat"]["id"];
     $p = explode(" ", trim($message["text"]), 2);
@@ -276,6 +271,11 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
         $arg ? bloquearConsulta($chat) : tutorial($chat,$cmd);
         exit;
     }
+}
+
+if($cmd === "/cep"){
+    $arg ? consultaCEP($chat, $arg) : tutorial($chat, "/cep");
+    exit;
 }
 
 /* ================= CALLBACKS ================= */
