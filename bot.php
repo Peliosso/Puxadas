@@ -212,18 +212,44 @@ if($callback){
         case "catalogo_3": catalogo3($chat,$msg); break;
 
         case "planos":
-            tg("editMessageCaption",[
-                "chat_id"=>$chat,
-                "message_id"=>$msg,
-                "caption"=>"⭐ <b>PLANO VITALÍCIO</b>\n\nValor: R$ {$PIX_VALOR}\n\nPIX:\n{$PIX_CHAVE}\n{$PIX_NOME}",
-                "parse_mode"=>"HTML",
-                "reply_markup"=>json_encode([
-                    "inline_keyboard"=>[
-                        [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
-                    ]
-                ])
-            ]);
-        break;
+
+    $hasPhoto = isset($callback["message"]["photo"]);
+
+    $method = $hasPhoto ? "editMessageCaption" : "editMessageText";
+
+    $data = [
+        "chat_id" => $chat,
+        "message_id" => $msg,
+        "parse_mode" => "HTML",
+        "reply_markup" => json_encode([
+            "inline_keyboard" => [
+                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+            ]
+        ])
+    ];
+
+    if($hasPhoto){
+        $data["caption"] =
+"⭐ <b>PLANO VITALÍCIO</b>
+
+Valor: R$ {$PIX_VALOR}
+
+PIX:
+{$PIX_CHAVE}
+{$PIX_NOME}";
+    } else {
+        $data["text"] =
+"⭐ <b>PLANO VITALÍCIO</b>
+
+Valor: R$ {$PIX_VALOR}
+
+PIX:
+{$PIX_CHAVE}
+{$PIX_NOME}";
+    }
+
+    tg($method, $data);
+break;
 
         case "conta":
             tg("editMessageCaption",[
