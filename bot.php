@@ -83,18 +83,21 @@ Eu sou o Astro Search, o sistema de consultas mais avançado do Telegram.
 
 function catalogo1($chat,$msg){
 $text =
-"<b>CONSULTAS — 1/3</b>
+"<b>CONSULTAS — 1/2</b>
 
-<b>IDENTIFICAÇÃO</b>
-• CPF / CPF Secundário  
-• RG / CNH  
-• Nome Completo / Abreviado  
-• Data de Nascimento  
+<b>VIPs</b>
 
-<b>CONTATO</b>
-• Telefones  
-• E-mail  
-• CEP";
+• /CPF
+• /foto
+• /RG 
+• /CNH  
+• /nome   
+• /nascimento  
+• /telefones  
+• /email
+• /placa
+• /renavam
+• /pix";
 
 $kb = [
  "inline_keyboard"=>[
@@ -115,54 +118,17 @@ tg("editMessageCaption",[
 
 function catalogo2($chat,$msg){
 $text =
-"<b>CONSULTAS — 2/3</b>
+"<b>CONSULTAS — 2/2</b>
 
-<b>VEÍCULOS</b>
-• Placa Completa  
-• RENAVAM  
-• Frota / Radar / Vistoria  
+<b>Grátis</b>
 
-<b>FINANCEIRO</b>
-• Score  
-• Dívidas  
-• IRPF  
-• Comprovantes PIX";
+/cep
+/cnpj
+/ip";
 
 $kb = [
  "inline_keyboard"=>[
    [["text"=>"⬅️ Anterior","callback_data"=>"catalogo_1"],["text"=>"➡️ Próxima","callback_data"=>"catalogo_3"]],
-   [["text"=>"🔒 Ativar Plano","callback_data"=>"planos"]],
-   [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]],
- ]
-];
-
-tg("editMessageCaption",[
- "chat_id"=>$chat,
- "message_id"=>$msg,
- "caption"=>$text,
- "parse_mode"=>"HTML",
- "reply_markup"=>json_encode($kb)
-]);
-}
-
-function catalogo3($chat,$msg){
-$text =
-"<b>CONSULTAS — 3/3</b>
-
-<b>GOVERNAMENTAL</b>
-• Receita Federal  
-• INSS / RAIS  
-• Processos / Mandados  
-• BO / Vacinação  
-
-<b>AVANÇADO</b>
-• Cruzamentos  
-• Relacionamentos  
-• Presença Visual";
-
-$kb = [
- "inline_keyboard"=>[
-   [["text"=>"⬅️ Anterior","callback_data"=>"catalogo_2"]],
    [["text"=>"🔒 Ativar Plano","callback_data"=>"planos"]],
    [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]],
  ]
