@@ -1,21 +1,22 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 /* ==========================
-   CONFIGURAÇÃO
+   CONFIG
 ========================== */
 
 $TOKEN = "8241553232:AAGvxGZhHWJkAzKxQ-RsE-Efvy-e4q2XI4U";
-$API   = "https://api.telegram.org/bot$TOKEN";
-
-/* Imagem que aparece no /start e /menu */
+$API   = "https://api.telegram.org/bot{$TOKEN}";
 $START_PHOTO = "https://i.imgur.com/SEU_LINK.jpg";
 
 /* PIX */
-$PIX_CHAVE = "sua-chave-pix@exemplo.com";
-$PIX_NOME  = "SEARCH PANEL";
 $PIX_VALOR = "25,00";
+$PIX_CHAVE = "70192823698";
+$PIX_NOME  = "Isabelly";
 
 /* ==========================
-   RECEBE UPDATE
+   UPDATE
 ========================== */
 
 $update = json_decode(file_get_contents("php://input"), true);
@@ -23,213 +24,240 @@ $message  = $update["message"] ?? null;
 $callback = $update["callback_query"] ?? null;
 
 /* ==========================
-   FUNÇÕES
+   API HELPER
 ========================== */
 
-function sendMessage($chat_id, $text, $keyboard = null) {
+function api($method, $data = []) {
     global $API;
-    $data = [
-        "chat_id" => $chat_id,
-        "text" => $text,
-        "parse_mode" => "HTML"
-    ];
-    if ($keyboard) $data["reply_markup"] = json_encode($keyboard);
-    file_get_contents($API."/sendMessage?".http_build_query($data));
+    $ch = curl_init($API . "/" . $method);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $data
+    ]);
+    curl_exec($ch);
+    curl_close($ch);
 }
 
-function sendPhoto($chat_id, $photo, $caption, $keyboard = null) {
-    global $API;
-    $data = [
-        "chat_id" => $chat_id,
-        "photo" => $photo,
-        "caption" => $caption,
-        "parse_mode" => "HTML"
-    ];
-    if ($keyboard) $data["reply_markup"] = json_encode($keyboard);
-    file_get_contents($API."/sendPhoto?".http_build_query($data));
-}
-
-function answerCallback($id, $text) {
-    global $API;
-    file_get_contents($API."/answerCallbackQuery?".http_build_query([
-        "callback_query_id" => $id,
-        "text" => $text,
-        "show_alert" => true
-    ]));
+function answer($id) {
+    api("answerCallbackQuery", ["callback_query_id" => $id]);
 }
 
 /* ==========================
-   /START e /MENU
+   MENUS
 ========================== */
 
-if ($message && isset($message["text"]) && in_array($message["text"], ["/start", "/menu"])) {
+function mainMenu($chat_id, $edit = false, $msg_id = null) {
+    $text =
+"╔════════════════╗
+🔎 <b>SEARCH PANEL</b>
+Sistema Premium de Consultas
+╚═════════════════╝
 
-    $chat_id = $message["chat"]["id"];
+⚡ Plataforma privada
+📸 Forte presença visual
+🔐 Acesso controlado por plano
 
-    $caption =
-"╔══════════════════════╗
- 🔎 <b>SEARCH PANEL</b>
- Sistema Premium de Consultas
-╚══════════════════════╝
+👇 Escolha uma opção:";
 
-⚡ O bot de buscas mais completo do Telegram
-📸 Destaque em <b>presença visual e fotos públicas</b>
-🔐 Plataforma organizada e automatizada
-
-👇 Use o menu abaixo:";
-
-    $keyboard = [
+    $kb = [
         "inline_keyboard" => [
-            [["text" => "🔍 CONSULTAS", "callback_data" => "menu_consultas"]],
-            [["text" => "⭐ PLANOS", "callback_data" => "menu_planos"]],
-            [["text" => "👤 MINHA CONTA", "callback_data" => "menu_conta"]],
-            [["text" => "🛠 SUPORTE", "callback_data" => "menu_suporte"]],
+            [["text"=>"🔍 CONSULTAS","callback_data"=>"consultas"]],
+            [["text"=>"⭐ PLANOS","callback_data"=>"planos"]],
+            [["text"=>"👤 MINHA CONTA","callback_data"=>"conta"]],
+            [["text"=>"🛠 SUPORTE","callback_data"=>"suporte"]],
         ]
     ];
 
-    sendPhoto($chat_id, $START_PHOTO, $caption, $keyboard);
+    if ($edit) {
+        api("editMessageText", [
+            "chat_id"=>$chat_id,
+            "message_id"=>$msg_id,
+            "text"=>$text,
+            "parse_mode"=>"HTML",
+            "reply_markup"=>json_encode($kb)
+        ]);
+    } else {
+        api("sendPhoto", [
+            "chat_id"=>$chat_id,
+            "photo"=>$GLOBALS["START_PHOTO"],
+            "caption"=>$text,
+            "parse_mode"=>"HTML",
+            "reply_markup"=>json_encode($kb)
+        ]);
+    }
 }
 
-/* ==========================
-   MENU CONSULTAS
-========================== */
-
-if ($callback && $callback["data"] == "menu_consultas") {
-
-    $chat_id = $callback["message"]["chat"]["id"];
+function consultasMenu($chat_id, $msg_id) {
 
     $text =
-"🔍 <b>CONSULTAS DISPONÍVEIS</b>
+"<b>CATÁLOGO DE CONSULTAS DISPONÍVEIS</b>
 
-📸 <b>Presença Visual</b>
-• Localização de fotos públicas
-• Imagens associadas
-• Presença visual online
+━━━━━━━━━━━━━━━━━━━━
+<b>IDENTIFICAÇÃO CIVIL</b>
+━━━━━━━━━━━━━━━━━━━━
+• CPF
+• CPF (Base Alternativa)
+• RG
+• CNH
+• Número de Segurança da CNH
+• Nome Completo
+• Nomes Abreviados
+• Data de Nascimento
+• Vínculos Familiares
+• Vizinhos Registrados
 
-👤 <b>Identificação</b>
-• Busca por nome
-• Registros associados
+━━━━━━━━━━━━━━━━━━━━
+<b>CONTATO & LOCALIZAÇÃO</b>
+━━━━━━━━━━━━━━━━━━━━
+• Telefone Móvel
+• Telefone Móvel (Base Secundária)
+• Telefone Fixo
+• Endereço Completo
+• CEP
+• E-mail
+• IP e Presença Digital
 
-📞 <b>Contato</b>
-• Telefone & vínculos
-• Email & presença
+━━━━━━━━━━━━━━━━━━━━
+<b>VEÍCULOS</b>
+━━━━━━━━━━━━━━━━━━━━
+• Consulta por Placa (Dados Completos)
+• RENAVAM
+• Frota Veicular
+• Vistoria Veicular
+• Radar e Registros de Circulação
 
-🚗 <b>Veículos</b>
-• Consulta veicular
-• Registro por placa
+━━━━━━━━━━━━━━━━━━━━
+<b>FINANCEIRO & CRÉDITO</b>
+━━━━━━━━━━━━━━━━━━━━
+• Score de Crédito
+• Histórico de Crédito
+• Dívidas e Pendências
+• Comprovantes via PIX
+• IRPF (Base Declaratória)
 
-🧠 <b>Cruzamentos</b>
-• Pessoas relacionadas
-• Mapa de conexões";
+━━━━━━━━━━━━━━━━━━━━
+<b>GOVERNAMENTAL & REGISTROS</b>
+━━━━━━━━━━━━━━━━━━━━
+• CNPJ
+• Receita Federal
+• INSS
+• RAIS (Histórico Profissional)
+• Vacinação COVID
+• Boletim de Ocorrência
+• Mandados e Restrições
+• Processos Judiciais
+
+━━━━━━━━━━━━━━━━━━━━
+<b>BASES AVANÇADAS</b>
+━━━━━━━━━━━━━━━━━━━━
+• Cruzamento de Dados
+• Relacionamentos Diretos
+• Análise de Vínculos
+• Presença Visual Associada
+
+━━━━━━━━━━━━━━━━━━━━
+<b>ACESSO RESTRITO</b>
+━━━━━━━━━━━━━━━━━━━━
+Todas as consultas acima são liberadas
+exclusivamente para usuários com plano ativo.";
 
     $keyboard = [
         "inline_keyboard" => [
             [
-                ["text" => "📸 Localizar Fotos", "callback_data" => "bloqueado"],
-                ["text" => "👤 Busca por Nome", "callback_data" => "bloqueado"]
+                ["text" => "ADQUIRIR PLANO", "callback_data" => "planos"]
             ],
             [
-                ["text" => "📞 Telefone", "callback_data" => "bloqueado"],
-                ["text" => "🚗 Veículo", "callback_data" => "bloqueado"]
-            ],
-            [
-                ["text" => "🧠 Cruzamento", "callback_data" => "bloqueado"]
-            ],
-            [
-                ["text" => "⬅️ Voltar", "callback_data" => "voltar_menu"]
+                ["text" => "VOLTAR AO MENU", "callback_data" => "voltar"]
             ]
         ]
     ];
 
-    sendMessage($chat_id, $text, $keyboard);
+    api("editMessageText", [
+        "chat_id" => $chat_id,
+        "message_id" => $msg_id,
+        "text" => $text,
+        "parse_mode" => "HTML",
+        "reply_markup" => json_encode($keyboard)
+    ]);
 }
 
 /* ==========================
-   BLOQUEIO PREMIUM
+   START
 ========================== */
 
-if ($callback && $callback["data"] == "bloqueado") {
-    answerCallback(
-        $callback["id"],
-        "🔒 Recurso premium.\n\nAtive o plano para acesso total."
-    );
+if ($message && in_array($message["text"], ["/start","/menu"])) {
+    mainMenu($message["chat"]["id"]);
+    http_response_code(200); exit;
 }
 
 /* ==========================
-   PLANOS / PIX
+   CALLBACKS
 ========================== */
 
-if ($callback && $callback["data"] == "menu_planos") {
+if ($callback) {
 
     $chat_id = $callback["message"]["chat"]["id"];
+    $msg_id  = $callback["message"]["message_id"];
+    answer($callback["id"]);
 
-    $text =
-"⭐ <b>PLANO VITALÍCIO</b>
+    switch ($callback["data"]) {
 
-🔥 <b>R$ {$PIX_VALOR}</b> (pagamento único)
+        case "consultas":
+            consultasMenu($chat_id, $msg_id);
+            break;
 
-✔ Todas as consultas
-✔ Presença visual / fotos públicas
-✔ Uso ilimitado
-✔ Acesso permanente
+        case "planos":
+            api("editMessageText", [
+                "chat_id"=>$chat_id,
+                "message_id"=>$msg_id,
+                "parse_mode"=>"HTML",
+                "text"=>"⭐ <b>PLANO VITALÍCIO</b>\n\n💰 R$ {$PIX_VALOR}\n\n✔ Acesso total\n✔ Uso ilimitado\n✔ Pagamento único\n\n<b>PIX:</b>\n{$PIX_CHAVE}\n<b>Nome:</b> {$PIX_NOME}",
+                "reply_markup"=>json_encode([
+                    "inline_keyboard"=>[
+                        [["text"=>"🛠 SUPORTE","callback_data"=>"suporte"]],
+                        [["text"=>"⬅️ VOLTAR","callback_data"=>"voltar"]]
+                    ]
+                ])
+            ]);
+            break;
 
-<b>PIX:</b>
-{$PIX_CHAVE}
-<b>Nome:</b> {$PIX_NOME}
+        case "conta":
+            api("editMessageText", [
+                "chat_id"=>$chat_id,
+                "message_id"=>$msg_id,
+                "parse_mode"=>"HTML",
+                "text"=>"👤 <b>MINHA CONTA</b>\n\nPlano: Gratuito\nStatus: Ativo\nAcesso: Bloqueado",
+                "reply_markup"=>json_encode([
+                    "inline_keyboard"=>[
+                        [["text"=>"⬅️ VOLTAR","callback_data"=>"voltar"]]
+                    ]
+                ])
+            ]);
+            break;
 
-Após o pagamento, envie o comprovante ao suporte.";
+        case "suporte":
+            api("editMessageText", [
+                "chat_id"=>$chat_id,
+                "message_id"=>$msg_id,
+                "parse_mode"=>"HTML",
+                "text"=>"🛠 <b>SUPORTE</b>\n\nEnvie seu comprovante ou dúvida aqui.",
+                "reply_markup"=>json_encode([
+                    "inline_keyboard"=>[
+                        [["text"=>"⬅️ VOLTAR","callback_data"=>"voltar"]]
+                    ]
+                ])
+            ]);
+            break;
 
-    $keyboard = [
-        "inline_keyboard" => [
-            [["text" => "💬 Enviar Comprovante", "callback_data" => "menu_suporte"]],
-            [["text" => "⬅️ Voltar", "callback_data" => "voltar_menu"]]
-        ]
-    ];
+        case "voltar":
+            mainMenu($chat_id, true, $msg_id);
+            break;
+    }
 
-    sendMessage($chat_id, $text, $keyboard);
+    http_response_code(200);
+    exit;
 }
 
-/* ==========================
-   MINHA CONTA
-========================== */
-
-if ($callback && $callback["data"] == "menu_conta") {
-
-    $chat_id = $callback["message"]["chat"]["id"];
-
-    $text =
-"👤 <b>MINHA CONTA</b>
-
-Plano: Gratuito
-Status: Ativo ✅
-Consultas: Bloqueadas
-
-🔓 Ative um plano para liberar tudo.";
-
-    sendMessage($chat_id, $text);
-}
-
-/* ==========================
-   SUPORTE
-========================== */
-
-if ($callback && $callback["data"] == "menu_suporte") {
-
-    $chat_id = $callback["message"]["chat"]["id"];
-
-    $text =
-"🛠 <b>SUPORTE</b>
-
-Envie seu comprovante PIX
-ou dúvidas por aqui.";
-
-    sendMessage($chat_id, $text);
-}
-
-/* ==========================
-   VOLTAR
-========================== */
-
-if ($callback && $callback["data"] == "voltar_menu") {
-    sendMessage($callback["message"]["chat"]["id"], "Use /menu para voltar ao menu principal.");
-}
+http_response_code(200);
+echo "OK"; tu
