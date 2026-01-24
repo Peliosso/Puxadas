@@ -148,7 +148,7 @@ function catalogo1($chat,$msg){
     ]);
 }
 
-function catalogo3($chat,$msg){
+function catalogo2($chat,$msg){
     tg("editMessageCaption",[
         "chat_id"=>$chat,
         "message_id"=>$msg,
