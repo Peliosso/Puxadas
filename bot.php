@@ -122,18 +122,21 @@ function catalogo1($chat,$msg){
         "chat_id"=>$chat,
         "message_id"=>$msg,
         "caption"=>
-"🚀 <b>CONSULTAS — 1/3</b>
+"🚀 <b>CONSULTAS — 1/2</b>
 
 🔱 <b>VIP</b>
 
 /cpf
+/foto
 /nome
 /rg
 /cnh
 /telefone
 /email
 /placa
-/pix",
+/pix
+/nascimento
+/renavam",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
@@ -145,35 +148,12 @@ function catalogo1($chat,$msg){
     ]);
 }
 
-function catalogo2($chat,$msg){
-    tg("editMessageCaption",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg,
-        "caption"=>
-"🚀 <b>CONSULTAS — 2/3</b>
-
-/foto
-/nascimento
-/renavam",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"⬅️ Anterior","callback_data"=>"catalogo_1"],
-                    ["text"=>"➡️ Próxima","callback_data"=>"catalogo_3"]
-                ],
-                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]],
-            ]
-        ])
-    ]);
-}
-
 function catalogo3($chat,$msg){
     tg("editMessageCaption",[
         "chat_id"=>$chat,
         "message_id"=>$msg,
         "caption"=>
-"🚀 <b>CONSULTAS — 3/3</b>
+"🚀 <b>CONSULTAS — 2/2</b>
 
 ♻️ <b>Grátis</b>
 
