@@ -6,8 +6,8 @@
 $TOKEN = "8241553232:AAGvxGZhHWJkAzKxQ-RsE-Efvy-e4q2XI4U";
 $API   = "https://api.telegram.org/bot$TOKEN";
 
-/* Imagem que aparece no /start e /menu */
-$START_PHOTO = "https://i.imgur.com/SEU_LINK.jpg";
+/* CAMINHO DA IMAGEM LOCAL */
+$START_PHOTO_PATH = __DIR__ . "/assets/banner.jpg";
 
 /* PIX */
 $PIX_CHAVE = "sua-chave-pix@exemplo.com";
@@ -28,30 +28,46 @@ $callback = $update["callback_query"] ?? null;
 
 function sendMessage($chat_id, $text, $keyboard = null) {
     global $API;
+
     $data = [
         "chat_id" => $chat_id,
         "text" => $text,
         "parse_mode" => "HTML"
     ];
-    if ($keyboard) $data["reply_markup"] = json_encode($keyboard);
-    file_get_contents($API."/sendMessage?".http_build_query($data));
+
+    if ($keyboard) {
+        $data["reply_markup"] = json_encode($keyboard);
+    }
+
+    file_get_contents($API . "/sendMessage?" . http_build_query($data));
 }
 
-function sendPhoto($chat_id, $photo, $caption, $keyboard = null) {
+function sendPhotoLocal($chat_id, $photo_path, $caption, $keyboard = null) {
     global $API;
-    $data = [
+
+    $post_fields = [
         "chat_id" => $chat_id,
-        "photo" => $photo,
         "caption" => $caption,
-        "parse_mode" => "HTML"
+        "parse_mode" => "HTML",
+        "photo" => new CURLFile($photo_path)
     ];
-    if ($keyboard) $data["reply_markup"] = json_encode($keyboard);
-    file_get_contents($API."/sendPhoto?".http_build_query($data));
+
+    if ($keyboard) {
+        $post_fields["reply_markup"] = json_encode($keyboard);
+    }
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $API . "/sendPhoto");
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_fields);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_exec($ch);
+    curl_close($ch);
 }
 
 function answerCallback($id, $text) {
     global $API;
-    file_get_contents($API."/answerCallbackQuery?".http_build_query([
+    file_get_contents($API . "/answerCallbackQuery?" . http_build_query([
         "callback_query_id" => $id,
         "text" => $text,
         "show_alert" => true
@@ -74,20 +90,20 @@ if ($message && isset($message["text"]) && in_array($message["text"], ["/start",
 
 ⚡ O bot de buscas mais completo do Telegram
 📸 Destaque em <b>presença visual e fotos públicas</b>
-🔐 Plataforma organizada e automatizada
+🔐 Plataforma automatizada
 
-👇 Use o menu abaixo:";
+👇 Acesse o menu abaixo:";
 
     $keyboard = [
         "inline_keyboard" => [
             [["text" => "🔍 CONSULTAS", "callback_data" => "menu_consultas"]],
             [["text" => "⭐ PLANOS", "callback_data" => "menu_planos"]],
             [["text" => "👤 MINHA CONTA", "callback_data" => "menu_conta"]],
-            [["text" => "🛠 SUPORTE", "callback_data" => "menu_suporte"]],
+            [["text" => "🛠 SUPORTE", "callback_data" => "menu_suporte"]]
         ]
     ];
 
-    sendPhoto($chat_id, $START_PHOTO, $caption, $keyboard);
+    sendPhotoLocal($chat_id, $START_PHOTO_PATH, $caption, $keyboard);
 }
 
 /* ==========================
@@ -197,16 +213,10 @@ if ($callback && $callback["data"] == "menu_conta") {
 
     $chat_id = $callback["message"]["chat"]["id"];
 
-    $text =
-"👤 <b>MINHA CONTA</b>
-
-Plano: Gratuito
-Status: Ativo ✅
-Consultas: Bloqueadas
-
-🔓 Ative um plano para liberar tudo.";
-
-    sendMessage($chat_id, $text);
+    sendMessage(
+        $chat_id,
+        "👤 <b>MINHA CONTA</b>\n\nPlano: Gratuito\nStatus: Ativo ✅\nConsultas: Bloqueadas\n\n🔓 Ative um plano para liberar tudo."
+    );
 }
 
 /* ==========================
@@ -217,13 +227,10 @@ if ($callback && $callback["data"] == "menu_suporte") {
 
     $chat_id = $callback["message"]["chat"]["id"];
 
-    $text =
-"🛠 <b>SUPORTE</b>
-
-Envie seu comprovante PIX
-ou dúvidas por aqui.";
-
-    sendMessage($chat_id, $text);
+    sendMessage(
+        $chat_id,
+        "🛠 <b>SUPORTE</b>\n\nEnvie seu comprovante PIX ou dúvidas por aqui."
+    );
 }
 
 /* ==========================
