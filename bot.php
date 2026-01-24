@@ -447,7 +447,7 @@ break;
 Tenha acesso completo às consultas VIP,
 sem mensalidade e sem limites 🚀
 
-━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━
 🔓 <b>O que você desbloqueia</b>
 
 ✔️ CPF
@@ -461,7 +461,7 @@ sem mensalidade e sem limites 🚀
 ✔️ Renavam
 ✔️ Nascimento
 
-━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━
 ♻️ <b>Consultas grátis</b>
 
 • CEP
@@ -469,7 +469,7 @@ sem mensalidade e sem limites 🚀
 • IP
 (Sempre disponíveis)
 
-━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━
 💎 <b>Vantagens</b>
 
 ⚡ Consultas rápidas
@@ -479,13 +479,13 @@ sem mensalidade e sem limites 🚀
 🧠 Interface profissional
 ♾️ Acesso vitalício
 
-━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━
 💰 <b>Valor único</b>
 
 <b>R$ {$PIX_VALOR}</b> — pagamento único
 (Sem mensalidade)
 
-━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━
 💠 <b>Pagamento via PIX</b>
 
 🔑 Chave: <code>{$PIX_CHAVE}</code>
