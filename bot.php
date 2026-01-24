@@ -179,16 +179,26 @@ function catalogo2($chat,$msg){
 function consultaCNPJ($chat, $cnpj){
     global $STICKER_LOADING;
 
-    // Sticker carregando (NÃO some depois)
-    tg("sendSticker",[
+    // Envia sticker carregando
+    $sticker = tg("sendSticker",[
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
     ]);
+
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
     // Limpa CNPJ
     $cnpj = preg_replace('/\D/','',$cnpj);
 
     if(strlen($cnpj) !== 14){
+        if($stickerMsgId){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
+        }
+
         tg("sendMessage",[
             "chat_id"=>$chat,
             "text"=>"❌ CNPJ inválido.\nUse: <code>/cnpj 00000000000100</code>",
@@ -197,11 +207,18 @@ function consultaCNPJ($chat, $cnpj){
         return;
     }
 
-    // Consulta BrasilAPI
+    // Consulta BrasilAPI (GRÁTIS)
     $resp = @file_get_contents("https://brasilapi.com.br/api/cnpj/v1/{$cnpj}");
     $data = json_decode($resp, true);
 
     if(!$data || isset($data["message"])){
+        if($stickerMsgId){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
+        }
+
         tg("sendMessage",[
             "chat_id"=>$chat,
             "text"=>"❌ CNPJ não encontrado."
@@ -209,7 +226,15 @@ function consultaCNPJ($chat, $cnpj){
         return;
     }
 
-    // TXT formatado
+    // Apaga sticker após sucesso
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
+
+    // Conteúdo TXT
     $txt =
 "CONSULTA DE CNPJ — ASTRO SEARCH
 ================================
@@ -234,14 +259,16 @@ Telefone: {$data["ddd_telefone_1"]}
 Email: {$data["email"]}
 
 --------------------------------
+Consulta gratuita
+Fonte: BrasilAPI
 Créditos: Astro Search
 ";
 
-    // Cria arquivo
+    // Cria arquivo TXT
     $file = tempnam(sys_get_temp_dir(), "cnpj_");
     file_put_contents($file, $txt);
 
-    // Envia TXT
+    // Envia arquivo
     tg("sendDocument",[
         "chat_id"=>$chat,
         "document"=>new CURLFile($file, "text/plain", "cnpj_{$cnpj}.txt"),
