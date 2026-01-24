@@ -38,17 +38,6 @@ function answer($id){
     tg("answerCallbackQuery", ["callback_query_id"=>$id]);
 }
 
-/* ================= AUX ================= */
-
-function sendText($chat,$text,$kb=null){
-    tg("sendMessage",[
-        "chat_id"=>$chat,
-        "text"=>$text,
-        "parse_mode"=>"HTML",
-        "reply_markup"=>$kb ? json_encode($kb) : null
-    ]);
-}
-
 /* ================= TUTORIAL / BLOQUEIO ================= */
 
 function tutorial($chat,$cmd){
@@ -63,19 +52,24 @@ function tutorial($chat,$cmd){
         "/pix"=>"<b>/pix</b>\nExemplo:\n<code>/pix chavepix</code>",
     ];
 
-    sendText($chat,"📘 <b>Como usar</b>\n\n".($map[$cmd] ?? "Use corretamente."));
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>"📘 <b>Como usar</b>\n\n".($map[$cmd] ?? "Use corretamente."),
+        "parse_mode"=>"HTML"
+    ]);
 }
 
 function bloquearConsulta($chat){
-    sendText(
-        $chat,
-        "🔒 <b>Consulta bloqueada</b>\n\nAdquira um plano para realizar consultas.",
-        [
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>"🔒 <b>Consulta bloqueada</b>\n\nAdquira um plano para realizar consultas.",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
             "inline_keyboard"=>[
                 [["text"=>"⭐ Ver Planos","callback_data"=>"planos"]]
             ]
-        ]
-    );
+        ])
+    ]);
 }
 
 /* ================= MENU ================= */
@@ -87,14 +81,18 @@ function menuPrincipal($chat,$nome,$edit=false,$msg=null){
 "<b>🚀 • Astro Search</b>
 
 Olá, <b>{$nome}</b>!
-Escolha uma opção:";
+Escolha uma opção abaixo:";
 
     $kb = [
         "inline_keyboard"=>[
-            [["text"=>"📂 CONSULTAS","callback_data"=>"catalogo_1"]],
-            [["text"=>"⭐ PLANOS","callback_data"=>"planos"]],
-            [["text"=>"👤 MINHA CONTA","callback_data"=>"conta"]],
-            [["text"=>"🛠 SUPORTE","callback_data"=>"suporte"]],
+            [
+                ["text"=>"📂 Consultas","callback_data"=>"catalogo_1"],
+                ["text"=>"👤 Minha conta","callback_data"=>"conta"]
+            ],
+            [
+                ["text"=>"⭐ Planos","callback_data"=>"planos"],
+                ["text"=>"🛠 Suporte","url"=>"https://t.me/silenciante"]
+            ]
         ]
     ];
 
@@ -154,16 +152,16 @@ function catalogo2($chat,$msg){
         "caption"=>
 "🚀 <b>CONSULTAS — 2/3</b>
 
-🔱 <b>VIP</b>
-
 /foto
 /nascimento
 /renavam",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-                [["text"=>"⬅️ Anterior","callback_data"=>"catalogo_1"],["text"=>"➡️ Próxima","callback_data"=>"catalogo_3"]],
-                [["text"=>"🔒 Ativar Plano","callback_data"=>"planos"]],
+                [
+                    ["text"=>"⬅️ Anterior","callback_data"=>"catalogo_1"],
+                    ["text"=>"➡️ Próxima","callback_data"=>"catalogo_3"]
+                ],
                 [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]],
             ]
         ])
@@ -222,9 +220,11 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
 
 if($callback){
     answer($callback["id"]);
+
     $chat = $callback["message"]["chat"]["id"];
     $msg  = $callback["message"]["message_id"];
     $nome = $callback["from"]["first_name"] ?? "usuário";
+    $id   = $callback["from"]["id"];
 
     switch($callback["data"]){
         case "catalogo_1": catalogo1($chat,$msg); break;
@@ -246,11 +246,22 @@ if($callback){
         break;
 
         case "conta":
-            sendText($chat,"👤 <b>Minha Conta</b>\n\nPlano: <b>Grátis</b>");
-        break;
+            tg("editMessageCaption",[
+                "chat_id"=>$chat,
+                "message_id"=>$msg,
+                "caption"=>
+"👤 <b>MINHA CONTA</b>
 
-        case "suporte":
-            sendText($chat,"🛠 <b>Suporte</b>\n\nEntre em contato com o administrador.");
+🆔 ID: <code>{$id}</code>
+👤 Nome: <b>{$nome}</b>
+⭐ Plano: <b>Grátis</b>",
+                "parse_mode"=>"HTML",
+                "reply_markup"=>json_encode([
+                    "inline_keyboard"=>[
+                        [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+                    ]
+                ])
+            ]);
         break;
 
         case "voltar_menu":
