@@ -52,6 +52,7 @@ function tutorial($chat,$cmd){
         "/email"=>"<b>/email</b>\nExemplo:\n<code>/email teste@email.com</code>",
         "/placa"=>"<b>/placa</b>\nExemplo:\n<code>/placa ABC1D23</code>",
         "/pix"=>"<b>/pix</b>\nExemplo:\n<code>/pix chavepix</code>",
+        "/cep"=>"<b>/cep</b>\nExemplo:\n<code>/cep 01001000</code>",
     ];
 
     tg("sendMessage",[
