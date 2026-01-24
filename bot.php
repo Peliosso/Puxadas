@@ -78,9 +78,9 @@ Eu sou o Astro Search, o melhor sistema de consultas do Telegram.
 
 function catalogo1($chat,$msg){
 $text =
-"<b>CATÁLOGO DE CONSULTAS — PÁGINA 1/3</b>
+"<b>🔎 • CONSULTAS DISPONÍVEIS — 1/3</b>
 
-IDENTIFICAÇÃO
+<b>👩🏼 • IDENTIFICAÇÃO</b>
 • CPF
 • CPF (Base Secundária)
 • RG
@@ -90,12 +90,11 @@ IDENTIFICAÇÃO
 • Nomes Abreviados
 • Data de Nascimento
 
-CONTATO
+<b>☎️ • CONTATO</b>
 • Telefone Móvel
 • Telefone Móvel 2
 • Telefone Fixo
 • E-mail
-• Endereço
 • CEP";
 
 $kb = [
@@ -117,16 +116,16 @@ tg("editMessageCaption",[
 
 function catalogo2($chat,$msg){
 $text =
-"<b>CATÁLOGO DE CONSULTAS — PÁGINA 2/3</b>
+"<b>CONSULTAS DISPONÍVEIS — 2/3</b>
 
-VEÍCULOS
+<b>🚛 • VEÍCULOS</b>
 • Placa (Dados completos)
 • RENAVAM
 • Frota Veicular
 • Vistoria
 • Radar Veicular
 
-FINANCEIRO
+<b>💸 • FINANCEIRO</b>
 • Score de Crédito
 • Histórico Financeiro
 • Dívidas
@@ -152,9 +151,9 @@ tg("editMessageCaption",[
 
 function catalogo3($chat,$msg){
 $text =
-"<b>CATÁLOGO DE CONSULTAS — PÁGINA 3/3</b>
+"<b>CONSULTAS DISPONÍVEIS — 3/3</b>
 
-GOVERNAMENTAL
+<b>⚖️ • GOVERNAMENTAL</b>
 • Receita Federal
 • INSS
 • RAIS
@@ -163,7 +162,7 @@ GOVERNAMENTAL
 • Mandados
 • Boletins de Ocorrência
 
-AVANÇADO
+<b>🧿 • AVANÇADO</b>
 • Cruzamento de Dados
 • Relacionamentos
 • Presença Visual Associada";
