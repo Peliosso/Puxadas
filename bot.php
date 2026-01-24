@@ -13,6 +13,7 @@ $START_PHOTO = "https://conventional-magenta-fxkyikrbqe.edgeone.app/E8D6A8B8-36F
 $PIX_VALOR = "25,00";
 $PIX_CHAVE = "70192823698";
 $PIX_NOME  = "Isabelly";
+$STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBLduZ5vHwXjSs4BA";
 
 /* ================= UPDATE ================= */
 
@@ -71,6 +72,8 @@ function bloquearConsulta($chat){
         ])
     ]);
 }
+
+
 
 /* ================= MENU ================= */
 
@@ -170,6 +173,80 @@ function catalogo2($chat,$msg){
     ]);
 }
 
+function consultaCEP($chat, $cep){
+    global $STICKER_LOADING;
+
+    // Envia sticker temporário
+    $sticker = tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+
+    $stickerMsgId = json_decode($sticker, true)["result"]["message_id"] ?? null;
+
+    // Limpa CEP
+    $cep = preg_replace('/\D/','',$cep);
+
+    if(strlen($cep) !== 8){
+        if($stickerMsgId){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
+        }
+
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ CEP inválido.\nUse: <code>/cep 01001000</code>",
+            "parse_mode"=>"HTML"
+        ]);
+        return;
+    }
+
+    // Consulta ViaCEP
+    $resp = file_get_contents("https://viacep.com.br/ws/{$cep}/json/");
+    $data = json_decode($resp, true);
+
+    // Apaga sticker
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
+
+    if(isset($data["erro"])){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ CEP não encontrado.",
+        ]);
+        return;
+    }
+
+    // JSON formatado + créditos
+    $json = [
+        "status" => "success",
+        "consulta" => "cep",
+        "dados" => [
+            "cep" => $data["cep"],
+            "logradouro" => $data["logradouro"],
+            "bairro" => $data["bairro"],
+            "cidade" => $data["localidade"],
+            "estado" => $data["uf"],
+            "ibge" => $data["ibge"],
+            "ddd" => $data["ddd"]
+        ],
+        "creditos" => "Astro Search",
+        "fonte" => "ViaCEP"
+    ];
+
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>"<pre>".json_encode($json, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE)."</pre>",
+        "parse_mode"=>"HTML"
+    ]);
+}
+
 /* ================= START ================= */
 
 if($message && in_array($message["text"],["/start","/menu"])){
@@ -181,6 +258,11 @@ if($message && in_array($message["text"],["/start","/menu"])){
 }
 
 /* ================= COMANDOS ================= */
+
+if($cmd === "/cep"){
+    $arg ? consultaCEP($chat, $arg) : tutorial($chat, "/cep");
+    exit;
+}
 
 if($message && isset($message["text"]) && str_starts_with($message["text"], "/")){
     $chat = $message["chat"]["id"];
