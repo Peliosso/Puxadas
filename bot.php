@@ -11,8 +11,8 @@ $START_PHOTO = "https://conventional-magenta-fxkyikrbqe.edgeone.app/E8D6A8B8-36F
 
 /* PIX */
 $PIX_VALOR = "25,00";
-$PIX_CHAVE = "sua-chave-pix@exemplo.com";
-$PIX_NOME  = "SEARCH PANEL";
+$PIX_CHAVE = "70192823698";
+$PIX_NOME  = "Isabelly";
 
 /* ================= UPDATE ================= */
 
@@ -173,7 +173,7 @@ if($callback){
         tg("editMessageCaption",[
           "chat_id"=>$chat,
           "message_id"=>$msg,
-          "caption"=>"<b>PLANO VITALÍCIO</b>\n\nValor único: R$ {$GLOBALS['PIX_VALOR']}\n\nAcesso total\nUso ilimitado\n\nPIX:\n{$GLOBALS['PIX_CHAVE']}\n{$GLOBALS['PIX_NOME']}",
+          "caption"=>"😱 • <b>PLANO VITALÍCIO</b>\n\nValor único: R$ {$GLOBALS['PIX_VALOR']}\n\nAcesso total\nUso ilimitado\n\nPIX:\n{$GLOBALS['PIX_CHAVE']}\n{$GLOBALS['PIX_NOME']}",
           "parse_mode"=>"HTML",
           "reply_markup"=>json_encode([
             "inline_keyboard"=>[
