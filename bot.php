@@ -53,6 +53,7 @@ function tutorial($chat,$cmd){
         "/placa"=>"<b>/placa</b>\nExemplo:\n<code>/placa ABC1D23</code>",
         "/pix"=>"<b>/pix</b>\nExemplo:\n<code>/pix chavepix</code>",
         "/cep"=>"<b>/cep</b>\nExemplo:\n<code>/cep 01001000</code>",
+        "/cnpj"=>"<b>/cnpj</b>\nExemplo:\n<code>/cnpj 00000000000100</code>",
     ];
 
     tg("sendMessage",[
@@ -175,6 +176,90 @@ function catalogo2($chat,$msg){
     ]);
 }
 
+function consultaCNPJ($chat, $cnpj){
+    global $STICKER_LOADING;
+
+    // Sticker carregando (NÃO some depois)
+    tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+
+    // Limpa CNPJ
+    $cnpj = preg_replace('/\D/','',$cnpj);
+
+    if(strlen($cnpj) !== 14){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ CNPJ inválido.\nUse: <code>/cnpj 00000000000100</code>",
+            "parse_mode"=>"HTML"
+        ]);
+        return;
+    }
+
+    // Consulta BrasilAPI
+    $resp = @file_get_contents("https://brasilapi.com.br/api/cnpj/v1/{$cnpj}");
+    $data = json_decode($resp, true);
+
+    if(!$data || isset($data["message"])){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ CNPJ não encontrado."
+        ]);
+        return;
+    }
+
+    // TXT formatado
+    $txt =
+"CONSULTA DE CNPJ — ASTRO SEARCH
+================================
+
+CNPJ: {$data["cnpj"]}
+Razão Social: {$data["razao_social"]}
+Nome Fantasia: {$data["nome_fantasia"]}
+
+Situação: {$data["descricao_situacao_cadastral"]}
+Abertura: {$data["data_inicio_atividade"]}
+
+Atividade Principal:
+{$data["cnae_fiscal_descricao"]}
+
+Endereço:
+Logradouro: {$data["logradouro"]}, {$data["numero"]}
+Bairro: {$data["bairro"]}
+Cidade: {$data["municipio"]} - {$data["uf"]}
+CEP: {$data["cep"]}
+
+Telefone: {$data["ddd_telefone_1"]}
+Email: {$data["email"]}
+
+--------------------------------
+Créditos: Astro Search
+";
+
+    // Cria arquivo
+    $file = tempnam(sys_get_temp_dir(), "cnpj_");
+    file_put_contents($file, $txt);
+
+    // Envia TXT
+    tg("sendDocument",[
+        "chat_id"=>$chat,
+        "document"=>new CURLFile($file, "text/plain", "cnpj_{$cnpj}.txt"),
+        "caption"=>"🏢 <b>Consulta de CNPJ concluída</b>\n\nCréditos: <b>Astro Search</b>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/silenciante"]
+                ]
+            ]
+        ])
+    ]);
+
+    unlink($file);
+}
+
 function consultaCEP($chat, $cep){
     global $STICKER_LOADING;
 
@@ -240,8 +325,6 @@ DDD: {$data["ddd"]}
 IBGE: {$data["ibge"]}
 
 --------------------------------
-Consulta gratuita
-Fonte: ViaCEP
 Créditos: Astro Search
 ";
 
@@ -292,6 +375,11 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
         $arg ? bloquearConsulta($chat) : tutorial($chat,$cmd);
         exit;
     }
+}
+
+if($cmd === "/cnpj"){
+    $arg ? consultaCNPJ($chat, $arg) : tutorial($chat, "/cnpj");
+    exit;
 }
 
 if($cmd === "/cep"){
