@@ -439,8 +439,59 @@ break;
         case "planos":
 
     $hasPhoto = isset($callback["message"]["photo"]);
-
     $method = $hasPhoto ? "editMessageCaption" : "editMessageText";
+
+    $textoPlano =
+"⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
+
+Tenha acesso completo às consultas VIP,
+sem mensalidade e sem limites 🚀
+
+━━━━━━━━━━━━━━━━━━
+🔓 <b>O que você desbloqueia</b>
+
+✔️ CPF
+✔️ Nome
+✔️ RG
+✔️ CNH
+✔️ Telefone
+✔️ E-mail
+✔️ Placa
+✔️ PIX
+✔️ Renavam
+✔️ Nascimento
+
+━━━━━━━━━━━━━━━━━━
+♻️ <b>Consultas grátis</b>
+
+• CEP
+• CNPJ
+• IP
+(Sempre disponíveis)
+
+━━━━━━━━━━━━━━━━━━
+💎 <b>Vantagens</b>
+
+⚡ Consultas rápidas
+📂 Retorno organizado
+📄 Arquivos em TXT
+🔐 Sistema estável
+🧠 Interface profissional
+♾️ Acesso vitalício
+
+━━━━━━━━━━━━━━━━━━
+💰 <b>Valor único</b>
+
+<b>R$ {$PIX_VALOR}</b> — pagamento único
+(Sem mensalidade)
+
+━━━━━━━━━━━━━━━━━━
+💠 <b>Pagamento via PIX</b>
+
+🔑 Chave: <code>{$PIX_CHAVE}</code>
+👤 Nome: <b>{$PIX_NOME}</b>
+
+Após o pagamento, envie o comprovante no suporte 👇";
 
     $data = [
         "chat_id" => $chat,
@@ -448,29 +499,20 @@ break;
         "parse_mode" => "HTML",
         "reply_markup" => json_encode([
             "inline_keyboard" => [
-                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+                [
+                    ["text"=>"📩 Enviar Comprovante","url"=>"https://t.me/silenciante"]
+                ],
+                [
+                    ["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
+                ]
             ]
         ])
     ];
 
     if($hasPhoto){
-        $data["caption"] =
-"⭐ <b>PLANO VITALÍCIO</b>
-
-Valor: R$ {$PIX_VALOR}
-
-PIX:
-{$PIX_CHAVE}
-{$PIX_NOME}";
+        $data["caption"] = $textoPlano;
     } else {
-        $data["text"] =
-"⭐ <b>PLANO VITALÍCIO</b>
-
-Valor: R$ {$PIX_VALOR}
-
-PIX:
-{$PIX_CHAVE}
-{$PIX_NOME}";
+        $data["text"] = $textoPlano;
     }
 
     tg($method, $data);
