@@ -41,7 +41,7 @@ function menuPrincipal($chat, $nome = "usuário", $edit = false, $msg = null){
     $text =
 "<b>🚀 • Astro Search</b>
 
-Olá!</b>
+Olá!
 Eu sou o Astro Search, o melhor sistema de consultas do Telegram.
 
 <i>👇 • Escolha uma opção abaixo:</i>";
