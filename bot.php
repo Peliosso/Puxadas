@@ -5,7 +5,7 @@ error_reporting(0);
 
 $TOKEN = "8241553232:AAGvxGZhHWJkAzKxQ-RsE-Efvy-e4q2XI4U";
 $API   = "https://api.telegram.org/bot{$TOKEN}";
-$START_PHOTO = "https://mixed-harlequin-wtszjxhguc.edgeone.app/";
+$START_PHOTO = "https://mixed-harlequin-wtszjxhguc.edgeone.app/AC73A5C8-A752-4EF4-9CB5-E627CBA570D7.png";
 
 $PIX_VALOR = "25,00";
 $PIX_CHAVE = "sua-chave-pix@exemplo.com";
