@@ -87,6 +87,8 @@ $text =
 
 🔱 • <b>VIPs</b>
 
+<i>Clique em algumas das opções e veja como funciona:</i>
+
 • /CPF
 • /foto
 • /RG 
@@ -119,6 +121,8 @@ tg("editMessageCaption",[
 function catalogo2($chat,$msg){
 $text =
 "🚀 • <b>CONSULTAS — 2/2</b>
+
+<i>Clique em algumas das opções e veja como funciona:</i>
 
 ♻️ • <b>Grátis</b>
 
