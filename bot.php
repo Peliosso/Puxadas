@@ -35,18 +35,16 @@ function answer($id){
     tg("answerCallbackQuery", ["callback_query_id"=>$id]);
 }
 
-/* ================= MENUS ================= */
-
-function menuPrincipal($chat,$edit=false,$msg=null){
+function menuPrincipal($chat, $nome = "usuário", $edit = false, $msg = null){
     global $START_PHOTO;
 
     $text =
-"<b>🔎 SEARCH PANEL</b>
+"<b>🚀 • Astro Search</b>
 
-Sistema privado de consultas estruturadas.
-Interface premium • Acesso controlado • Alta disponibilidade
+Olá! <b>{$nome}</b>
+Eu sou o Astro Search, o melhor sistema de consultas do Telegram.
 
-Escolha uma opção abaixo:";
+<i>👇 • Escolha uma opção abaixo:</i>";
 
     $kb = [
         "inline_keyboard"=>[
@@ -57,7 +55,7 @@ Escolha uma opção abaixo:";
         ]
     ];
 
-    if($edit){
+    if ($edit) {
         tg("editMessageCaption",[
             "chat_id"=>$chat,
             "message_id"=>$msg,
