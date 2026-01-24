@@ -7,7 +7,7 @@ $TOKEN = "8241553232:AAGvxGZhHWJkAzKxQ-RsE-Efvy-e4q2XI4U";
 $API   = "https://api.telegram.org/bot$TOKEN";
 
 /* CAMINHO DA IMAGEM LOCAL */
-$START_PHOTO_PATH = __DIR__ . "/assets/banner.jpg";
+$START_PHOTO_PATH = __DIR__ . "/assets/A4643DEF-1337-4645-8000-D0A036889B18.png";
 
 /* PIX */
 $PIX_CHAVE = "sua-chave-pix@exemplo.com";
