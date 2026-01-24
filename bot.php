@@ -1,37 +1,27 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+error_reporting(0);
 
-/* ==========================
-   CONFIG
-========================== */
+/* ================= CONFIG ================= */
 
 $TOKEN = "8241553232:AAGvxGZhHWJkAzKxQ-RsE-Efvy-e4q2XI4U";
 $API   = "https://api.telegram.org/bot{$TOKEN}";
+$START_PHOTO = "https://i.imgur.com/SEU_LINK.jpg";
 
-/* Se quiser foto no /start, use URL ou envie local depois */
-$START_PHOTO_URL = "https://i.imgur.com/SEU_LINK.jpg";
-
-/* PIX */
 $PIX_VALOR = "25,00";
 $PIX_CHAVE = "sua-chave-pix@exemplo.com";
 $PIX_NOME  = "SEARCH PANEL";
 
-/* ==========================
-   UPDATE
-========================== */
+/* ================= UPDATE ================= */
 
 $update = json_decode(file_get_contents("php://input"), true);
 $message  = $update["message"] ?? null;
 $callback = $update["callback_query"] ?? null;
 
-/* ==========================
-   API HELPER
-========================== */
+/* ================= API ================= */
 
-function api($method, $data = []) {
+function tg($method, $data) {
     global $API;
-    $ch = curl_init($API . "/" . $method);
+    $ch = curl_init($API."/".$method);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
@@ -41,47 +31,44 @@ function api($method, $data = []) {
     curl_close($ch);
 }
 
-function answer($id) {
-    api("answerCallbackQuery", ["callback_query_id" => $id]);
+function answer($id){
+    tg("answerCallbackQuery", ["callback_query_id"=>$id]);
 }
 
-/* ==========================
-   MENUS
-========================== */
+/* ================= MENUS ================= */
 
-function mainMenu($chat_id, $edit = false, $msg_id = null) {
-    global $START_PHOTO_URL;
+function menuPrincipal($chat,$edit=false,$msg=null){
+    global $START_PHOTO;
 
     $text =
-"<b>SEARCH PANEL</b>
-Sistema Premium de Consultas
+"<b>🔎 SEARCH PANEL</b>
 
-Plataforma privada com acesso controlado por plano.
-Interface organizada, rápida e direta.
+Sistema privado de consultas estruturadas.
+Interface premium • Acesso controlado • Alta disponibilidade
 
-Selecione uma opção abaixo:";
+Escolha uma opção abaixo:";
 
     $kb = [
-        "inline_keyboard" => [
-            [["text"=>"CONSULTAS","callback_data"=>"consultas"]],
-            [["text"=>"PLANOS","callback_data"=>"planos"]],
-            [["text"=>"MINHA CONTA","callback_data"=>"conta"]],
-            [["text"=>"SUPORTE","callback_data"=>"suporte"]],
+        "inline_keyboard"=>[
+            [["text"=>"📂 CONSULTAS","callback_data"=>"catalogo_1"]],
+            [["text"=>"⭐ PLANOS","callback_data"=>"planos"]],
+            [["text"=>"👤 MINHA CONTA","callback_data"=>"conta"]],
+            [["text"=>"🛠 SUPORTE","callback_data"=>"suporte"]],
         ]
     ];
 
-    if ($edit) {
-        api("editMessageText", [
-            "chat_id"=>$chat_id,
-            "message_id"=>$msg_id,
-            "text"=>$text,
+    if($edit){
+        tg("editMessageCaption",[
+            "chat_id"=>$chat,
+            "message_id"=>$msg,
+            "caption"=>$text,
             "parse_mode"=>"HTML",
             "reply_markup"=>json_encode($kb)
         ]);
     } else {
-        api("sendPhoto", [
-            "chat_id"=>$chat_id,
-            "photo"=>$START_PHOTO_URL,
+        tg("sendPhoto",[
+            "chat_id"=>$chat,
+            "photo"=>$START_PHOTO,
             "caption"=>$text,
             "parse_mode"=>"HTML",
             "reply_markup"=>json_encode($kb)
@@ -89,172 +76,156 @@ Selecione uma opção abaixo:";
     }
 }
 
-function consultasMenu($chat_id, $msg_id) {
+/* ================= CATÁLOGO ================= */
 
-    $text =
-"<b>CATÁLOGO DE CONSULTAS</b>
+function catalogo1($chat,$msg){
+$text =
+"<b>CATÁLOGO DE CONSULTAS — PÁGINA 1/3</b>
 
-━━━━━━━━━━━━━━━━━━━━
-<b>IDENTIFICAÇÃO CIVIL</b>
-━━━━━━━━━━━━━━━━━━━━
+IDENTIFICAÇÃO
 • CPF
-• CPF (Base Alternativa)
+• CPF (Base Secundária)
 • RG
 • CNH
-• Número de Segurança da CNH
+• Número de Segurança CNH
 • Nome Completo
 • Nomes Abreviados
 • Data de Nascimento
-• Vínculos Familiares
-• Vizinhos Registrados
 
-━━━━━━━━━━━━━━━━━━━━
-<b>CONTATO & LOCALIZAÇÃO</b>
-━━━━━━━━━━━━━━━━━━━━
+CONTATO
 • Telefone Móvel
-• Telefone Móvel (Base Secundária)
+• Telefone Móvel 2
 • Telefone Fixo
-• Endereço Completo
-• CEP
 • E-mail
-• IP e Presença Digital
+• Endereço
+• CEP";
 
-━━━━━━━━━━━━━━━━━━━━
-<b>VEÍCULOS</b>
-━━━━━━━━━━━━━━━━━━━━
-• Consulta por Placa (Dados Completos)
+$kb = [
+ "inline_keyboard"=>[
+   [["text"=>"➡️ Próxima","callback_data"=>"catalogo_2"]],
+   [["text"=>"🔒 Ativar Plano","callback_data"=>"planos"]],
+   [["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"]],
+ ]
+];
+
+tg("editMessageCaption",[
+ "chat_id"=>$chat,
+ "message_id"=>$msg,
+ "caption"=>$text,
+ "parse_mode"=>"HTML",
+ "reply_markup"=>json_encode($kb)
+]);
+}
+
+function catalogo2($chat,$msg){
+$text =
+"<b>CATÁLOGO DE CONSULTAS — PÁGINA 2/3</b>
+
+VEÍCULOS
+• Placa (Dados completos)
 • RENAVAM
 • Frota Veicular
-• Vistoria Veicular
-• Radar e Registros de Circulação
+• Vistoria
+• Radar Veicular
 
-━━━━━━━━━━━━━━━━━━━━
-<b>FINANCEIRO & CRÉDITO</b>
-━━━━━━━━━━━━━━━━━━━━
+FINANCEIRO
 • Score de Crédito
-• Histórico de Crédito
-• Dívidas e Pendências
-• Comprovantes via PIX
-• IRPF (Base Declaratória)
+• Histórico Financeiro
+• Dívidas
+• Comprovantes PIX
+• IRPF";
 
-━━━━━━━━━━━━━━━━━━━━
-<b>GOVERNAMENTAL & REGISTROS</b>
-━━━━━━━━━━━━━━━━━━━━
-• CNPJ
+$kb = [
+ "inline_keyboard"=>[
+   [["text"=>"⬅️ Anterior","callback_data"=>"catalogo_1"],["text"=>"➡️ Próxima","callback_data"=>"catalogo_3"]],
+   [["text"=>"🔒 Ativar Plano","callback_data"=>"planos"]],
+   [["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"]],
+ ]
+];
+
+tg("editMessageCaption",[
+ "chat_id"=>$chat,
+ "message_id"=>$msg,
+ "caption"=>$text,
+ "parse_mode"=>"HTML",
+ "reply_markup"=>json_encode($kb)
+]);
+}
+
+function catalogo3($chat,$msg){
+$text =
+"<b>CATÁLOGO DE CONSULTAS — PÁGINA 3/3</b>
+
+GOVERNAMENTAL
 • Receita Federal
 • INSS
-• RAIS (Histórico Profissional)
-• Vacinação COVID
-• Boletim de Ocorrência
-• Mandados e Restrições
+• RAIS
+• Vacinação
 • Processos Judiciais
+• Mandados
+• Boletins de Ocorrência
 
-━━━━━━━━━━━━━━━━━━━━
-<b>BASES AVANÇADAS</b>
-━━━━━━━━━━━━━━━━━━━━
+AVANÇADO
 • Cruzamento de Dados
-• Relacionamentos Diretos
-• Análise de Vínculos
-• Presença Visual Associada
+• Relacionamentos
+• Presença Visual Associada";
 
-━━━━━━━━━━━━━━━━━━━━
-<b>ACESSO RESTRITO</b>
-━━━━━━━━━━━━━━━━━━━━
-Todas as consultas são liberadas
-exclusivamente para usuários com plano ativo.";
+$kb = [
+ "inline_keyboard"=>[
+   [["text"=>"⬅️ Anterior","callback_data"=>"catalogo_2"]],
+   [["text"=>"🔒 Ativar Plano","callback_data"=>"planos"]],
+   [["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"]],
+ ]
+];
 
-    $kb = [
-        "inline_keyboard"=>[
-            [["text"=>"ADQUIRIR PLANO","callback_data"=>"planos"]],
-            [["text"=>"VOLTAR AO MENU","callback_data"=>"voltar"]]
-        ]
-    ];
-
-    api("editMessageText", [
-        "chat_id"=>$chat_id,
-        "message_id"=>$msg_id,
-        "text"=>$text,
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode($kb)
-    ]);
+tg("editMessageCaption",[
+ "chat_id"=>$chat,
+ "message_id"=>$msg,
+ "caption"=>$text,
+ "parse_mode"=>"HTML",
+ "reply_markup"=>json_encode($kb)
+]);
 }
 
-/* ==========================
-   START
-========================== */
+/* ================= START ================= */
 
-if ($message && in_array($message["text"], ["/start","/menu"])) {
-    mainMenu($message["chat"]["id"]);
-    http_response_code(200); exit;
-}
-
-/* ==========================
-   CALLBACKS
-========================== */
-
-if ($callback) {
-
-    $chat_id = $callback["message"]["chat"]["id"];
-    $msg_id  = $callback["message"]["message_id"];
-    answer($callback["id"]);
-
-    switch ($callback["data"]) {
-
-        case "consultas":
-            consultasMenu($chat_id, $msg_id);
-            break;
-
-        case "planos":
-            api("editMessageText", [
-                "chat_id"=>$chat_id,
-                "message_id"=>$msg_id,
-                "parse_mode"=>"HTML",
-                "text"=>"<b>PLANO VITALÍCIO</b>\n\nValor único: R$ {$PIX_VALOR}\n\nAcesso completo ao catálogo\nUso ilimitado\nSem mensalidade\n\n<b>PIX:</b>\n{$PIX_CHAVE}\n<b>Nome:</b> {$PIX_NOME}\n\nApós o pagamento, envie o comprovante ao suporte.",
-                "reply_markup"=>json_encode([
-                    "inline_keyboard"=>[
-                        [["text"=>"SUPORTE","callback_data"=>"suporte"]],
-                        [["text"=>"VOLTAR AO MENU","callback_data"=>"voltar"]]
-                    ]
-                ])
-            ]);
-            break;
-
-        case "conta":
-            api("editMessageText", [
-                "chat_id"=>$chat_id,
-                "message_id"=>$msg_id,
-                "parse_mode"=>"HTML",
-                "text"=>"<b>MINHA CONTA</b>\n\nPlano: Gratuito\nStatus: Ativo\nAcesso: Limitado\n\nAtive um plano para liberar o catálogo completo.",
-                "reply_markup"=>json_encode([
-                    "inline_keyboard"=>[
-                        [["text"=>"VOLTAR AO MENU","callback_data"=>"voltar"]]
-                    ]
-                ])
-            ]);
-            break;
-
-        case "suporte":
-            api("editMessageText", [
-                "chat_id"=>$chat_id,
-                "message_id"=>$msg_id,
-                "parse_mode"=>"HTML",
-                "text"=>"<b>SUPORTE</b>\n\nEnvie seu comprovante de pagamento ou sua dúvida por aqui.",
-                "reply_markup"=>json_encode([
-                    "inline_keyboard"=>[
-                        [["text"=>"VOLTAR AO MENU","callback_data"=>"voltar"]]
-                    ]
-                ])
-            ]);
-            break;
-
-        case "voltar":
-            mainMenu($chat_id, true, $msg_id);
-            break;
-    }
-
-    http_response_code(200);
+if($message && in_array($message["text"],["/start","/menu"])){
+    menuPrincipal($message["chat"]["id"]);
     exit;
 }
 
-http_response_code(200);
+/* ================= CALLBACKS ================= */
+
+if($callback){
+ answer($callback["id"]);
+
+ $chat = $callback["message"]["chat"]["id"];
+ $msg  = $callback["message"]["message_id"];
+
+ switch($callback["data"]){
+    case "catalogo_1": catalogo1($chat,$msg); break;
+    case "catalogo_2": catalogo2($chat,$msg); break;
+    case "catalogo_3": catalogo3($chat,$msg); break;
+
+    case "planos":
+        tg("editMessageCaption",[
+          "chat_id"=>$chat,
+          "message_id"=>$msg,
+          "caption"=>"<b>PLANO VITALÍCIO</b>\n\nValor único: R$ {$GLOBALS['PIX_VALOR']}\n\nAcesso total ao catálogo\nUso ilimitado\n\nPIX:\n{$GLOBALS['PIX_CHAVE']}\n{$GLOBALS['PIX_NOME']}",
+          "parse_mode"=>"HTML",
+          "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+              [["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"]]
+            ]
+          ])
+        ]);
+    break;
+
+    case "voltar_menu":
+        menuPrincipal($chat,true,$msg);
+    break;
+ }
+ exit;
+}
+
 echo "OK";
