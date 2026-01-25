@@ -128,10 +128,10 @@ Escolha uma opção abaixo:
 /* ================= CATÁLOGOS ================= */
 
 function catalogo1($chat,$msg){
-    tg("editMessageCaption",[
+    tg("editMessageText",[
         "chat_id"=>$chat,
         "message_id"=>$msg,
-        "caption"=>
+        "text"=>
 "🚀 <b>CONSULTAS — 1/2</b>
 
 🔱 <b>VIP</b>
@@ -159,10 +159,10 @@ function catalogo1($chat,$msg){
 }
 
 function catalogo2($chat,$msg){
-    tg("editMessageCaption",[
+    tg("editMessageText",[
         "chat_id"=>$chat,
         "message_id"=>$msg,
-        "caption"=>
+        "text"=>
 "🚀 <b>CONSULTAS — 2/2</b>
 
 ♻️ <b>Grátis</b>
@@ -542,10 +542,7 @@ break;
 
         case "planos":
 
-    $hasPhoto = isset($callback["message"]["photo"]);
-    $method = $hasPhoto ? "editMessageCaption" : "editMessageText";
-
-    $textoPlano =
+$textoPlano =
 "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
 
 Tenha acesso completo às consultas VIP,
@@ -574,44 +571,26 @@ sem mensalidade e sem limites 🚀
 (Sempre disponíveis)
 
 ━━━━━━━━━━━━━━━━
-💎 <b>Vantagens</b>
-
-⚡ Consultas rápidas
-📂 Retorno organizado
-📄 Arquivos em TXT
-🔐 Sistema estável
-🧠 Interface profissional
-♾️ Acesso vitalício
-
-━━━━━━━━━━━━━━━━
 💰 <b>Valor único</b>
 
-<b>R$ {$PIX_VALOR}</b> — pagamento único
-(Sem mensalidade)
+<b>R$ {$PIX_VALOR}</b>
 
-━━━━━━━━━━━━━━━━
-💠 <b>Pagamento via PIX</b>
+🔑 Chave PIX: <code>{$PIX_CHAVE}</code>
+👤 {$PIX_NOME}";
 
-🔑 Chave: <code>{$PIX_CHAVE}</code>
-👤 Nome: <b>{$PIX_NOME}</b>
-
-Após o pagamento, envie o comprovante no suporte 👇";
-
-    $data = [
-        "chat_id" => $chat,
-        "message_id" => $msg,
-        "parse_mode" => "HTML",
-        "reply_markup" => json_encode([
-            "inline_keyboard" => [
-                [
-                    ["text"=>"📩 Enviar Comprovante","url"=>"https://t.me/silenciante"]
-                ],
-                [
-                    ["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
-                ]
-            ]
-        ])
-    ];
+tg("editMessageText",[
+    "chat_id"=>$chat,
+    "message_id"=>$msg,
+    "text"=>$textoPlano,
+    "parse_mode"=>"HTML",
+    "reply_markup"=>json_encode([
+        "inline_keyboard"=>[
+            [["text"=>"📩 Enviar Comprovante","url"=>"https://t.me/silenciante"]],
+            [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+        ]
+    ])
+]);
+break;
 
     if($hasPhoto){
         $data["caption"] = $textoPlano;
@@ -622,28 +601,24 @@ Após o pagamento, envie o comprovante no suporte 👇";
     tg($method, $data);
 break;
 
-        case "conta":
-            tg("editMessageCaption",[
-                "chat_id"=>$chat,
-                "message_id"=>$msg,
-                "caption"=>
+       case "conta":
+    tg("editMessageText",[
+        "chat_id"=>$chat,
+        "message_id"=>$msg,
+        "text"=>
 "👤 <b>MINHA CONTA</b>
 
 🆔 ID: <code>{$id}</code>
 👤 Nome: <b>{$nome}</b>
 ⭐ Plano: <b>Grátis</b>",
-                "parse_mode"=>"HTML",
-                "reply_markup"=>json_encode([
-                    "inline_keyboard"=>[
-                        [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
-                    ]
-                ])
-            ]);
-        break;
-
-        case "voltar_menu":
-            menuPrincipal($chat,$nome,true,$msg);
-        break;
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+            ]
+        ])
+    ]);
+break;
     }
     exit;
 }
