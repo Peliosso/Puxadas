@@ -88,7 +88,9 @@ function menuPrincipal($chat,$nome,$edit=false,$msg=null){
 "<b>🚀 • Astro Search</b>
 
 Olá, <b>{$nome}</b>!
-Escolha uma opção abaixo:";
+Escolha uma opção abaixo:
+
+<a href=\"{$START_PHOTO}\">&#8205;</a>";
 
     $kb = [
         "inline_keyboard"=>[
@@ -104,20 +106,21 @@ Escolha uma opção abaixo:";
     ];
 
     if($edit){
-        tg("editMessageCaption",[
+        tg("editMessageText",[
             "chat_id"=>$chat,
             "message_id"=>$msg,
-            "caption"=>$text,
+            "text"=>$text,
             "parse_mode"=>"HTML",
-            "reply_markup"=>json_encode($kb)
+            "reply_markup"=>json_encode($kb),
+            "disable_web_page_preview"=>false
         ]);
     } else {
-        tg("sendPhoto",[
+        tg("sendMessage",[
             "chat_id"=>$chat,
-            "photo"=>$START_PHOTO,
-            "caption"=>$text,
+            "text"=>$text,
             "parse_mode"=>"HTML",
-            "reply_markup"=>json_encode($kb)
+            "reply_markup"=>json_encode($kb),
+            "disable_web_page_preview"=>false
         ]);
     }
 }
