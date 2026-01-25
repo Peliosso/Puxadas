@@ -540,6 +540,10 @@ if($callback){
     ]);
 break;
 
+        case "voltar_menu":
+    menuPrincipal($chat,$nome);
+break;
+
         case "planos":
 
 $textoPlano =
