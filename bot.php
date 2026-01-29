@@ -44,7 +44,7 @@ function answer($id){
 
 function tutorial($chat,$cmd){
     $map = [
-        "/cpf"=>"<b>/cpf</b>\nExemplo:\n<code>/cpf 00000000000</code>",
+
         "/nome"=>"<b>/nome</b>\nExemplo:\n<code>/nome João Silva</code>",
         "/rg"=>"<b>/rg</b>\nExemplo:\n<code>/rg 1234567</code>",
         "/cnh"=>"<b>/cnh</b>\nExemplo:\n<code>/cnh 123456789</code>",
