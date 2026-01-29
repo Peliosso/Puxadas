@@ -491,46 +491,23 @@ Créditos: Astro Search
 function consultaCPF($chat, $cpf){
     global $STICKER_LOADING;
 
-    // Sticker carregando
     $sticker = tg("sendSticker",[
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
     ]);
-
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-    // Limpa CPF
     $cpf = preg_replace('/\D/','',$cpf);
 
-    if(strlen($cpf) !== 11){
-        if($stickerMsgId){
-            tg("deleteMessage",[
-                "chat_id"=>$chat,
-                "message_id"=>$stickerMsgId
-            ]);
-        }
-
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>"❌ CPF inválido.\nUse: <code>/cpf 00000000000</code>",
-            "parse_mode"=>"HTML"
-        ]);
-        return;
-    }
-
-    // ===== CONSULTA SAKURA API =====
     $url = "https://sakura-apis.whf.bz/api/consultas/cpf_sisregi?cpf={$cpf}&apikey=Sakura-Free-p3o7i1u9y4t6r2e8w0q5";
-    $resp = @file_get_contents($url);
+    $resp = file_get_contents($url);
     $json = json_decode($resp, true);
 
-    // Apaga sticker
-    if($stickerMsgId){
-        tg("deleteMessage",[
-            "chat_id"=>$chat,
-            "message_id"=>$stickerMsgId
-        ]);
-    }
+    tg("deleteMessage",[
+        "chat_id"=>$chat,
+        "message_id"=>$stickerMsgId
+    ]);
 
     if(!$json || $json["codigo"] != 200){
         tg("sendMessage",[
@@ -542,69 +519,51 @@ function consultaCPF($chat, $cpf){
 
     $dados = $json["resultado"]["dados"];
 
+    // CHAVES REAIS DA SAKURA (bugadas)
     $p = $dados["Dados pessoais"];
-    $e = $dados["Endereço"];
+    $e = $dados["EndereÃ§o"];
     $tels = $dados["Contatos"]["Telefones"] ?? [];
 
-    $telefonesTxt = "";
+    $telefonesTxt="";
     foreach($tels as $t){
-        $telefonesTxt .= "{$t["Tipo Telefone"]}: {$t["DDD"]} {$t["Número"]}\n";
+        $telefonesTxt.="{$t["Tipo Telefone"]}: {$t["DDD"]} {$t["NÃºmero"]}\n";
     }
 
-    if(empty($telefonesTxt)){
-        $telefonesTxt = "Nenhum telefone encontrado.\n";
-    }
-
-    // ===== TXT FORMATADO =====
     $txt =
-"CONSULTA DE CPF — ASTRO SEARCH
+"CONSULTA CPF — ASTRO SEARCH
 ================================
 
 CPF: {$cpf}
 
 Nome: {$p["Nome"]}
-Mãe: {$p["Nome da Mãe"]}
+Mãe: {$p["Nome da MÃ£e"]}
 Pai: {$p["Nome do Pai"]}
 
 Sexo: {$p["Sexo"]}
-Raça: {$p["Raça"]}
+Raça: {$p["RaÃ§a"]}
 Nascimento: {$p["Data de Nascimento"]}
 Nacionalidade: {$p["Nacionalidade"]}
-Município Nascimento: {$p["Município de Nascimento"]}
+Município Nascimento: {$p["MunicÃ­pio de Nascimento"]}
 
 ENDEREÇO
 --------------------------------
-Logradouro: {$e["Logradouro"]}, {$e["Número"]}
+Logradouro: {$e["Logradouro"]}, {$e["NÃºmero"]}
 Bairro: {$e["Bairro"]}
-Cidade: {$e["Município de Residência"]}
+Cidade: {$e["MunicÃ­pio de ResidÃªncia"]}
 CEP: {$e["CEP"]}
 
 CONTATOS
 --------------------------------
 {$telefonesTxt}
-
---------------------------------
-Créditos: Astro Search
 ";
 
-    // Cria arquivo
     $file = tempnam(sys_get_temp_dir(), "cpf_");
     file_put_contents($file, $txt);
 
-    // Envia TXT
     tg("sendDocument",[
         "chat_id"=>$chat,
         "document"=>new CURLFile($file, "text/plain", "cpf_{$cpf}.txt"),
-        "caption"=>"🧾 <b>Consulta de CPF concluída</b>\n\nCréditos: <b>Astro Search</b>",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/silenciante"]
-                ]
-            ]
-        ])
+        "caption"=>"🧾 Consulta de CPF concluída",
     ]);
 
     unlink($file);
