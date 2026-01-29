@@ -15,6 +15,17 @@ $PIX_CHAVE = "70192823698";
 $PIX_NOME  = "Isabelly";
 $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBLduZ5vHwXjSs4BA";
 
+/* ================= VIP ================= */
+
+$VIP_IDS = [
+    7926471341, // Seu ID VIP
+];
+
+function isVip($id){
+    global $VIP_IDS;
+    return in_array($id, $VIP_IDS);
+}
+
 /* ================= UPDATE ================= */
 
 $update   = json_decode(file_get_contents("php://input"), true);
@@ -613,36 +624,45 @@ if($message && in_array($message["text"],["/start","/menu"])){
 
 if($message && isset($message["text"]) && str_starts_with($message["text"], "/")){
     $chat = $message["chat"]["id"];
+    $userId = $message["from"]["id"];
     $p = explode(" ", trim($message["text"]), 2);
     $cmd = strtolower($p[0]);
     $arg = $p[1] ?? null;
 
-    $vip = ["/cpf","/nome","/rg","/cnh","/telefone","/email","/placa","/pix"];
-
-    if(in_array($cmd,$vip)){
-        $arg ? bloquearConsulta($chat) : tutorial($chat,$cmd);
+    // ===== COMANDOS GRÁTIS =====
+    if($cmd === "/cnpj"){
+        $arg ? consultaCNPJ($chat, $arg) : tutorial($chat, "/cnpj");
         exit;
     }
-}
 
-if($cmd === "/cnpj"){
-    $arg ? consultaCNPJ($chat, $arg) : tutorial($chat, "/cnpj");
-    exit;
-}
+    if($cmd === "/ip"){
+        $arg ? consultaIP($chat, $arg) : tutorial($chat, "/ip");
+        exit;
+    }
 
-if($cmd === "/ip"){
-    $arg ? consultaIP($chat, $arg) : tutorial($chat, "/ip");
-    exit;
-}
+    if($cmd === "/cep"){
+        $arg ? consultaCEP($chat, $arg) : tutorial($chat, "/cep");
+        exit;
+    }
 
-if($cmd === "/cep"){
-    $arg ? consultaCEP($chat, $arg) : tutorial($chat, "/cep");
-    exit;
-}
+    // ===== COMANDOS VIP =====
+    $vipCmds = ["/cpf","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
 
-if($cmd === "/cpf"){
-    $arg ? consultaCPF($chat, $arg) : tutorial($chat, "/cpf");
-    exit;
+    if(in_array($cmd, $vipCmds)){
+        if(!isVip($userId)){
+            bloquearConsulta($chat);
+            exit;
+        }
+
+        if($cmd === "/cpf"){
+            $arg ? consultaCPF($chat, $arg) : tutorial($chat, "/cpf");
+            exit;
+        }
+
+        // outros comandos VIP futuramente aqui
+        tutorial($chat, $cmd);
+        exit;
+    }
 }
 
 /* ================= CALLBACKS ================= */
@@ -733,22 +753,24 @@ break;
 break;
 
        case "conta":
-    tg("editMessageText",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg,
-        "text"=>
+$plano = isVip($id) ? "VIP" : "Grátis";
+
+tg("editMessageText",[
+    "chat_id"=>$chat,
+    "message_id"=>$msg,
+    "text"=>
 "👤 <b>MINHA CONTA</b>
 
 🆔 ID: <code>{$id}</code>
 👤 Nome: <b>{$nome}</b>
-⭐ Plano: <b>Grátis</b>",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
-            ]
-        ])
-    ]);
+⭐ Plano: <b>{$plano}</b>",
+    "parse_mode"=>"HTML",
+    "reply_markup"=>json_encode([
+        "inline_keyboard"=>[
+            [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+        ]
+    ])
+]);
 break;
     }
     exit;
