@@ -11,8 +11,8 @@ $START_PHOTO = "https://conventional-magenta-fxkyikrbqe.edgeone.app/E8D6A8B8-36F
 
 /* PIX */
 $PIX_VALOR = "25,00";
-$PIX_CHAVE = "70192823698";
-$PIX_NOME  = "Isabelly";
+$PIX_CHAVE = "0c87ca52-1b06-401b-bca9-6e7a210b086e";
+$PIX_NOME  = "João Victor";
 $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBLduZ5vHwXjSs4BA";
 
 /* ================= VIP ================= */
