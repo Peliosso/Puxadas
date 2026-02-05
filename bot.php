@@ -11,7 +11,7 @@ $START_PHOTO = "https://conventional-magenta-fxkyikrbqe.edgeone.app/E8D6A8B8-36F
 
 /* PIX */
 $PIX_VALOR = "25,00";
-$PIX_CHAVE = "0c87ca52-1b06-401b-bca9-6e7a210b086e";
+$PIX_CHAVE = "93e9ce6f-a9a6-4219-aa99-4be273117cb8";
 $PIX_NOME  = "João Victor";
 $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBLduZ5vHwXjSs4BA";
 
