@@ -111,7 +111,7 @@ Escolha uma opção abaixo:
             ],
             [
                 ["text"=>"⭐ Planos","callback_data"=>"planos"],
-                ["text"=>"🛠 Suporte","url"=>"https://t.me/silenciante"]
+                ["text"=>"🛠 Suporte","url"=>"https://t.me/acharpessoass"]
             ]
         ]
     ];
@@ -293,7 +293,7 @@ Créditos: Astro Search
             "inline_keyboard"=>[
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/silenciante"]
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/acharpessoass"]
                 ]
             ]
         ])
@@ -388,7 +388,7 @@ Créditos: Astro Search
             "inline_keyboard"=>[
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/silenciante"]
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/acharpessoass"]
                 ]
             ]
         ])
@@ -479,7 +479,7 @@ Créditos: Astro Search
             "inline_keyboard"=>[
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/silenciante"]
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/acharpessoass"]
                 ]
             ]
         ])
@@ -695,7 +695,7 @@ tg("editMessageText",[
     "parse_mode"=>"HTML",
     "reply_markup"=>json_encode([
         "inline_keyboard"=>[
-            [["text"=>"📩 Enviar Comprovante","url"=>"https://t.me/silenciante"]],
+            [["text"=>"📩 Enviar Comprovante","url"=>"https://t.me/acharpessoass"]],
             [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
         ]
     ])
