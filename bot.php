@@ -18,7 +18,7 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 /* ================= VIP ================= */
 
 $VIP_IDS = [
-    7926471341, // Seu ID VIP
+    7320236887, // Seu ID VIP
 ];
 
 function isVip($id){
@@ -488,6 +488,34 @@ Créditos: Astro Search
     unlink($file);
 }
 
+function enviarFotoCPF($chat){
+    
+    $cpfFoto = "12345678900"; // CPF fixo
+    $caminho = __DIR__."/fotos/".$cpfFoto.".jpg";
+
+    if(!file_exists($caminho)){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Foto não encontrada no servidor."
+        ]);
+        return;
+    }
+
+    tg("sendPhoto",[
+        "chat_id"=>$chat,
+        "photo"=>new CURLFile($caminho),
+        "caption"=>"📸 <b>FOTO LOCALIZADA</b>\n\nCPF: <code>{$cpfFoto}</code>\nCréditos: <b>Astro Search</b>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+                ]
+            ]
+        ])
+    ]);
+}
+
 function consultaCPF($chat, $cpf){
     global $STICKER_LOADING;
 
@@ -617,6 +645,20 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
             $arg ? consultaCPF($chat, $arg) : tutorial($chat, "/cpf");
             exit;
         }
+        
+        if($cmd === "/foto"){
+
+    if($userId != 7320236887){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"⛔ Apenas os VIPs podem usar este comando."
+        ]);
+        exit;
+    }
+
+    enviarFotoCPF($chat);
+    exit;
+}
 
         // outros comandos VIP futuramente aqui
         tutorial($chat, $cmd);
