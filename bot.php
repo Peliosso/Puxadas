@@ -10,7 +10,7 @@ $API   = "https://api.telegram.org/bot{$TOKEN}";
 $START_PHOTO = "https://conventional-magenta-fxkyikrbqe.edgeone.app/E8D6A8B8-36F3-4AE0-8493-E2C66DF18EF3.png";
 
 /* PIX */
-$PIX_VALOR = "25,00";
+$PIX_VALOR = "15,00";
 $PIX_CHAVE = "26e5a85f-db35-4b77-8303-29b9e593c049";
 $PIX_NOME  = "Isabelly";
 $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBLduZ5vHwXjSs4BA";
@@ -108,16 +108,46 @@ function tutorial($chat,$cmd){
 }
 
 function bloquearConsulta($chat){
-    global $START_PHOTO;
+    global $START_PHOTO, $STICKER_LOADING;
+
+    // 🎬 Sticker antes de tudo (efeito carregando)
+    tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+
+    // ⏱️ pequena pausa pra simular busca
+    usleep(700000);
 
     tg("sendPhoto",[
         "chat_id"=>$chat,
         "photo"=>$START_PHOTO,
-        "caption"=>"🔒 <b>Consulta bloqueada</b>\n\nAdquira um plano para realizar consultas.",
+        "caption"=>
+"🔎 <b>DADOS LOCALIZADOS!</b>
+
+━━━━━━━━━━━━━━━━━━
+🚫 <b>Acesso restrito</b>
+
+Achamos os dados completos da consulta,
+mas sua conta ainda <b>não possui permissão</b> para visualizar…
+
+⭐ <b>Desbloqueie o acesso vitalício</b>
+e veja todas as informações agora mesmo.
+
+━━━━━━━━━━━━━━━━━━
+💎 <b>Vantagens do plano VIP</b>
+
+✔️ Acesso imediato
+✔️ Sem mensalidades
+✔️ Sem limites de consultas
+✔️ Todas as bases liberadas
+
+👇 <b>Toque no botão abaixo para ativar</b>",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-                [["text"=>"⭐ Ver Planos","callback_data"=>"planos"]]
+                [["text"=>"🚀 DESBLOQUEAR ACESSO VITALÍCIO","callback_data"=>"planos"]],
+                [["text"=>"💬 Falar com o suporte","url"=>"https://t.me/acharpessoass"]]
             ]
         ])
     ]);
