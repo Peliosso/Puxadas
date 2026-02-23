@@ -21,9 +21,18 @@ $VIP_IDS = [
     7320236887, // Seu ID VIP
 ];
 
+$BANIDOS = [
+    8017850152
+];
+
 function isVip($id){
     global $VIP_IDS;
     return in_array($id, $VIP_IDS);
+}
+
+function isBanned($id){
+    global $BANIDOS;
+    return in_array($id, $BANIDOS);
 }
 
 /* ================= UPDATE ================= */
@@ -32,6 +41,29 @@ $update   = json_decode(file_get_contents("php://input"), true);
 $message  = $update["message"] ?? null;
 $callback = $update["callback_query"] ?? null;
 
+/* ====== BLOQUEIO GLOBAL ====== */
+
+$userId = $message["from"]["id"] ?? $callback["from"]["id"] ?? null;
+
+if($userId && isBanned($userId)){
+
+    if($message){
+        tg("sendMessage",[
+            "chat_id"=>$message["chat"]["id"],
+            "text"=>"⛔️ Você está banido de usar este bot."
+        ]);
+    }
+
+    if($callback){
+        tg("answerCallbackQuery",[
+            "callback_query_id"=>$callback["id"],
+            "text"=>"⛔️ Você está banido.",
+            "show_alert"=>true
+        ]);
+    }
+
+    exit;
+}
 /* ================= API ================= */
 
 function tg($method, $data){
