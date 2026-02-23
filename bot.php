@@ -108,51 +108,82 @@ function tutorial($chat,$cmd){
 }
 
 function bloquearConsulta($chat){
-    global $START_PHOTO, $STICKER_LOADING;
+    global $START_PHOTO, $STICKER_LOADING, $PIX_CHAVE, $PIX_NOME, $PIX_VALOR;
 
-    // 🎬 Sticker antes de tudo (efeito carregando)
-    tg("sendSticker",[
+    // 🎬 Sticker loading
+    $sticker = tg("sendSticker",[
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
     ]);
 
-    // ⏱️ pequena pausa pra simular busca
-    usleep(700000);
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+    // 🔎 Simulação de busca
+    $msgs = [
+        "🔎 Consultando Receita Federal...",
+        "🔎 Verificando operadoras...",
+        "🔎 Cruzando dados em múltiplas bases...",
+        "✅ Resultado encontrado!"
+    ];
+
+    foreach($msgs as $m){
+        tg("sendChatAction",["chat_id"=>$chat,"action"=>"typing"]);
+        usleep(500000);
+    }
+
+    // 🗑 remove sticker
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
+
+    // 📊 Prova social fake
+    $usuarios = rand(1200,3500);
 
     tg("sendPhoto",[
         "chat_id"=>$chat,
         "photo"=>$START_PHOTO,
         "caption"=>
-"🔎 <b>DADOS LOCALIZADOS!</b>
+"⚡ <b>RESULTADO ENCONTRADO</b>
+
+Mas calma…
+
+Seu plano gratuito não tem permissão para ver
+esse tipo de consulta.
+
+⭐ <b>Ative o VIP e tenha acesso imediato.</b>
 
 ━━━━━━━━━━━━━━━━━━
-🚫 <b>Acesso restrito</b>
+👑 <b>{$usuarios} usuários VIP ativos</b>
 
-Achamos os dados completos da consulta,
-mas sua conta ainda <b>não possui permissão</b> para visualizar…
+💎 <b>Vantagens do plano:</b>
 
-⭐ <b>Desbloqueie o acesso vitalício</b>
-e veja todas as informações agora mesmo.
+✔️ Consultas ilimitadas
+✔️ Sem mensalidade
+✔️ Acesso a todas as bases
+✔️ Liberação instantânea
+✔️ Suporte prioritário
 
 ━━━━━━━━━━━━━━━━━━
-💎 <b>Vantagens do plano VIP</b>
+💰 <b>VALOR VITALÍCIO:</b> R$ {$PIX_VALOR}
 
-✔️ Acesso imediato
-✔️ Sem mensalidades
-✔️ Sem limites de consultas
-✔️ Todas as bases liberadas
+🔑 <b>Chave PIX:</b>
+<code>{$PIX_CHAVE}</code>
+👤 {$PIX_NOME}
 
-👇 <b>Toque no botão abaixo para ativar</b>",
+👇 Copie a chave e realize o pagamento:",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-                [["text"=>"🚀 DESBLOQUEAR ACESSO VITALÍCIO","callback_data"=>"planos"]],
-                [["text"=>"💬 Falar com o suporte","url"=>"https://t.me/acharpessoass"]]
+                [["text"=>"📋 COPIAR CHAVE PIX","callback_data"=>"copiar_pix"]],
+                [["text"=>"🚀 ATIVAR VIP AGORA","url"=>"https://t.me/acharpessoass"]]
             ]
         ])
     ]);
 }
-
 
 
 /* ================= MENU ================= */
