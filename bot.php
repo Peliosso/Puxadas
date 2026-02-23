@@ -110,7 +110,7 @@ function tutorial($chat,$cmd){
 function bloquearConsulta($chat){
     global $START_PHOTO, $STICKER_LOADING, $PIX_CHAVE, $PIX_NOME, $PIX_VALOR;
 
-    // 🎬 Sticker loading
+    // 🎬 Sticker
     $sticker = tg("sendSticker",[
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
@@ -119,30 +119,19 @@ function bloquearConsulta($chat){
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-    // 🔎 Simulação de busca
-    $msgs = [
-        "🔎 Consultando Receita Federal...",
-        "🔎 Verificando operadoras...",
-        "🔎 Cruzando dados em múltiplas bases...",
-        "✅ Resultado encontrado!"
-    ];
-
-    foreach($msgs as $m){
-        tg("sendChatAction",["chat_id"=>$chat,"action"=>"typing"]);
-        usleep(500000);
-    }
-
-    // 🗑 remove sticker
-    if($stickerMsgId){
-        tg("deleteMessage",[
+    // ⏳ Delay real de 6s com "digitando..."
+    for($i=0;$i<6;$i++){
+        tg("sendChatAction",[
             "chat_id"=>$chat,
-            "message_id"=>$stickerMsgId
+            "action"=>"typing"
         ]);
+        sleep(1);
     }
 
-    // 📊 Prova social fake
+    // 👥 Prova social
     $usuarios = rand(200,400);
 
+    // 🚀 Mensagem
     tg("sendPhoto",[
         "chat_id"=>$chat,
         "photo"=>$START_PHOTO,
@@ -170,9 +159,9 @@ esse tipo de consulta.
 ━━━━━━━━
 💰 <b>VALOR VITALÍCIO:</b> R$ {$PIX_VALOR}
 
-🔑 <b>Chave PIX:</b>
+🔑 • <b>Chave PIX:</b>
 <code>{$PIX_CHAVE}</code>
-👤 {$PIX_NOME}
+👤 • <b>Nome:</b> {$PIX_NOME}
 
 👇 Copie a chave e realize o pagamento:",
         "parse_mode"=>"HTML",
@@ -183,6 +172,14 @@ esse tipo de consulta.
             ]
         ])
     ]);
+
+    // 🗑 Apaga o sticker depois
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
 }
 
 
@@ -875,6 +872,22 @@ if(isset($callback["message"]["photo"])){
         "reply_markup"=>$kb
     ]);
 }
+
+break;
+
+case "copiar_pix":
+
+global $PIX_CHAVE;
+
+// fecha o loading do botão
+answer($callback["id"]);
+
+// envia a chave em formato copiável
+tg("sendMessage",[
+    "chat_id"=>$chat,
+    "text"=>"📋 <b>COPIE SUA CHAVE PIX:</b>\n\n<code>{$PIX_CHAVE}</code>",
+    "parse_mode"=>"HTML"
+]);
 
 break;
 
