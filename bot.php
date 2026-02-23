@@ -51,26 +51,6 @@ function answer($id){
     tg("answerCallbackQuery", ["callback_query_id"=>$id]);
 }
 
-define("FLOOD_TIME", 3); // segundos
-
-function antiSpam($userId){
-    $file = __DIR__."/flood/".$userId.".txt";
-
-    if(!is_dir(__DIR__."/flood")){
-        mkdir(__DIR__."/flood");
-    }
-
-    if(file_exists($file)){
-        $last = (int)file_get_contents($file);
-        if(time() - $last < FLOOD_TIME){
-            return true;
-        }
-    }
-
-    file_put_contents($file, time());
-    return false;
-}
-
 /* ================= TUTORIAL / BLOQUEIO ================= */
 
 function tutorial($chat,$cmd){
