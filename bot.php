@@ -98,7 +98,9 @@ function menuPrincipal($chat,$nome,$edit=false,$msg=null){
     $text =
 "<b>🚀 • Astro Search</b>
 
-Olá, <b>{$nome}</b>!
+Olá, <a href=\"tg://user?id={$id}\"><b>{$nome}</b></a>
+🆔 <code>{$id}</code>
+
 Escolha uma opção abaixo:
 
 <a href=\"{$START_PHOTO}\">&#8205;</a>";
