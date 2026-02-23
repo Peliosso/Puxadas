@@ -141,13 +141,13 @@ function bloquearConsulta($chat){
     }
 
     // 📊 Prova social fake
-    $usuarios = rand(1200,3500);
+    $usuarios = rand(200,400);
 
     tg("sendPhoto",[
         "chat_id"=>$chat,
         "photo"=>$START_PHOTO,
         "caption"=>
-"⚡ <b>RESULTADO ENCONTRADO</b>
+"⚡ • <b>RESULTADO ENCONTRADO!</b>
 
 Mas calma…
 
@@ -156,7 +156,7 @@ esse tipo de consulta.
 
 ⭐ <b>Ative o VIP e tenha acesso imediato.</b>
 
-━━━━━━━━━━━━━
+━━━━━━━━
 👑 <b>{$usuarios} usuários VIP ativos</b>
 
 💎 <b>Vantagens do plano:</b>
@@ -167,7 +167,7 @@ esse tipo de consulta.
 ✔️ Liberação instantânea
 ✔️ Suporte prioritário
 
-━━━━━━━━━━━━━
+━━━━━━━━
 💰 <b>VALOR VITALÍCIO:</b> R$ {$PIX_VALOR}
 
 🔑 <b>Chave PIX:</b>
