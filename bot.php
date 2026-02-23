@@ -174,10 +174,11 @@ if($edit){
 /* ================= CATÁLOGOS ================= */
 
 function catalogo1($chat,$msg){
-    tg("editMessageText",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg,
-        "text"=>
+
+tg("editMessageCaption",[
+"chat_id"=>$chat,
+"message_id"=>$msg,
+"caption"=>
 "🚀 <b>CONSULTAS — 1/2</b>
 
 🔱 <b>VIP</b>
@@ -193,37 +194,40 @@ function catalogo1($chat,$msg){
 /pix
 /nascimento
 /renavam",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [["text"=>"➡️ Próxima","callback_data"=>"catalogo_2"]],
-                [["text"=>"🔒 Ativar Plano","callback_data"=>"planos"]],
-                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]],
-            ]
-        ])
-    ]);
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[["text"=>"➡️ Próxima","callback_data"=>"catalogo_2"]],
+[["text"=>"🔒 Ativar Plano","callback_data"=>"planos"]],
+[["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]],
+]
+])
+]);
+
 }
 
 function catalogo2($chat,$msg){
-    tg("editMessageText",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg,
-        "text"=>
+
+tg("editMessageCaption",[
+"chat_id"=>$chat,
+"message_id"=>$msg,
+"caption"=>
 "🚀 <b>CONSULTAS — 2/2</b>
 
-♻️ <b>Grátis</b>
+♻️ <b>GRÁTIS</b>
 
 /cep
 /cnpj
 /ip",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [["text"=>"⬅️ Anterior","callback_data"=>"catalogo_1"]],
-                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]],
-            ]
-        ])
-    ]);
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[["text"=>"⬅️ Anterior","callback_data"=>"catalogo_1"]],
+[["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]],
+]
+])
+]);
+
 }
 
 function consultaCNPJ($chat, $cnpj){
