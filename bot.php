@@ -747,6 +747,8 @@ if($callback){
 
         case "planos":
 
+global $PIX_VALOR, $PIX_CHAVE, $PIX_NOME;
+
 $textoPlano =
 "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
 
@@ -777,26 +779,26 @@ sem mensalidade e sem limites 🚀
 ━━━━━━━━━━━━━━━━
 💰 <b>Valor único</b>
 
-<b>R$ {$GLOBALS["PIX_VALOR"]}</b>
+<b>R$ {$PIX_VALOR}</b>
 
 🔑 Chave PIX:
-<code>{$GLOBALS["PIX_CHAVE"]}</code>
-👤 {$GLOBALS["PIX_NOME"]}";
+<code>{$PIX_CHAVE}</code>
+👤 {$PIX_NOME}";
 
-            tg("editMessageCaption",[
-                "chat_id"=>$chat,
-                "message_id"=>$msg,
-                "caption"=>$textoPlano,
-                "parse_mode"=>"HTML",
-                "reply_markup"=>json_encode([
-                    "inline_keyboard"=>[
-                        [["text"=>"📩 Enviar Comprovante","url"=>"https://t.me/acharpessoass"]],
-                        [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
-                    ]
-                ])
-            ]);
+tg("editMessageCaption",[
+    "chat_id"=>$chat,
+    "message_id"=>$msg,
+    "caption"=>$textoPlano,
+    "parse_mode"=>"HTML",
+    "reply_markup"=>json_encode([
+        "inline_keyboard"=>[
+            [["text"=>"📩 Enviar Comprovante","url"=>"https://t.me/acharpessoass"]],
+            [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+        ]
+    ])
+]);
 
-        break;
+break;
 
         case "conta":
 
