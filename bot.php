@@ -108,9 +108,12 @@ function tutorial($chat,$cmd){
 }
 
 function bloquearConsulta($chat){
-    tg("sendMessage",[
+    global $START_PHOTO;
+
+    tg("sendPhoto",[
         "chat_id"=>$chat,
-        "text"=>"🔒 <b>Consulta bloqueada</b>\n\nAdquira um plano para realizar consultas.",
+        "photo"=>$START_PHOTO,
+        "caption"=>"🔒 <b>Consulta bloqueada</b>\n\nAdquira um plano para realizar consultas.",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
