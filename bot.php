@@ -229,6 +229,7 @@ tg("editMessageCaption",[
 ]);
 
 }
+ 
 
 function consultaCNPJ($chat, $cnpj){
     global $STICKER_LOADING;
