@@ -92,7 +92,7 @@ function bloquearConsulta($chat){
 
 /* ================= MENU ================= */
 
-function menuPrincipal($chat,$nome,$edit=false,$msg=null){
+function menuPrincipal($chat,$nome,$id,$edit=false,$msg=null){
     global $START_PHOTO;
 
     $text =
