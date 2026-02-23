@@ -752,8 +752,7 @@ if($callback){
 
 global $PIX_VALOR, $PIX_CHAVE, $PIX_NOME;
 
-$textoPlano =
-"⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
+$textoPlano = "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
 
 Tenha acesso completo às consultas VIP
 sem mensalidade e sem limites 🚀
@@ -788,18 +787,33 @@ sem mensalidade e sem limites 🚀
 <code>{$PIX_CHAVE}</code>
 👤 {$PIX_NOME}";
 
-tg("editMessageCaption",[
-    "chat_id"=>$chat,
-    "message_id"=>$msg,
-    "caption"=>$textoPlano,
-    "parse_mode"=>"HTML",
-    "reply_markup"=>json_encode([
-        "inline_keyboard"=>[
-            [["text"=>"📩 Enviar Comprovante","url"=>"https://t.me/acharpessoass"]],
-            [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
-        ]
-    ])
+$kb = json_encode([
+    "inline_keyboard"=>[
+        [["text"=>"📩 Enviar Comprovante","url"=>"https://t.me/acharpessoass"]],
+        [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+    ]
 ]);
+
+if(isset($callback["message"]["photo"])){
+
+    tg("editMessageCaption",[
+        "chat_id"=>$chat,
+        "message_id"=>$msg,
+        "caption"=>$textoPlano,
+        "parse_mode"=>"HTML",
+        "reply_markup"=>$kb
+    ]);
+
+}else{
+
+    tg("editMessageText",[
+        "chat_id"=>$chat,
+        "message_id"=>$msg,
+        "text"=>$textoPlano,
+        "parse_mode"=>"HTML",
+        "reply_markup"=>$kb
+    ]);
+}
 
 break;
 
