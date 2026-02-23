@@ -95,47 +95,48 @@ function bloquearConsulta($chat){
 function menuPrincipal($chat,$nome,$id,$edit=false,$msg=null){
     global $START_PHOTO;
 
-    $text =
+$caption =
 "<b>🚀 • Astro Search</b>
 
 Olá, <a href=\"tg://user?id={$id}\"><b>{$nome}</b></a>
 🆔 <code>{$id}</code>
 
-Escolha uma opção abaixo:
+Escolha uma opção abaixo:";
 
-<a href=\"{$START_PHOTO}\">&#8205;</a>";
+$kb = [
+"inline_keyboard"=>[
+[
+["text"=>"📂 Consultas","callback_data"=>"catalogo_1"],
+["text"=>"👤 Minha conta","callback_data"=>"conta"]
+],
+[
+["text"=>"⭐ Planos","callback_data"=>"planos"],
+["text"=>"🛠 Suporte","url"=>"https://t.me/acharpessoass"]
+]
+]
+];
 
-    $kb = [
-        "inline_keyboard"=>[
-            [
-                ["text"=>"📂 Consultas","callback_data"=>"catalogo_1"],
-                ["text"=>"👤 Minha conta","callback_data"=>"conta"]
-            ],
-            [
-                ["text"=>"⭐ Planos","callback_data"=>"planos"],
-                ["text"=>"🛠 Suporte","url"=>"https://t.me/acharpessoass"]
-            ]
-        ]
-    ];
+if($edit){
 
-    if($edit){
-        tg("editMessageText",[
-            "chat_id"=>$chat,
-            "message_id"=>$msg,
-            "text"=>$text,
-            "parse_mode"=>"HTML",
-            "reply_markup"=>json_encode($kb),
-            "disable_web_page_preview"=>false
-        ]);
-    } else {
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>$text,
-            "parse_mode"=>"HTML",
-            "reply_markup"=>json_encode($kb),
-            "disable_web_page_preview"=>false
-        ]);
-    }
+    tg("editMessageCaption",[
+        "chat_id"=>$chat,
+        "message_id"=>$msg,
+        "caption"=>$caption,
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode($kb)
+    ]);
+
+}else{
+
+    tg("sendPhoto",[
+        "chat_id"=>$chat,
+        "photo"=>$START_PHOTO,
+        "caption"=>$caption,
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode($kb)
+    ]);
+
+}
 }
 
 /* ================= CATÁLOGOS ================= */
@@ -601,15 +602,20 @@ CONTATOS
 
 /* ================= START ================= */
 
-if($message && in_array($message["text"], ["/start", "/menu"])){
+if($message && isset($message["text"])){
 
-    $chat_id = $message["chat"]["id"];
-    $nome    = $message["from"]["first_name"] ?? "usuário";
-    $user_id = $message["from"]["id"];
+    $text = explode(" ", $message["text"])[0];
+    $text = explode("@", $text)[0];
 
-    menuPrincipal($chat_id, $nome, $user_id);
+    if(in_array($text, ["/start", "/menu"])){
 
-    exit;
+        $chat_id = $message["chat"]["id"];
+        $nome    = $message["from"]["first_name"] ?? "usuário";
+        $user_id = $message["from"]["id"];
+
+        menuPrincipal($chat_id, $nome, $user_id);
+        exit;
+    }
 }
 
 /* ================= COMANDOS ================= */
@@ -682,27 +688,32 @@ if($callback){
     $id   = $callback["from"]["id"];
 
     switch($callback["data"]){
-        case "catalogo_1": catalogo1($chat,$msg); break;
-        case "catalogo_2": catalogo2($chat,$msg); break;
-        case "catalogo_3": catalogo3($chat,$msg); break;
-        
-        case "apagar_msg":
-    tg("deleteMessage",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg
-    ]);
-break;
+
+        case "catalogo_1":
+            catalogo1($chat,$msg);
+        break;
+
+        case "catalogo_2":
+            catalogo2($chat,$msg);
+        break;
 
         case "voltar_menu":
-menuPrincipal($chat,$nome,$id,true,$msg);
-break;
+            menuPrincipal($chat,$nome,$id,true,$msg);
+        break;
+
+        case "apagar_msg":
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$msg
+            ]);
+        break;
 
         case "planos":
 
 $textoPlano =
 "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
 
-Tenha acesso completo às consultas VIP,
+Tenha acesso completo às consultas VIP
 sem mensalidade e sem limites 🚀
 
 ━━━━━━━━━━━━━━━━
@@ -725,60 +736,56 @@ sem mensalidade e sem limites 🚀
 • CEP
 • CNPJ
 • IP
-(Sempre disponíveis)
 
 ━━━━━━━━━━━━━━━━
 💰 <b>Valor único</b>
 
-<b>R$ {$PIX_VALOR}</b>
+<b>R$ {$GLOBALS["PIX_VALOR"]}</b>
 
-🔑 Chave PIX: <code>{$PIX_CHAVE}</code>
-👤 {$PIX_NOME}";
+🔑 Chave PIX:
+<code>{$GLOBALS["PIX_CHAVE"]}</code>
+👤 {$GLOBALS["PIX_NOME"]}";
 
-tg("editMessageText",[
-    "chat_id"=>$chat,
-    "message_id"=>$msg,
-    "text"=>$textoPlano,
-    "parse_mode"=>"HTML",
-    "reply_markup"=>json_encode([
-        "inline_keyboard"=>[
-            [["text"=>"📩 Enviar Comprovante","url"=>"https://t.me/acharpessoass"]],
-            [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
-        ]
-    ])
-]);
-break;
+            tg("editMessageCaption",[
+                "chat_id"=>$chat,
+                "message_id"=>$msg,
+                "caption"=>$textoPlano,
+                "parse_mode"=>"HTML",
+                "reply_markup"=>json_encode([
+                    "inline_keyboard"=>[
+                        [["text"=>"📩 Enviar Comprovante","url"=>"https://t.me/acharpessoass"]],
+                        [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+                    ]
+                ])
+            ]);
 
-    if($hasPhoto){
-        $data["caption"] = $textoPlano;
-    } else {
-        $data["text"] = $textoPlano;
-    }
+        break;
 
-    tg($method, $data);
-break;
+        case "conta":
 
-       case "conta":
 $plano = isVip($id) ? "VIP" : "Grátis";
 
-tg("editMessageText",[
-    "chat_id"=>$chat,
-    "message_id"=>$msg,
-    "text"=>
+            tg("editMessageCaption",[
+                "chat_id"=>$chat,
+                "message_id"=>$msg,
+                "caption"=>
 "👤 <b>MINHA CONTA</b>
 
 🆔 ID: <code>{$id}</code>
 👤 Nome: <b>{$nome}</b>
 ⭐ Plano: <b>{$plano}</b>",
-    "parse_mode"=>"HTML",
-    "reply_markup"=>json_encode([
-        "inline_keyboard"=>[
-            [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
-        ]
-    ])
-]);
-break;
+                "parse_mode"=>"HTML",
+                "reply_markup"=>json_encode([
+                    "inline_keyboard"=>[
+                        [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+                    ]
+                ])
+            ]);
+
+        break;
+
     }
+
     exit;
 }
 
