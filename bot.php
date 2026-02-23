@@ -745,10 +745,18 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     $vipCmds = ["/cpf","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
 
     if(in_array($cmd, $vipCmds)){
-        if(!isVip($userId)){
-            bloquearConsulta($chat);
-            exit;
-        }
+
+    // ❗ primeiro valida se enviou argumento
+    if(!$arg){
+        tutorial($chat, $cmd);
+        exit;
+    }
+
+    // 🔒 depois verifica VIP
+    if(!isVip($userId)){
+        bloquearConsulta($chat);
+        exit;
+    }
 
         if($cmd === "/cpf"){
             $arg ? consultaCPF($chat, $arg) : tutorial($chat, "/cpf");
