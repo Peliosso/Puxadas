@@ -51,6 +51,26 @@ function answer($id){
     tg("answerCallbackQuery", ["callback_query_id"=>$id]);
 }
 
+define("FLOOD_TIME", 3); // segundos
+
+function antiSpam($userId){
+    $file = __DIR__."/flood/".$userId.".txt";
+
+    if(!is_dir(__DIR__."/flood")){
+        mkdir(__DIR__."/flood");
+    }
+
+    if(file_exists($file)){
+        $last = (int)file_get_contents($file);
+        if(time() - $last < FLOOD_TIME){
+            return true;
+        }
+    }
+
+    file_put_contents($file, time());
+    return false;
+}
+
 /* ================= TUTORIAL / BLOQUEIO ================= */
 
 function tutorial($chat,$cmd){
@@ -599,11 +619,14 @@ CONTATOS
 
 /* ================= START ================= */
 
-if($message && in_array($message["text"],["/start","/menu"])){
-    menuPrincipal(
-        $message["chat"]["id"],
-        $message["from"]["first_name"] ?? "usuário"
-    );
+if($message && in_array($message["text"], ["/start", "/menu"])){
+
+    $chat_id = $message["chat"]["id"];
+    $nome    = $message["from"]["first_name"] ?? "usuário";
+    $user_id = $message["from"]["id"];
+
+    menuPrincipal($chat_id, $nome, $user_id);
+
     exit;
 }
 
@@ -689,7 +712,7 @@ if($callback){
 break;
 
         case "voltar_menu":
-    menuPrincipal($chat,$nome);
+menuPrincipal($chat,$nome,$id,true,$msg);
 break;
 
         case "planos":
