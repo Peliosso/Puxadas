@@ -86,27 +86,43 @@ function answer($id){
 /* ================= TUTORIAL / BLOQUEIO ================= */
 
 function tutorial($chat,$cmd){
+
     $map = [
 
-        "/nome"=>"<b>/nome</b>\nExemplo:\n<code>/nome João Silva</code>",
-        "/rg"=>"<b>/rg</b>\nExemplo:\n<code>/rg 1234567</code>",
-        "/cnh"=>"<b>/cnh</b>\nExemplo:\n<code>/cnh 123456789</code>",
-        "/telefone"=>"<b>/telefone</b>\nExemplo:\n<code>/telefone 11999999999</code>",
-        "/email"=>"<b>/email</b>\nExemplo:\n<code>/email teste@email.com</code>",
-        "/placa"=>"<b>/placa</b>\nExemplo:\n<code>/placa ABC1D23</code>",
-        "/pix"=>"<b>/pix</b>\nExemplo:\n<code>/pix chavepix</code>",
-        "/cep"=>"<b>/cep</b>\nExemplo:\n<code>/cep 01001000</code>",
-        "/cnpj"=>"<b>/cnpj</b>\nExemplo:\n<code>/cnpj 00000000000100</code>",
-        "/ip"=>"<b>/ip</b>\nExemplo:\n<code>/ip 8.8.8.8</code>",
+        // 🔒 VIP
+        "/cpf"         => "12345678900",
+        "/nome"        => "João Silva",
+        "/rg"          => "1234567",
+        "/cnh"         => "12345678900",
+        "/telefone"    => "11999999999",
+        "/email"       => "teste@email.com",
+        "/placa"       => "ABC1D23",
+        "/pix"         => "email@pix.com",
+        "/renavam"     => "123456789",
+        "/nascimento"  => "01012000",
+        "/foto"        => "",
+
+        // ♻️ GRÁTIS
+        "/cep"  => "01001000",
+        "/cnpj" => "00000000000100",
+        "/ip"   => "8.8.8.8",
     ];
+
+    $exemplo = $map[$cmd] ?? "123456";
+
+    $texto =
+"📘 <b>Como usar</b>
+
+<b>{$cmd}</b>
+Exemplo:
+<code>{$cmd}".($exemplo ? " {$exemplo}" : "")."</code>";
 
     tg("sendMessage",[
         "chat_id"=>$chat,
-        "text"=>"📘 <b>Como usar</b>\n\n".($map[$cmd] ?? "Use corretamente."),
+        "text"=>$texto,
         "parse_mode"=>"HTML"
     ]);
 }
-
 function bloquearConsulta($chat){
     global $START_PHOTO, $STICKER_LOADING, $PIX_CHAVE, $PIX_NOME, $PIX_VALOR;
 
