@@ -887,15 +887,41 @@ case "copiar_pix":
 
 global $PIX_CHAVE;
 
-// fecha o loading do botão
 answer($callback["id"]);
 
-// envia a chave em formato copiável
-tg("sendMessage",[
-    "chat_id"=>$chat,
-    "text"=>"📋 <b>COPIE SUA CHAVE PIX:</b>\n\n<code>{$PIX_CHAVE}</code>",
-    "parse_mode"=>"HTML"
-]);
+$novoTexto = "📋 <b>CHAVE PIX COPIADA!</b>
+
+Agora é só colar no seu banco 👇
+
+<code>{$PIX_CHAVE}</code>
+
+⚡ Após o pagamento envie o comprovante para ativação.";
+
+// verifica se a mensagem tem foto
+if(isset($callback["message"]["photo"])){
+
+    tg("editMessageCaption",[
+        "chat_id"=>$chat,
+        "message_id"=>$msg,
+        "caption"=>$novoTexto,
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [["text"=>"🚀 ENVIAR COMPROVANTE","url"=>"https://t.me/acharpessoass"]]
+            ]
+        ])
+    ]);
+
+}else{
+
+    tg("editMessageText",[
+        "chat_id"=>$chat,
+        "message_id"=>$msg,
+        "text"=>$novoTexto,
+        "parse_mode"=>"HTML"
+    ]);
+
+}
 
 break;
 
