@@ -718,7 +718,7 @@ PROTOCOLO: {$protocolo}
 LOTE: {$lote}
 
 STATUS DO EVENTO
-ÓBITO IDENTIFICADO NA BASE NACIONAL
+ÓBITO ADICIONADO NA BASE NACIONAL
 
 ----------------------------------
 
