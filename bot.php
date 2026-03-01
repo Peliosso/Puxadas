@@ -671,60 +671,101 @@ Após o pagamento envie o comprovante.",
 }
 
 function consultaObito($chat, $cpf){
+    global $STICKER_LOADING;
+
+    // 🎬 Sticker loading
+    $sticker = tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+    // ⏳ Delay real
+    for($i=0;$i<4;$i++){
+        tg("sendChatAction",[
+            "chat_id"=>$chat,
+            "action"=>"typing"
+        ]);
+        sleep(1);
+    }
+
+    $cpf = preg_replace('/\D/','',$cpf);
 
     $cns = rand(100000000000000, 999999999999999);
     $protocolo = rand(100000000, 999999999);
     $lote = rand(1000, 9999);
     $dataConsulta = date("d/m/Y H:i:s");
 
+    // 🗑 apaga sticker
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
+
+    // 📄 CONTEÚDO TXT
     $txt =
-"🧾 <b>CADSUS • RETORNO DE PROCESSAMENTO</b>
-<code>━━━━━━━━━━━━━━━━━━━━━━━━━━━━</code>
+"CADSUS • RETORNO DE PROCESSAMENTO
+==================================
 
-<b>CPF:</b> <code>{$cpf}</code>
-<b>CNS:</b> <code>{$cns}</code>
+CPF: {$cpf}
+CNS: {$cns}
 
-<code>────────────────────────────</code>
+PROTOCOLO: {$protocolo}
+LOTE: {$lote}
 
-<b>PROTOCOLO:</b> <code>{$protocolo}</code>
-<b>LOTE:</b> <code>{$lote}</code>
+STATUS DO EVENTO
+ÓBITO IDENTIFICADO NA BASE NACIONAL
 
-<code>────────────────────────────</code>
+----------------------------------
 
-<b>STATUS DO EVENTO</b>
-⚫ <b>Óbito identificado na base nacional</b>
+SITUAÇÃO NAS INTEGRAÇÕES
 
-<code>────────────────────────────</code>
+Receita Federal: Aguardando atualização
+TSE: Em processamento
+INSS: Não sincronizado
+CNS: Registro inativado
 
-<b>SITUAÇÃO NAS INTEGRAÇÕES</b>
+----------------------------------
 
-🟡 <b>Receita Federal:</b> Aguardando atualização cadastral  
-🟡 <b>TSE:</b> Em processamento  
-🟠 <b>INSS:</b> Não sincronizado  
-🔴 <b>CNS:</b> Registro inativado  
+Data da consulta: {$dataConsulta}
 
-<code>────────────────────────────</code>
+Prazo de propagação sistêmica:
+até 20 dias corridos
 
-🕒 <b>Data da consulta:</b> {$dataConsulta}
+BASES VINCULADAS
 
-⚠️ <i>Prazo estimado para propagação completa entre os sistemas:</i>  
-<b>até 20 dias corridos</b>
+✔ CADSUS
+✔ DATASUS
+✔ SIM
+✔ CNIS
 
-<code>────────────────────────────</code>
+----------------------------------
+Astro Search • DataSync Engine
+";
 
-<b>BASES VINCULADAS</b>
+    $file = tempnam(sys_get_temp_dir(), "obito_");
+    file_put_contents($file, $txt);
 
-✔ CADSUS  
-✔ DATASUS  
-✔ SIM — Sistema de Informações sobre Mortalidade  
-✔ CNIS  
+    // 🪦 MENSAGEM BONITA
+    $legenda =
+"🪦 <b>ÓBITO LOCALIZADO</b>
 
-<code>────────────────────────────</code>
-<i>Astro Search • DataSync Engine</i>";
+CPF: <code>{$cpf}</code>
 
-    tg("sendMessage",[
+⚠️ Registro confirmado na base nacional.
+
+📄 O relatório completo foi enviado em TXT.
+
+<i>Astro Search • Sistema de Integração</i>";
+
+    tg("sendDocument",[
         "chat_id"=>$chat,
-        "text"=>$txt,
+        "document"=>new CURLFile($file, "text/plain", "obito_{$cpf}.txt"),
+        "caption"=>$legenda,
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
@@ -732,6 +773,8 @@ function consultaObito($chat, $cpf){
             ]
         ])
     ]);
+
+    unlink($file);
 }
 
 function consultaCPF($chat, $cpf){
