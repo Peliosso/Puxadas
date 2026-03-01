@@ -11,15 +11,14 @@ $START_PHOTO = "https://conventional-magenta-fxkyikrbqe.edgeone.app/E8D6A8B8-36F
 
 /* PIX */
 $PIX_VALOR = "15,00";
-$PIX_CHAVE = "26e5a85f-db35-4b77-8303-29b9e593c049";
-$PIX_NOME  = "Isabelly";
+$PIX_CHAVE = "93e9ce6f-a9a6-4219-aa99-4be273117cb8";
+$PIX_NOME  = "João Victor";
 $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBLduZ5vHwXjSs4BA";
 
 /* ================= VIP ================= */
 
 $VIP_IDS = [
-    940636198, 
-    8538480916,
+    8538480916, // Seu ID VIP
 ];
 
 $BANIDOS = [
@@ -642,7 +641,7 @@ function bloquearObito($chat){
     tg("sendMessage",[
         "chat_id"=>$chat,
         "text"=>
-"🪦 <b>NOVO SISTEMA DISPONÍVEL!</b>
+"🪦 <b>NOVA CONSULTA DISPONÍVEL</b>
 
 Agora você pode adicionar o
 <b>óbito pela base nacional</b>.
@@ -672,101 +671,60 @@ Após o pagamento envie o comprovante.",
 }
 
 function consultaObito($chat, $cpf){
-    global $STICKER_LOADING;
-
-    // 🎬 Sticker loading
-    $sticker = tg("sendSticker",[
-        "chat_id"=>$chat,
-        "sticker"=>$STICKER_LOADING
-    ]);
-
-    $stickerData = json_decode($sticker, true);
-    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
-
-    // ⏳ Delay real
-    for($i=0;$i<4;$i++){
-        tg("sendChatAction",[
-            "chat_id"=>$chat,
-            "action"=>"typing"
-        ]);
-        sleep(1);
-    }
-
-    $cpf = preg_replace('/\D/','',$cpf);
 
     $cns = rand(100000000000000, 999999999999999);
     $protocolo = rand(100000000, 999999999);
     $lote = rand(1000, 9999);
     $dataConsulta = date("d/m/Y H:i:s");
 
-    // 🗑 apaga sticker
-    if($stickerMsgId){
-        tg("deleteMessage",[
-            "chat_id"=>$chat,
-            "message_id"=>$stickerMsgId
-        ]);
-    }
-
-    // 📄 CONTEÚDO TXT
     $txt =
-"CADSUS • RETORNO DE PROCESSAMENTO
-==================================
+"🧾 <b>CADSUS • RETORNO DE PROCESSAMENTO</b>
+<code>━━━━━━━━━━━━━━━━━━━━━━━━━━━━</code>
 
-CPF: {$cpf}
-CNS: {$cns}
+<b>CPF:</b> <code>{$cpf}</code>
+<b>CNS:</b> <code>{$cns}</code>
 
-PROTOCOLO: {$protocolo}
-LOTE: {$lote}
+<code>────────────────────────────</code>
 
-STATUS DO EVENTO
-ÓBITO ADICIONADO NA BASE NACIONAL
+<b>PROTOCOLO:</b> <code>{$protocolo}</code>
+<b>LOTE:</b> <code>{$lote}</code>
 
-----------------------------------
+<code>────────────────────────────</code>
 
-SITUAÇÃO NAS INTEGRAÇÕES
+<b>STATUS DO EVENTO</b>
+⚫ <b>Óbito identificado na base nacional</b>
 
-Receita Federal: Aguardando atualização
-TSE: Em processamento
-INSS: Não sincronizado
-CNS: Registro inativado
+<code>────────────────────────────</code>
 
-----------------------------------
+<b>SITUAÇÃO NAS INTEGRAÇÕES</b>
 
-Data da consulta: {$dataConsulta}
+🟡 <b>Receita Federal:</b> Aguardando atualização cadastral  
+🟡 <b>TSE:</b> Em processamento  
+🟠 <b>INSS:</b> Não sincronizado  
+🔴 <b>CNS:</b> Registro inativado  
 
-Prazo de propagação sistêmica:
-até 20 dias corridos
+<code>────────────────────────────</code>
 
-BASES VINCULADAS
+🕒 <b>Data da consulta:</b> {$dataConsulta}
 
-✔ CADSUS
-✔ DATASUS
-✔ SIM
-✔ CNIS
+⚠️ <i>Prazo estimado para propagação completa entre os sistemas:</i>  
+<b>até 20 dias corridos</b>
 
-----------------------------------
-Astro Search • DataSync Engine
-";
+<code>────────────────────────────</code>
 
-    $file = tempnam(sys_get_temp_dir(), "obito_");
-    file_put_contents($file, $txt);
+<b>BASES VINCULADAS</b>
 
-    // 🪦 MENSAGEM BONITA
-    $legenda =
-"🪦 <b>ÓBITO ADICIONADO!</b>
+✔ CADSUS  
+✔ DATASUS  
+✔ SIM — Sistema de Informações sobre Mortalidade  
+✔ CNIS  
 
-CPF: <code>{$cpf}</code>
+<code>────────────────────────────</code>
+<i>Astro Search • DataSync Engine</i>";
 
-⚠️ Registro adicionado na base nacional.
-
-📄 O relatório completo foi enviado em TXT.
-
-<i>Astro Search • Sistema de Integração</i>";
-
-    tg("sendDocument",[
+    tg("sendMessage",[
         "chat_id"=>$chat,
-        "document"=>new CURLFile($file, "text/plain", "obito_{$cpf}.txt"),
-        "caption"=>$legenda,
+        "text"=>$txt,
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
@@ -774,8 +732,6 @@ CPF: <code>{$cpf}</code>
             ]
         ])
     ]);
-
-    unlink($file);
 }
 
 function consultaCPF($chat, $cpf){
@@ -1154,4 +1110,4 @@ $plano = isVip($id) ? "VIP" : "Grátis";
     exit;
 }
 
-echo "OK"; OK
+echo "OK";
