@@ -892,8 +892,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     }
 
     // ===== COMANDOS VIP =====
-    $vipCmds = ["/cpf","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto","/obito"];
-
+   $vipCmds = ["/cpf","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
     if(in_array($cmd, $vipCmds)){
 
     // ❗ primeiro valida se enviou argumento
