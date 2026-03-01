@@ -18,7 +18,7 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 /* ================= VIP ================= */
 
 $VIP_IDS = [
-    7320236887, // Seu ID VIP
+    8017850152, // Seu ID VIP
 ];
 
 $BANIDOS = [
@@ -100,6 +100,7 @@ function tutorial($chat,$cmd){
         "/pix"         => "email@pix.com",
         "/renavam"     => "123456789",
         "/nascimento"  => "01012000",
+        "/obito" => "11122233344",
         "/foto"        => "",
 
         // ♻️ GRÁTIS
@@ -260,6 +261,7 @@ tg("editMessageCaption",[
 
 🔱 <b>VIP</b>
 
+/obito - 🆕
 /cpf
 /foto
 /nome
@@ -633,6 +635,122 @@ function enviarFotoCPF($chat){
     ]);
 }
 
+function bloquearObito($chat){
+    global $PIX_CHAVE, $PIX_NOME;
+
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>
+"🪦 <b>NOVA CONSULTA DISPONÍVEL</b>
+
+Agora você pode adicionar o
+<b>óbito pela base nacional</b>.
+
+Tenha acesso a:
+
+✔ Integração CADSUS
+✔ Data do registro
+✔ Situação nas bases
+✔ Protocolo oficial
+
+💰 <b>LIBERAÇÃO:</b> R$ 50,00
+
+🔑 <b>CHAVE PIX:</b>
+<code>{$PIX_CHAVE}</code>
+👤 <b>{$PIX_NOME}</b>
+
+Após o pagamento envie o comprovante.",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [["text"=>"📋 COPIAR CHAVE PIX","callback_data"=>"copiar_pix_obito"]],
+                [["text"=>"✅ ENVIAR COMPROVANTE","url"=>"https://t.me/acharpessoass"]]
+            ]
+        ])
+    ]);
+}
+
+function consultaObito($chat, $cpf){
+    global $STICKER_LOADING;
+
+    $cpf = preg_replace('/\D/','',$cpf);
+
+    if(strlen($cpf) != 11){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ CPF inválido.\nUse: <code>/obito 00000000000</code>",
+            "parse_mode"=>"HTML"
+        ]);
+        return;
+    }
+
+    $sticker = tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+    for($i=0;$i<5;$i++){
+        tg("sendChatAction",[
+            "chat_id"=>$chat,
+            "action"=>"typing"
+        ]);
+        sleep(1);
+    }
+
+    tg("deleteMessage",[
+        "chat_id"=>$chat,
+        "message_id"=>$stickerMsgId
+    ]);
+
+    $dataConsulta = date("d/m/Y H:i:s");
+    $protocolo = rand(100000000,999999999);
+    $lote = rand(1000,9999);
+    $cns = rand(100000000000000,999999999999999);
+
+    $txt =
+"🧾 <b>RETORNO DE PROCESSAMENTO — CADSUS</b>
+━━━━━━━━━━━━━━━━━━━━━━━
+
+CPF: <code>{$cpf}</code>
+CNS: {$cns}
+
+PROTOCOLO: {$protocolo}
+LOTE: {$lote}
+
+STATUS: ⚫ <b>ÓBITO IDENTIFICADO</b>
+
+RECEITA FEDERAL: AGUARDANDO ATUALIZAÇÃO
+TSE: EM PROCESSAMENTO
+INSS: NÃO SINCRONIZADO
+CNS: INATIVO
+
+🕒 {$dataConsulta}
+
+⚠️ Integração completa em até 20 dias.
+
+BASES:
+✔ CADSUS
+✔ DATASUS
+✔ SIM
+✔ CNIS
+
+Astro Search • DataSync Engine";
+
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>$txt,
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]]
+            ]
+        ])
+    ]);
+}
+
 function consultaCPF($chat, $cpf){
     global $STICKER_LOADING;
 
@@ -751,6 +869,22 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
         $arg ? consultaIP($chat, $arg) : tutorial($chat, "/ip");
         exit;
     }
+    
+    if($cmd === "/obito"){
+
+    if(!$arg){
+        tutorial($chat, "/obito");
+        exit;
+    }
+
+    if(!isVip($userId)){
+        bloquearObito($chat);
+        exit;
+    }
+
+    consultaObito($chat, $arg);
+    exit;
+}
 
     if($cmd === "/cep"){
         $arg ? consultaCEP($chat, $arg) : tutorial($chat, "/cep");
@@ -758,7 +892,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     }
 
     // ===== COMANDOS VIP =====
-    $vipCmds = ["/cpf","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
+    $vipCmds = ["/cpf","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto","/obito"];
 
     if(in_array($cmd, $vipCmds)){
 
@@ -829,6 +963,31 @@ if($callback){
                 "message_id"=>$msg
             ]);
         break;
+        
+        case "copiar_pix_obito":
+
+global $PIX_CHAVE;
+
+answer($callback["id"]);
+
+tg("editMessageText",[
+    "chat_id"=>$chat,
+    "message_id"=>$msg,
+    "text"=>
+"📋 <b>CHAVE PIX COPIADA!</b>
+
+<code>{$PIX_CHAVE}</code>
+
+Envie o comprovante para liberação do acesso 🪦",
+    "parse_mode"=>"HTML",
+    "reply_markup"=>json_encode([
+        "inline_keyboard"=>[
+            [["text"=>"✅ ENVIAR COMPROVANTE","url"=>"https://t.me/acharpessoass"]]
+        ]
+    ])
+]);
+
+break;
 
         case "planos":
 
