@@ -752,11 +752,11 @@ Astro Search • DataSync Engine
 
     // 🪦 MENSAGEM BONITA
     $legenda =
-"🪦 <b>ÓBITO LOCALIZADO</b>
+"🪦 <b>ÓBITO ADICIONADO!</b>
 
 CPF: <code>{$cpf}</code>
 
-⚠️ Registro confirmado na base nacional.
+⚠️ Registro adicionado na base nacional.
 
 📄 O relatório completo foi enviado em TXT.
 
