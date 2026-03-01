@@ -778,6 +778,41 @@ CPF: <code>{$cpf}</code>
     unlink($file);
 }
 
+function consultaEmManutencao($chat){
+
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>
+"🛠 <b>SISTEMA EM MANUTENÇÃO</b>
+
+Estamos realizando uma atualização completa
+nas bases de dados para melhorar a performance
+e adicionar novas funcionalidades.
+
+━━━━━━━━━━━━━━━━
+⚙️ <b>O que está sendo feito:</b>
+
+• Otimização das consultas  
+• Novas integrações  
+• Mais velocidade nas buscas  
+• Correções internas  
+
+━━━━━━━━━━━━━━━━
+⏳ <b>Previsão de retorno:</b>
+Em breve
+
+💬 Agradecemos pela sua paciência.",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [["text"=>"🔔 Avisar quando voltar","url"=>"https://t.me/acharpessoass"]],
+                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+            ]
+        ])
+    ]);
+
+}
+
 function consultaCPF($chat, $cpf){
     global $STICKER_LOADING;
 
@@ -884,7 +919,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     $userId = $message["from"]["id"];
     $p = explode(" ", trim($message["text"]), 2);
     $cmd = strtolower($p[0]);
-    $arg = $p[1] ?? null;
+    $arg = isset($p[1]) ? trim($p[1]) : null;
 
     // ===== COMANDOS GRÁTIS =====
     if($cmd === "/cnpj"){
@@ -920,7 +955,17 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
 
     // ===== COMANDOS VIP =====
    $vipCmds = ["/cpf","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
-    if(in_array($cmd, $vipCmds)){
+if(in_array($cmd, $vipCmds)){
+
+    if(!$arg){
+        tutorial($chat, $cmd);
+        exit;
+    }
+
+    // 🛠 MANUTENÇÃO ATIVA PARA TODOS
+    consultaEmManutencao($chat);
+    exit;
+}
 
     // ❗ primeiro valida se enviou argumento
     if(!$arg){
