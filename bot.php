@@ -671,63 +671,30 @@ Após o pagamento envie o comprovante.",
 }
 
 function consultaObito($chat, $cpf){
-    global $STICKER_LOADING;
 
-    $cpf = preg_replace('/\D/','',$cpf);
-
-    if(strlen($cpf) != 11){
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>"❌ CPF inválido.\nUse: <code>/obito 00000000000</code>",
-            "parse_mode"=>"HTML"
-        ]);
-        return;
-    }
-
-    $sticker = tg("sendSticker",[
-        "chat_id"=>$chat,
-        "sticker"=>$STICKER_LOADING
-    ]);
-
-    $stickerData = json_decode($sticker, true);
-    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
-
-    for($i=0;$i<5;$i++){
-        tg("sendChatAction",[
-            "chat_id"=>$chat,
-            "action"=>"typing"
-        ]);
-        sleep(1);
-    }
-
-    tg("deleteMessage",[
-        "chat_id"=>$chat,
-        "message_id"=>$stickerMsgId
-    ]);
-
+    $cns = rand(100000000000000, 999999999999999);
+    $protocolo = rand(100000000, 999999999);
+    $lote = rand(1000, 9999);
     $dataConsulta = date("d/m/Y H:i:s");
-    $protocolo = rand(100000000,999999999);
-    $lote = rand(1000,9999);
-    $cns = rand(100000000000000,999999999999999);
 
-$txt =
+    $txt =
 "🧾 <b>CADSUS • RETORNO DE PROCESSAMENTO</b>
-<code>━━━━━━━━━━━━━━━━━━</code>
+<code>━━━━━━━━━━━━━━━━━━━━━━━━━━━━</code>
 
 <b>CPF:</b> <code>{$cpf}</code>
 <b>CNS:</b> <code>{$cns}</code>
 
-<code>━━━━━━━━━━━━━━━━━━</code>
+<code>────────────────────────────</code>
 
 <b>PROTOCOLO:</b> <code>{$protocolo}</code>
 <b>LOTE:</b> <code>{$lote}</code>
 
-<code>━━━━━━━━━━━━━━━━━━</code>
+<code>────────────────────────────</code>
 
 <b>STATUS DO EVENTO</b>
 ⚫ <b>Óbito identificado na base nacional</b>
 
-<code>━━━━━━━━━━━━━━━━━━</code>
+<code>────────────────────────────</code>
 
 <b>SITUAÇÃO NAS INTEGRAÇÕES</b>
 
@@ -736,14 +703,14 @@ $txt =
 🟠 <b>INSS:</b> Não sincronizado  
 🔴 <b>CNS:</b> Registro inativado  
 
-<code>━━━━━━━━━━━━━━━━━━</code>
+<code>────────────────────────────</code>
 
 🕒 <b>Data da consulta:</b> {$dataConsulta}
 
 ⚠️ <i>Prazo estimado para propagação completa entre os sistemas:</i>  
 <b>até 20 dias corridos</b>
 
-<code>━━━━━━━━━━━━━━━━━━</code>
+<code>────────────────────────────</code>
 
 <b>BASES VINCULADAS</b>
 
@@ -752,8 +719,20 @@ $txt =
 ✔ SIM — Sistema de Informações sobre Mortalidade  
 ✔ CNIS  
 
-<code>━━━━━━━━━━━━━━━━━━</code>
+<code>────────────────────────────</code>
 <i>Astro Search • DataSync Engine</i>";
+
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>$txt,
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]]
+            ]
+        ])
+    ]);
+}
 
 function consultaCPF($chat, $cpf){
     global $STICKER_LOADING;
