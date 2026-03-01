@@ -710,46 +710,50 @@ function consultaObito($chat, $cpf){
     $lote = rand(1000,9999);
     $cns = rand(100000000000000,999999999999999);
 
-    $txt =
-"🧾 <b>RETORNO DE PROCESSAMENTO — CADSUS</b>
-━━━━━━━━━━━━━━━━━━━━━━━
+$txt =
+"🧾 <b>CADSUS • RETORNO DE PROCESSAMENTO</b>
+<code>━━━━━━━━━━━━━━━━━━</code>
 
-CPF: <code>{$cpf}</code>
-CNS: {$cns}
+<b>CPF:</b> <code>{$cpf}</code>
+<b>CNS:</b> <code>{$cns}</code>
 
-PROTOCOLO: {$protocolo}
-LOTE: {$lote}
+<code>━━━━━━━━━━━━━━━━━━</code>
 
-STATUS: ⚫ <b>ÓBITO ADICIONADO!</b>
+<b>PROTOCOLO:</b> <code>{$protocolo}</code>
+<b>LOTE:</b> <code>{$lote}</code>
 
-RECEITA FEDERAL: AGUARDANDO ATUALIZAÇÃO
-TSE: EM PROCESSAMENTO
-INSS: NÃO SINCRONIZADO
-CNS: INATIVO
+<code>━━━━━━━━━━━━━━━━━━</code>
 
-🕒 {$dataConsulta}
+<b>STATUS DO EVENTO</b>
+⚫ <b>Óbito identificado na base nacional</b>
 
-⚠️ Integração completa em até 20 dias.
+<code>━━━━━━━━━━━━━━━━━━</code>
 
-BASES:
-✔ CADSUS
-✔ DATASUS
-✔ SIM
-✔ CNIS
+<b>SITUAÇÃO NAS INTEGRAÇÕES</b>
 
-Astro Search • DataSync Engine";
+🟡 <b>Receita Federal:</b> Aguardando atualização cadastral  
+🟡 <b>TSE:</b> Em processamento  
+🟠 <b>INSS:</b> Não sincronizado  
+🔴 <b>CNS:</b> Registro inativado  
 
-    tg("sendMessage",[
-        "chat_id"=>$chat,
-        "text"=>$txt,
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]]
-            ]
-        ])
-    ]);
-}
+<code>━━━━━━━━━━━━━━━━━━</code>
+
+🕒 <b>Data da consulta:</b> {$dataConsulta}
+
+⚠️ <i>Prazo estimado para propagação completa entre os sistemas:</i>  
+<b>até 20 dias corridos</b>
+
+<code>━━━━━━━━━━━━━━━━━━</code>
+
+<b>BASES VINCULADAS</b>
+
+✔ CADSUS  
+✔ DATASUS  
+✔ SIM — Sistema de Informações sobre Mortalidade  
+✔ CNIS  
+
+<code>━━━━━━━━━━━━━━━━━━</code>
+<i>Astro Search • DataSync Engine</i>";
 
 function consultaCPF($chat, $cpf){
     global $STICKER_LOADING;
