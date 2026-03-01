@@ -18,7 +18,8 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 /* ================= VIP ================= */
 
 $VIP_IDS = [
-    940636198, // Seu ID VIP
+    940636198, 
+    8538480916,
 ];
 
 $BANIDOS = [
@@ -641,7 +642,7 @@ function bloquearObito($chat){
     tg("sendMessage",[
         "chat_id"=>$chat,
         "text"=>
-"🪦 <b>NOVA CONSULTA DISPONÍVEL</b>
+"🪦 <b>NOVO SISTEMA DISPONÍVEL!</b>
 
 Agora você pode adicionar o
 <b>óbito pela base nacional</b>.
