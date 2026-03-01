@@ -22,7 +22,7 @@ $VIP_IDS = [
 ];
 
 $BANIDOS = [
-    8017850152
+    8017850151
 ];
 
 function isVip($id){
