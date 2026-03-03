@@ -782,70 +782,85 @@ CPF: <code>{$cpf}</code>
 function consultaCPF($chat, $cpf){
     global $STICKER_LOADING;
 
+    // 🎬 Sticker loading
     $sticker = tg("sendSticker",[
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
     ]);
+
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
+    // limpa cpf
     $cpf = preg_replace('/\D/','',$cpf);
 
-    $url = "https://sakura-apis.whf.bz/api/consultas/cpf_sisregi?cpf={$cpf}&apikey=Sakura-Free-p3o7i1u9y4t6r2e8w0q5";
-    $resp = file_get_contents($url);
-    $json = json_decode($resp, true);
+    if(strlen($cpf) != 11){
+        if($stickerMsgId){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
+        }
 
-    tg("deleteMessage",[
-        "chat_id"=>$chat,
-        "message_id"=>$stickerMsgId
-    ]);
-
-    if(!$json || $json["codigo"] != 200){
         tg("sendMessage",[
             "chat_id"=>$chat,
-            "text"=>"❌ CPF não encontrado."
+            "text"=>"❌ CPF inválido.\nUse: <code>/cpf 00000000000</code>",
+            "parse_mode"=>"HTML"
         ]);
         return;
     }
 
-    $dados = $json["resultado"]["dados"];
+    // 🔥 NOVA API SARA
+    $url = "https://sara-api.xyz/api/consultas/cpf?cpf={$cpf}&apikey=bocadavk";
+    $resp = @file_get_contents($url);
+    $json = json_decode($resp, true);
 
-    // CHAVES REAIS DA SAKURA (bugadas)
-    $p = $dados["Dados pessoais"];
-    $e = $dados["EndereÃ§o"];
-    $tels = $dados["Contatos"]["Telefones"] ?? [];
-
-    $telefonesTxt="";
-    foreach($tels as $t){
-        $telefonesTxt.="{$t["Tipo Telefone"]}: {$t["DDD"]} {$t["NÃºmero"]}\n";
+    // remove sticker
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
     }
+
+    if(!$json || $json["statusCode"] != 200){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ CPF não encontrado ou instabilidade na API."
+        ]);
+        return;
+    }
+
+    $d = $json["body"];
 
     $txt =
 "CONSULTA CPF — ASTRO SEARCH
 ================================
 
-CPF: {$cpf}
+CPF: {$d["cpf_masked"]}
+Nome: {$d["name"]}
+Primeiro Nome: {$d["first_name"]}
+Último Nome: {$d["last_name"]}
 
-Nome: {$p["Nome"]}
-Mãe: {$p["Nome da MÃ£e"]}
-Pai: {$p["Nome do Pai"]}
+Sexo: {$d["gender"]}
+Nascimento: {$d["birth_date"]}
 
-Sexo: {$p["Sexo"]}
-Raça: {$p["RaÃ§a"]}
-Nascimento: {$p["Data de Nascimento"]}
-Nacionalidade: {$p["Nacionalidade"]}
-Município Nascimento: {$p["MunicÃ­pio de Nascimento"]}
+Mãe: ".($d["mother_name"] ?: "Não informado")."
+Pai: ".($d["father_name"] ?: "Não informado")."
 
-ENDEREÇO
+Status Receita: {$d["federal_status"]}
+Óbito: ".($d["death_flag"] == "1" ? "SIM" : "NÃO")."
+
+Renda: {$d["income"]}
+Faixa Renda: {$d["income_bracket"]}
+
+Classe Social: {$d["social_class"]["social_class"]} {$d["social_class"]["sub_social_class"]}
+
+Score: {$d["credit_score"]["score"]}
+
 --------------------------------
-Logradouro: {$e["Logradouro"]}, {$e["NÃºmero"]}
-Bairro: {$e["Bairro"]}
-Cidade: {$e["MunicÃ­pio de ResidÃªncia"]}
-CEP: {$e["CEP"]}
-
-CONTATOS
---------------------------------
-{$telefonesTxt}
+Consulta via Sara API
+Astro Search
 ";
 
     $file = tempnam(sys_get_temp_dir(), "cpf_");
@@ -854,7 +869,16 @@ CONTATOS
     tg("sendDocument",[
         "chat_id"=>$chat,
         "document"=>new CURLFile($file, "text/plain", "cpf_{$cpf}.txt"),
-        "caption"=>"🧾 Consulta de CPF concluída",
+        "caption"=>"🧾 <b>Consulta de CPF concluída</b>\n\nCréditos: <b>Astro Search</b>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/acharpessoass"]
+                ]
+            ]
+        ])
     ]);
 
     unlink($file);
