@@ -703,26 +703,24 @@ function consultaObito($chat, $cpf){
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
     $response = curl_exec($ch);
     curl_close($ch);
 
-    $d = json_decode($response, true);
+    $api = json_decode($response, true);
 
-    // Se API falhar
-    if(!$d || !isset($d["name"])){
-        $d = [
-            "cpf_masked" => $cpf,
-            "name" => "NÃO LOCALIZADO",
-            "first_name" => "-",
-            "last_name" => "-",
-            "gender" => "-",
-            "birth_date" => "-"
-        ];
-    }
+    // Pega apenas o body
+    $d = $api["body"];
+
+    $nome   = $d["name"];
+    $cpfMask = $d["cpf_masked"];
+    $sexo   = $d["gender"];
+    $nasc   = $d["birth_date"];
+    $status = $d["federal_status"];
+    $renda  = $d["income"];
 
     // =========================
-    // 🎲 Dados internos simulados
+    // 🎲 Dados simulados sistema
     // =========================
     $cns = rand(100000000000000, 999999999999999);
     $protocolo = rand(100000000, 999999999);
@@ -746,16 +744,14 @@ function consultaObito($chat, $cpf){
 
 DADOS DO TITULAR
 
-CPF: {$d["cpf_masked"]}
-Nome Completo: {$d["name"]}
-Primeiro Nome: {$d["first_name"]}
-Último Nome: {$d["last_name"]}
-Sexo: {$d["gender"]}
-Nascimento: {$d["birth_date"]}
+CPF: {$cpfMask}
+Nome: {$nome}
+Sexo: {$sexo}
+Nascimento: {$nasc}
+Situação Receita: {$status}
+Renda Declarada: R$ {$renda}
 
 ----------------------------------
-
-DADOS SISTÊMICOS
 
 CNS: {$cns}
 PROTOCOLO: {$protocolo}
@@ -766,26 +762,10 @@ STATUS DO EVENTO
 
 ----------------------------------
 
-SITUAÇÃO NAS INTEGRAÇÕES
-
-Receita Federal: Aguardando atualização
-TSE: Em processamento
-INSS: Não sincronizado
-CNS: Registro inativado
-
-----------------------------------
-
 Data da consulta: {$dataConsulta}
 
 Prazo de propagação sistêmica:
 até 20 dias corridos
-
-BASES VINCULADAS
-
-✔ CADSUS
-✔ DATASUS
-✔ SIM
-✔ CNIS
 
 ----------------------------------
 Astro Search • DataSync Engine
@@ -795,20 +775,19 @@ Astro Search • DataSync Engine
     file_put_contents($file, $txt);
 
     // =========================
-    // 🪦 MENSAGEM FORMATADA
+    // 🪦 MENSAGEM RESUMIDA
     // =========================
     $legenda =
-"🪦 <b>ÓBITO ADICIONADO!</b>
+"🪦 <b>ÓBITO ADICIONADO</b>
 
-👤 <b>{$d["name"]}</b>
-📄 CPF: <code>{$d["cpf_masked"]}</code>
-📅 Nascimento: {$d["birth_date"]}
-
-⚠️ Registro incluído na base nacional.
+👤 <b>{$nome}</b>
+📄 CPF: <code>{$cpfMask}</code>
+📅 {$nasc}
+⚖ Receita: {$status}
 
 📄 Relatório completo enviado em TXT.
 
-<i>Astro Search • Sistema de Integração</i>";
+<i>Astro Search • Sistema Nacional</i>";
 
     tg("sendDocument",[
         "chat_id"=>$chat,
@@ -824,6 +803,7 @@ Astro Search • DataSync Engine
 
     unlink($file);
 }
+
 function consultaNome($chat, $nome){
     global $STICKER_LOADING;
 
