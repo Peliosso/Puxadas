@@ -695,6 +695,35 @@ function consultaObito($chat, $cpf){
 
     $cpf = preg_replace('/\D/','',$cpf);
 
+    // =========================
+    // 🔎 CONSULTA API CPF
+    // =========================
+    $url = "https://sara-api.xyz/api/consultas/cpf?cpf={$cpf}&apikey=bocadavk";
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $d = json_decode($response, true);
+
+    // Se API falhar
+    if(!$d || !isset($d["name"])){
+        $d = [
+            "cpf_masked" => $cpf,
+            "name" => "NÃO LOCALIZADO",
+            "first_name" => "-",
+            "last_name" => "-",
+            "gender" => "-",
+            "birth_date" => "-"
+        ];
+    }
+
+    // =========================
+    // 🎲 Dados internos simulados
+    // =========================
     $cns = rand(100000000000000, 999999999999999);
     $protocolo = rand(100000000, 999999999);
     $lote = rand(1000, 9999);
@@ -708,14 +737,27 @@ function consultaObito($chat, $cpf){
         ]);
     }
 
+    // =========================
     // 📄 CONTEÚDO TXT
+    // =========================
     $txt =
 "CADSUS • RETORNO DE PROCESSAMENTO
 ==================================
 
-CPF: {$cpf}
-CNS: {$cns}
+DADOS DO TITULAR
 
+CPF: {$d["cpf_masked"]}
+Nome Completo: {$d["name"]}
+Primeiro Nome: {$d["first_name"]}
+Último Nome: {$d["last_name"]}
+Sexo: {$d["gender"]}
+Nascimento: {$d["birth_date"]}
+
+----------------------------------
+
+DADOS SISTÊMICOS
+
+CNS: {$cns}
 PROTOCOLO: {$protocolo}
 LOTE: {$lote}
 
@@ -752,15 +794,19 @@ Astro Search • DataSync Engine
     $file = tempnam(sys_get_temp_dir(), "obito_");
     file_put_contents($file, $txt);
 
-    // 🪦 MENSAGEM BONITA
+    // =========================
+    // 🪦 MENSAGEM FORMATADA
+    // =========================
     $legenda =
 "🪦 <b>ÓBITO ADICIONADO!</b>
 
-CPF: <code>{$cpf}</code>
+👤 <b>{$d["name"]}</b>
+📄 CPF: <code>{$d["cpf_masked"]}</code>
+📅 Nascimento: {$d["birth_date"]}
 
-⚠️ Registro adicionado na base nacional.
+⚠️ Registro incluído na base nacional.
 
-📄 O relatório completo foi enviado em TXT.
+📄 Relatório completo enviado em TXT.
 
 <i>Astro Search • Sistema de Integração</i>";
 
@@ -778,7 +824,6 @@ CPF: <code>{$cpf}</code>
 
     unlink($file);
 }
-
 function consultaNome($chat, $nome){
     global $STICKER_LOADING;
 
