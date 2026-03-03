@@ -804,6 +804,109 @@ Astro Search • DataSync Engine
     unlink($file);
 }
 
+function consultaTelefone($chat, $telefone){
+    global $STICKER_LOADING;
+
+    // 🎬 Sticker loading
+    $sticker = tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+    // limpa telefone
+    $telefone = preg_replace('/\D/','',$telefone);
+
+    if(strlen($telefone) < 10){
+        if($stickerMsgId){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
+        }
+
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Telefone inválido.\nUse: <code>/telefone 31999999999</code>",
+            "parse_mode"=>"HTML"
+        ]);
+        return;
+    }
+
+    // 🔥 API TELEFONE
+    $url = "https://sara-api.xyz/api/consultas/telefone?telefone={$telefone}&apikey=bocadavk";
+    $resp = @file_get_contents($url);
+    $json = json_decode($resp, true);
+
+    // remove sticker
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
+
+    if(!$json || $json["statusCode"] != 200 || $json["total_results"] == 0){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Nenhum resultado encontrado para este telefone."
+        ]);
+        return;
+    }
+
+    $txt =
+"CONSULTA TELEFONE — ASTRO SEARCH
+================================
+
+Telefone pesquisado: {$json["query"]}
+Total encontrados: {$json["total_results"]}
+
+================================
+";
+
+    foreach($json["body"] as $pessoa){
+
+        $txt .= "
+CPF: {$pessoa["cpf"]}
+Nome: {$pessoa["name"]}
+Nascimento: {$pessoa["birth_date"]}
+Cidade: {$pessoa["city"]}
+Estado: {$pessoa["state"]}
+Email: {$pessoa["email"]}
+Base: {$pessoa["source"]}
+
+--------------------------------
+";
+    }
+
+    $txt .= "
+Consulta via:
+Astro Search
+";
+
+    $file = tempnam(sys_get_temp_dir(), "tel_");
+    file_put_contents($file, $txt);
+
+    tg("sendDocument",[
+        "chat_id"=>$chat,
+        "document"=>new CURLFile($file, "text/plain", "telefone_{$telefone}.txt"),
+        "caption"=>"📞 <b>Consulta de Telefone concluída</b>\n\nCréditos: <b>Astro Search</b>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/acharpessoass"]
+                ]
+            ]
+        ])
+    ]);
+
+    unlink($file);
+}
+
 function consultaNome($chat, $nome){
     global $STICKER_LOADING;
 
@@ -1091,6 +1194,11 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
             $arg ? consultaNome($chat, $arg) : tutorial($chat, "/nome");
             exit;
         }
+        
+        if($cmd === "/telefone"){
+    consultaTelefone($chat, $arg);
+    exit;
+}
         
         if($cmd === "/foto"){
 
