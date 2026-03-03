@@ -1063,7 +1063,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
         }
         
         if($cmd === "/nome"){
-            $arg ? consultaNome($chat, $arg) : tutorial($chat, "/cpf");
+            $arg ? consultaNome($chat, $arg) : tutorial($chat, "/nome");
             exit;
         }
         
