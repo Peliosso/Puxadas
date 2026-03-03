@@ -877,7 +877,7 @@ Nascimento: {$pessoa["birth_date"]}
 Cidade: {$pessoa["city"]}
 Estado: {$pessoa["state"]}
 Email: {$pessoa["email"]}
-Base: Astra Search
+Base: Astro Search
 
 --------------------------------
 ";
