@@ -11,8 +11,8 @@ $START_PHOTO = "https://conventional-magenta-fxkyikrbqe.edgeone.app/E8D6A8B8-36F
 
 /* PIX */
 $PIX_VALOR = "15,00";
-$PIX_CHAVE = "26e5a85f-db35-4b77-8303-29b9e593c049";
-$PIX_NOME  = "Isabelly";
+$PIX_CHAVE = "f0d0f3b1-8776-4f06-a254-b6ea3686f71a";
+$PIX_NOME  = "Gabriel Lorenzo";
 $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBLduZ5vHwXjSs4BA";
 
 /* ================= VIP ================= */
