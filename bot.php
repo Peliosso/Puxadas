@@ -779,6 +779,104 @@ CPF: <code>{$cpf}</code>
     unlink($file);
 }
 
+function consultaNome($chat, $nome){
+    global $STICKER_LOADING;
+
+    // 🎬 Sticker loading
+    $sticker = tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+    if(strlen($nome) < 5){
+        if($stickerMsgId){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
+        }
+
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Nome inválido.\nUse: <code>/nome João Silva</code>",
+            "parse_mode"=>"HTML"
+        ]);
+        return;
+    }
+
+    $nomeUrl = urlencode($nome);
+
+    // 🔥 API SARA
+    $url = "https://sara-api.xyz/api/consultas/nome?nome={$nomeUrl}&apikey=bocadavk";
+    $resp = @file_get_contents($url);
+    $json = json_decode($resp, true);
+
+    // remove sticker
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
+
+    if(!$json || $json["statusCode"] != 200 || $json["total_results"] == 0){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Nenhum resultado encontrado."
+        ]);
+        return;
+    }
+
+    $txt =
+"CONSULTA POR NOME — ASTRO SEARCH
+================================
+
+Nome pesquisado: {$json["query"]}
+Total encontrados: {$json["total_results"]}
+
+================================
+";
+
+    foreach($json["body"] as $pessoa){
+
+        $txt .= "
+CPF: {$pessoa["cpf"]}
+Nome: {$pessoa["name"]}
+Nascimento: {$pessoa["birth_date"]}
+Sexo: {$pessoa["gender"]}
+Mãe: ".trim($pessoa["mother_name"])."
+RG: ".($pessoa["rg"] ?: "Não informado")."
+
+--------------------------------
+Consulta via:
+Astro Search
+";
+    }
+
+    $file = tempnam(sys_get_temp_dir(), "nome_");
+    file_put_contents($file, $txt);
+
+    tg("sendDocument",[
+        "chat_id"=>$chat,
+        "document"=>new CURLFile($file, "text/plain", "nome_resultado.txt"),
+        "caption"=>"👤 <b>Consulta por nome concluída</b>\n\nCréditos: <b>Astro Search</b>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/acharpessoass"]
+                ]
+            ]
+        ])
+    ]);
+
+    unlink($file);
+}
+
 function consultaCPF($chat, $cpf){
     global $STICKER_LOADING;
 
@@ -961,6 +1059,11 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
 
         if($cmd === "/cpf"){
             $arg ? consultaCPF($chat, $arg) : tutorial($chat, "/cpf");
+            exit;
+        }
+        
+        if($cmd === "/nome"){
+            $arg ? consultaNome($chat, $arg) : tutorial($chat, "/cpf");
             exit;
         }
         
