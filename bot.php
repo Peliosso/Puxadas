@@ -859,7 +859,7 @@ Classe Social: {$d["social_class"]["social_class"]} {$d["social_class"]["sub_soc
 Score: {$d["credit_score"]["score"]}
 
 --------------------------------
-Consulta via Sara API
+Consulta via:
 Astro Search
 ";
 
