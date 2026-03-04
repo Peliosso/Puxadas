@@ -1427,7 +1427,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     }
 
     // ===== COMANDOS VIP =====
-$vipCmds = ["/cpf","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
+$vipCmds = ["/cpf","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
     if(in_array($cmd, $vipCmds)){
 
     // ❗ primeiro valida se enviou argumento
@@ -1447,23 +1447,6 @@ $vipCmds = ["/cpf","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa
             exit;
         }
         
-        if(strpos($text,"/vizinhos") === 0){
-
-    if(!isVip($userId)){
-        bloquearConsulta($chat);
-        return;
-    }
-
-    $cpf = trim(explode(" ",$text)[1] ?? "");
-
-    if(!$cpf){
-        tutorial($chat,"/vizinhos");
-        return;
-    }
-
-    consultaVizinhos($chat,$cpf);
-}
-        
         if($cmd === "/parentes"){
     consultaParentes($chat, $arg);
     exit;
@@ -1481,6 +1464,11 @@ $vipCmds = ["/cpf","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa
         
         if($cmd === "/foto"){
     consultaFoto($chat, $arg);
+    exit;
+}
+
+if($cmd === "/vizinhos"){
+    consultaVizinhos($chat, $arg);
     exit;
 }
 
