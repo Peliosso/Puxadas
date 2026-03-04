@@ -101,6 +101,7 @@ function tutorial($chat,$cmd){
         // 🔒 VIP
         "/cpf"         => "12345678900",
         "/nome"        => "João Silva",
+        "/vizinhos"     => "12345678900",
         "/rg"          => "1234567",
         "/cnh"         => "12345678900",
         "/telefone"    => "11999999999",
@@ -272,8 +273,9 @@ tg("editMessageCaption",[
 
 /obito - 🆕
 /parentes - 🆕
+/vizinhos - 🆕
+/foto - 🆕
 /cpf
-/foto
 /nome
 /rg
 /cnh
@@ -610,6 +612,104 @@ Créditos: Astro Search
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
                     ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/acharpessoass"]
                 ]
+            ]
+        ])
+    ]);
+
+    unlink($file);
+}
+
+function consultaVizinhos($chat, $cpf){
+    global $STICKER_LOADING;
+
+    // sticker loading
+    $sticker = tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+
+    $stickerData = json_decode($sticker,true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+    $cpf = preg_replace('/\D/','',$cpf);
+
+    if(strlen($cpf) != 11){
+
+        if($stickerMsgId){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
+        }
+
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ CPF inválido.\nUse: <code>/vizinhos 00000000000</code>",
+            "parse_mode"=>"HTML"
+        ]);
+        return;
+    }
+
+    // API
+    $url = "https://sara-api.xyz/api/consultas/vizinhos?cpf={$cpf}&apikey=bocadavk";
+    $resp = @file_get_contents($url);
+    $json = json_decode($resp,true);
+
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
+
+    if(!$json || !$json["success"]){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Nenhum vizinho encontrado."
+        ]);
+        return;
+    }
+
+    $nome = $json["pessoa"];
+    $total = $json["total"];
+
+    $txt =
+"CONSULTA DE VIZINHOS — ASTRO SEARCH
+====================================
+
+CPF CONSULTADO: {$cpf}
+TITULAR: {$nome}
+
+TOTAL DE VIZINHOS: {$total}
+
+------------------------------------
+
+";
+
+    foreach($json["data"] as $v){
+
+        $txt .=
+"Nome: {$v["nome"]}
+CPF: {$v["cpf"]}
+Endereço: {$v["logradouro"]} {$v["numero"]}
+Bairro: {$v["bairro"]}
+Cidade: {$v["cidade"]}
+
+------------------------------------
+";
+    }
+
+    $file = tempnam(sys_get_temp_dir(),"viz_");
+    file_put_contents($file,$txt);
+
+    tg("sendDocument",[
+        "chat_id"=>$chat,
+        "document"=>new CURLFile($file,"text/plain","vizinhos_{$cpf}.txt"),
+        "caption"=>"🏠 <b>Consulta de vizinhos concluída</b>\n\nCréditos: <b>Astro Search</b>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]]
             ]
         ])
     ]);
@@ -1346,6 +1446,23 @@ $vipCmds = ["/cpf","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa
             $arg ? consultaCPF($chat, $arg) : tutorial($chat, "/cpf");
             exit;
         }
+        
+        if(strpos($text,"/vizinhos") === 0){
+
+    if(!isVip($userId)){
+        bloquearConsulta($chat);
+        return;
+    }
+
+    $cpf = trim(explode(" ",$text)[1] ?? "");
+
+    if(!$cpf){
+        tutorial($chat,"/vizinhos");
+        return;
+    }
+
+    consultaVizinhos($chat,$cpf);
+}
         
         if($cmd === "/parentes"){
     consultaParentes($chat, $arg);
