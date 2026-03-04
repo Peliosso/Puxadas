@@ -266,6 +266,7 @@ tg("editMessageCaption",[
 🔱 <b>VIP</b>
 
 /obito - 🆕
+/parentes - 🆕
 /cpf
 /foto
 /nome
@@ -1007,6 +1008,107 @@ Astro Search
     unlink($file);
 }
 
+function consultaParentes($chat, $cpf){
+    global $STICKER_LOADING;
+
+    // 🎬 Sticker loading
+    $sticker = tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+    // limpa cpf
+    $cpf = preg_replace('/\D/','',$cpf);
+
+    if(strlen($cpf) != 11){
+        if($stickerMsgId){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
+        }
+
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ CPF inválido.\nUse: <code>/parentes 00000000000</code>",
+            "parse_mode"=>"HTML"
+        ]);
+        return;
+    }
+
+    // 🔥 API SARA PARENTES
+    $url = "https://sara-api.xyz/api/consultas/parentes?cpf={$cpf}&apikey=bocadavk";
+    $resp = @file_get_contents($url);
+    $json = json_decode($resp, true);
+
+    // remove sticker
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
+
+    if(!$json || !$json["success"]){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Nenhum parente encontrado ou erro na API."
+        ]);
+        return;
+    }
+
+    $txt =
+"CONSULTA DE PARENTES — ASTRO SEARCH
+================================
+
+CPF Consultado: {$json["query"]}
+Titular: {$json["pessoa"]}
+Total de vínculos: {$json["total"]}
+
+================================
+";
+
+    foreach($json["data"] as $parente){
+
+        $txt .= "
+Nome: {$parente["nome"]}
+CPF: {$parente["cpf"]}
+Vínculo: {$parente["vinculo"]}
+
+--------------------------------
+";
+    }
+
+    $txt .= "
+Consulta via:
+Astro Search
+Tempo resposta API: {$json["responseTime"]}
+";
+
+    $file = tempnam(sys_get_temp_dir(), "parentes_");
+    file_put_contents($file, $txt);
+
+    tg("sendDocument",[
+        "chat_id"=>$chat,
+        "document"=>new CURLFile($file, "text/plain", "parentes_{$cpf}.txt"),
+        "caption"=>"👨‍👩‍👧‍👦 <b>Consulta de Parentes concluída</b>\n\nCréditos: <b>Astro Search</b>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/acharpessoass"]
+                ]
+            ]
+        ])
+    ]);
+
+    unlink($file);
+}
+
 function consultaCPF($chat, $cpf){
     global $STICKER_LOADING;
 
@@ -1172,7 +1274,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     }
 
     // ===== COMANDOS VIP =====
-   $vipCmds = ["/cpf","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
+$vipCmds = ["/cpf","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
     if(in_array($cmd, $vipCmds)){
 
     // ❗ primeiro valida se enviou argumento
@@ -1190,6 +1292,11 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
         if($cmd === "/cpf"){
             $arg ? consultaCPF($chat, $arg) : tutorial($chat, "/cpf");
             exit;
+        }
+        
+        if($cmd === "/parentes"){
+    consultaParentes($chat, $arg);
+    exit;
         }
         
         if($cmd === "/nome"){
