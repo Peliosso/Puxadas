@@ -615,23 +615,69 @@ Créditos: Astro Search
     unlink($file);
 }
 
-function enviarFotoCPF($chat){
-    
-    $cpfFoto = "12345678900"; // CPF fixo
-    $caminho = __DIR__."/fotos/".$cpfFoto.".jpg";
+function consultaFoto($chat, $cpf){
+    global $STICKER_LOADING;
 
-    if(!file_exists($caminho)){
+    // 🎬 Sticker loading
+    $sticker = tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+    // limpa cpf
+    $cpf = preg_replace('/\D/','',$cpf);
+
+    if(strlen($cpf) != 11){
+        if($stickerMsgId){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
+        }
+
         tg("sendMessage",[
             "chat_id"=>$chat,
-            "text"=>"❌ Foto não encontrada no servidor."
+            "text"=>"❌ CPF inválido.\nUse: <code>/foto 00000000000</code>",
+            "parse_mode"=>"HTML"
         ]);
         return;
     }
 
+    // 🔥 API FOTO
+    $url = "https://sara-api.xyz/api/consultas/fotov2?cpf={$cpf}&apikey=bocadavk";
+    $resp = @file_get_contents($url);
+    $json = json_decode($resp, true);
+
+    // remove sticker
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
+
+    if(!$json || !$json["success"] || empty($json["foto"])){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Foto não encontrada."
+        ]);
+        return;
+    }
+
+    // 🔥 REMOVE prefixo base64
+    $base64 = explode(",", $json["foto"])[1];
+    $imagem = base64_decode($base64);
+
+    $file = tempnam(sys_get_temp_dir(), "foto_");
+    file_put_contents($file, $imagem);
+
     tg("sendPhoto",[
         "chat_id"=>$chat,
-        "photo"=>new CURLFile($caminho),
-        "caption"=>"📸 <b>FOTO LOCALIZADA</b>\n\nCPF: <code>{$cpfFoto}</code>\nCréditos: <b>Astro Search</b>",
+        "photo"=>new CURLFile($file, "image/jpeg", "foto_{$cpf}.jpg"),
+        "caption"=>"📸 <b>FOTO LOCALIZADA</b>\n\nCPF: <code>{$cpf}</code>\nEstado: {$json["estado"]}\n\nCréditos: <b>Astro Search</b>",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
@@ -641,6 +687,8 @@ function enviarFotoCPF($chat){
             ]
         ])
     ]);
+
+    unlink($file);
 }
 
 function bloquearObito($chat){
@@ -1313,14 +1361,9 @@ $vipCmds = ["/cpf","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa
 }
         
         if($cmd === "/foto"){
-
-    if($userId != 7320236887){
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>"⛔ Apenas os VIPs podem usar este comando."
-        ]);
-        exit;
-    }
+    consultaFoto($chat, $arg);
+    exit;
+}
 
     enviarFotoCPF($chat);
     exit;
