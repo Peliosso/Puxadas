@@ -1365,10 +1365,6 @@ $vipCmds = ["/cpf","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa
     exit;
 }
 
-    enviarFotoCPF($chat);
-    exit;
-}
-
         // outros comandos VIP futuramente aqui
         tutorial($chat, $cmd);
         exit;
