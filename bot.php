@@ -18,6 +18,7 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 /* ================= VIP ================= */
 
 $VIP_IDS = [
+    8498054372,
     7810953110,
     7924344631,
     1086246375,
@@ -615,6 +616,99 @@ Créditos: Astro Search
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
                     ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/acharpessoass"]
                 ]
+            ]
+        ])
+    ]);
+
+    unlink($file);
+}
+
+function consultaEmail($chat, $email){
+    global $STICKER_LOADING;
+
+    // 🎬 Sticker carregando
+    $sticker = tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+    // valida email
+    if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
+
+        if($stickerMsgId){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
+        }
+
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Email inválido.\nUse: <code>/email exemplo@email.com</code>",
+            "parse_mode"=>"HTML"
+        ]);
+        return;
+    }
+
+    // 🔎 API
+    $url = "https://sara-api.xyz/api/consultas/email?email={$email}&apikey=bocadavk";
+    $resp = @file_get_contents($url);
+    $json = json_decode($resp, true);
+
+    // remove sticker
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
+
+    if(!$json || !$json["success"]){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Nenhum resultado encontrado."
+        ]);
+        return;
+    }
+
+    $txt =
+"CONSULTA DE EMAIL — ASTRO SEARCH
+=================================
+
+EMAIL CONSULTADO: {$email}
+
+---------------------------------
+
+";
+
+    foreach($json["data"] as $d){
+
+        $txt .=
+"Nome: {$d["nome"]}
+CPF: {$d["cpf"]}
+Telefone: {$d["telefone"]}
+Endereço: {$d["logradouro"]} {$d["numero"]}
+Bairro: {$d["bairro"]}
+Cidade: {$d["cidade"]}
+
+---------------------------------
+";
+    }
+
+    $file = tempnam(sys_get_temp_dir(),"email_");
+    file_put_contents($file,$txt);
+
+    tg("sendDocument",[
+        "chat_id"=>$chat,
+        "document"=>new CURLFile($file,"text/plain","email_resultado.txt"),
+        "caption"=>"📧 <b>Consulta de email concluída</b>\n\nCréditos: <b>Astro Search</b>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]]
             ]
         ])
     ]);
@@ -1467,6 +1561,11 @@ $vipCmds = ["/cpf","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/em
         
         if($cmd === "/foto"){
     consultaFoto($chat, $arg);
+    exit;
+}
+
+if($cmd === "/email"){
+    consultaEmail($chat, $arg);
     exit;
 }
 
