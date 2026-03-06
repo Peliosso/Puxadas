@@ -42,13 +42,28 @@ $VIP_IDS = [
     1236474129,
 ];
 
+$VIP_GRUPOS = [
+    -1003718470772
+];
+
 $BANIDOS = [
     8017850151
 ];
 
-function isVip($id){
-    global $VIP_IDS;
-    return in_array($id, $VIP_IDS);
+function isVip($id, $chat_id = null){
+    global $VIP_IDS, $VIP_GRUPOS;
+
+    // usuário VIP
+    if(in_array($id, $VIP_IDS)){
+        return true;
+    }
+
+    // grupo VIP
+    if($chat_id && in_array($chat_id, $VIP_GRUPOS)){
+        return true;
+    }
+
+    return false;
 }
 
 function isBanned($id){
