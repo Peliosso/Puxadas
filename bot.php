@@ -205,7 +205,7 @@ esse tipo de consulta.
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
                 [["text"=>"📋 COPIAR CHAVE PIX","callback_data"=>"copiar_pix"]],
-                [["text"=>"🚀 ATIVAR VIP AGORA","url"=>"https://t.me/acharpessoass"]]
+                [["text"=>"🚀 ATIVAR VIP AGORA","url"=>"https://t.me/puxardados5"]]
             ]
         ])
     ]);
@@ -241,7 +241,7 @@ $kb = [
 ],
 [
 ["text"=>"⭐ Planos","callback_data"=>"planos"],
-["text"=>"🛠 Suporte","url"=>"https://t.me/acharpessoass"]
+["text"=>"🛠 Suporte","url"=>"https://t.me/puxardados5"]
 ]
 ]
 ];
@@ -434,7 +434,7 @@ Créditos: Astro Search
             "inline_keyboard"=>[
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/acharpessoass"]
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
                 ]
             ]
         ])
@@ -529,7 +529,7 @@ Créditos: Astro Search
             "inline_keyboard"=>[
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/acharpessoass"]
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
                 ]
             ]
         ])
@@ -620,7 +620,7 @@ Créditos: Astro Search
             "inline_keyboard"=>[
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/acharpessoass"]
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
                 ]
             ]
         ])
@@ -925,7 +925,7 @@ Após o pagamento envie o comprovante.",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
                 [["text"=>"📋 COPIAR CHAVE PIX","callback_data"=>"copiar_pix_obito"]],
-                [["text"=>"✅ ENVIAR COMPROVANTE","url"=>"https://t.me/acharpessoass"]]
+                [["text"=>"✅ ENVIAR COMPROVANTE","url"=>"https://t.me/puxardados5"]]
             ]
         ])
     ]);
@@ -1157,7 +1157,7 @@ Astro Search
             "inline_keyboard"=>[
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/acharpessoass"]
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
                 ]
             ]
         ])
@@ -1255,7 +1255,7 @@ Astro Search
             "inline_keyboard"=>[
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/acharpessoass"]
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
                 ]
             ]
         ])
@@ -1356,7 +1356,7 @@ Tempo resposta API: {$json["responseTime"]}
             "inline_keyboard"=>[
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/acharpessoass"]
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
                 ]
             ]
         ])
@@ -1461,7 +1461,7 @@ Astro Search
             "inline_keyboard"=>[
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/acharpessoass"]
+                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
                 ]
             ]
         ])
@@ -1635,7 +1635,7 @@ Envie o comprovante para liberação do acesso 🪦",
     "parse_mode"=>"HTML",
     "reply_markup"=>json_encode([
         "inline_keyboard"=>[
-            [["text"=>"✅ ENVIAR COMPROVANTE","url"=>"https://t.me/acharpessoass"]]
+            [["text"=>"✅ ENVIAR COMPROVANTE","url"=>"https://t.me/puxardados5"]]
         ]
     ])
 ]);
@@ -1683,7 +1683,7 @@ sem mensalidade e sem limites 🚀
 
 $kb = json_encode([
     "inline_keyboard"=>[
-        [["text"=>"📩 Enviar Comprovante","url"=>"https://t.me/acharpessoass"]],
+        [["text"=>"📩 Enviar Comprovante","url"=>"https://t.me/puxardados5"]],
         [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
     ]
 ]);
@@ -1735,7 +1735,7 @@ if(isset($callback["message"]["photo"])){
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-                [["text"=>"🚀 ENVIAR COMPROVANTE","url"=>"https://t.me/acharpessoass"]]
+                [["text"=>"🚀 ENVIAR COMPROVANTE","url"=>"https://t.me/puxardados5"]]
             ]
         ])
     ]);
