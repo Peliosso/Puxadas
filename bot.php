@@ -242,6 +242,9 @@ $kb = [
 [
 ["text"=>"⭐ Planos","callback_data"=>"planos"],
 ["text"=>"🛠 Suporte","url"=>"https://t.me/puxardados5"]
+],
+[
+["text"=>"📢 Canal Oficial","url"=>"https://t.me/astrosearch"]
 ]
 ]
 ];
