@@ -1749,10 +1749,10 @@ $vipCmds = ["/cpf","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefo
     }
 
     // 🔒 depois verifica VIP
-    if(!isVip($userId)){
-        bloquearConsulta($chat);
-        exit;
-    }
+    if(!isVip($userId, $chatId)){
+    bloquearConsulta($chatId);
+    return;
+}
 
         if($cmd === "/cpf"){
             $arg ? consultaCPF($chat, $arg) : tutorial($chat, "/cpf");
