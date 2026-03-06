@@ -126,7 +126,6 @@ function tutorial($chat,$cmd){
         "/pix"         => "email@pix.com",
         "/renavam"     => "123456789",
         "/nascimento"  => "01012000",
-        "/obito" => "11122233344",
         "/foto"        => "",
 
         // ♻️ GRÁTIS
@@ -290,7 +289,6 @@ tg("editMessageCaption",[
 
 🔱 <b>VIP</b>
 
-/obito - 🆕
 /parentes - 🆕
 /vizinhos - 🆕
 /foto - 🆕
@@ -899,173 +897,6 @@ function consultaFoto($chat, $cpf){
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
                 ]
-            ]
-        ])
-    ]);
-
-    unlink($file);
-}
-
-function bloquearObito($chat){
-    global $PIX_CHAVE, $PIX_NOME;
-
-    tg("sendMessage",[
-        "chat_id"=>$chat,
-        "text"=>
-"🪦 <b>NOVO SISTEMA DISPONÍVEL!</b>
-
-Agora você pode adicionar o
-<b>óbito pela base nacional</b>.
-
-Tenha acesso a:
-
-✔ Integração CADSUS
-✔ Data do registro
-✔ Situação nas bases
-✔ Protocolo oficial
-
-💰 <b>LIBERAÇÃO:</b> R$ 50,00
-
-🔑 <b>CHAVE PIX:</b>
-<code>{$PIX_CHAVE}</code>
-👤 <b>{$PIX_NOME}</b>
-
-Após o pagamento envie o comprovante.",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [["text"=>"📋 COPIAR CHAVE PIX","callback_data"=>"copiar_pix_obito"]],
-                [["text"=>"✅ ENVIAR COMPROVANTE","url"=>"https://t.me/puxardados5"]]
-            ]
-        ])
-    ]);
-}
-
-function consultaObito($chat, $cpf){
-    global $STICKER_LOADING;
-
-    // 🎬 Sticker loading
-    $sticker = tg("sendSticker",[
-        "chat_id"=>$chat,
-        "sticker"=>$STICKER_LOADING
-    ]);
-
-    $stickerData = json_decode($sticker, true);
-    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
-
-    // ⏳ Delay real
-    for($i=0;$i<4;$i++){
-        tg("sendChatAction",[
-            "chat_id"=>$chat,
-            "action"=>"typing"
-        ]);
-        sleep(1);
-    }
-
-    $cpf = preg_replace('/\D/','',$cpf);
-
-    // =========================
-    // 🔎 CONSULTA API CPF
-    // =========================
-    $url = "https://sara-api.xyz/api/consultas/cpf?cpf={$cpf}&apikey=bocadavk_6VL";
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
-    $response = curl_exec($ch);
-    curl_close($ch);
-
-    $api = json_decode($response, true);
-
-    // Pega apenas o body
-    $d = $api["body"];
-
-    $nome   = $d["name"];
-    $cpfMask = $d["cpf_masked"];
-    $sexo   = $d["gender"];
-    $nasc   = $d["birth_date"];
-    $status = $d["federal_status"];
-    $renda  = $d["income"];
-
-    // =========================
-    // 🎲 Dados simulados sistema
-    // =========================
-    $cns = rand(100000000000000, 999999999999999);
-    $protocolo = rand(100000000, 999999999);
-    $lote = rand(1000, 9999);
-    $dataConsulta = date("d/m/Y H:i:s");
-
-    // 🗑 apaga sticker
-    if($stickerMsgId){
-        tg("deleteMessage",[
-            "chat_id"=>$chat,
-            "message_id"=>$stickerMsgId
-        ]);
-    }
-
-    // =========================
-    // 📄 CONTEÚDO TXT
-    // =========================
-    $txt =
-"CADSUS • RETORNO DE PROCESSAMENTO
-==================================
-
-DADOS DO TITULAR
-
-CPF: {$cpfMask}
-Nome: {$nome}
-Sexo: {$sexo}
-Nascimento: {$nasc}
-Situação Receita: {$status}
-Renda Declarada: R$ {$renda}
-
-----------------------------------
-
-CNS: {$cns}
-PROTOCOLO: {$protocolo}
-LOTE: {$lote}
-
-STATUS DO EVENTO
-ÓBITO ADICIONADO NA BASE NACIONAL
-
-----------------------------------
-
-Data da consulta: {$dataConsulta}
-
-Prazo de propagação sistêmica:
-até 20 dias corridos
-
-----------------------------------
-Astro Search • DataSync Engine
-";
-
-    $file = tempnam(sys_get_temp_dir(), "obito_");
-    file_put_contents($file, $txt);
-
-    // =========================
-    // 🪦 MENSAGEM RESUMIDA
-    // =========================
-    $legenda =
-"🪦 <b>ÓBITO ADICIONADO</b>
-
-👤 <b>{$nome}</b>
-📄 CPF: <code>{$cpfMask}</code>
-📅 {$nasc}
-⚖ Receita: {$status}
-
-📄 Relatório completo enviado em TXT.
-
-<i>Astro Search • Sistema Nacional</i>";
-
-    tg("sendDocument",[
-        "chat_id"=>$chat,
-        "document"=>new CURLFile($file, "text/plain", "obito_{$cpf}.txt"),
-        "caption"=>$legenda,
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]]
             ]
         ])
     ]);
@@ -1705,22 +1536,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
         $arg ? consultaIP($chat, $arg) : tutorial($chat, "/ip");
         exit;
     }
-    
-    if($cmd === "/obito"){
 
-    if(!$arg){
-        tutorial($chat, "/obito");
-        exit;
-    }
-
-    if(!isVip($userId)){
-        bloquearObito($chat);
-        exit;
-    }
-
-    consultaObito($chat, $arg);
-    exit;
-}
 
     if($cmd === "/cep"){
         $arg ? consultaCEP($chat, $arg) : tutorial($chat, "/cep");
@@ -1819,31 +1635,6 @@ if($callback){
                 "message_id"=>$msg
             ]);
         break;
-        
-        case "copiar_pix_obito":
-
-global $PIX_CHAVE;
-
-answer($callback["id"]);
-
-tg("editMessageText",[
-    "chat_id"=>$chat,
-    "message_id"=>$msg,
-    "text"=>
-"📋 <b>CHAVE PIX COPIADA!</b>
-
-<code>{$PIX_CHAVE}</code>
-
-Envie o comprovante para liberação do acesso 🪦",
-    "parse_mode"=>"HTML",
-    "reply_markup"=>json_encode([
-        "inline_keyboard"=>[
-            [["text"=>"✅ ENVIAR COMPROVANTE","url"=>"https://t.me/puxardados5"]]
-        ]
-    ])
-]);
-
-break;
 
         case "planos":
 
