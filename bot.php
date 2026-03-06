@@ -1,6 +1,17 @@
 <?php
 error_reporting(0);
 
+ignore_user_abort(true);
+set_time_limit(0);
+
+header("Content-Type: application/json");
+http_response_code(200);
+
+$update = json_decode(file_get_contents("php://input"), true);
+
+echo json_encode(["status"=>"ok"]);
+flush();
+
 /* ================= CONFIG ================= */
 
 $TOKEN = "8241553232:AAGvxGZhHWJkAzKxQ-RsE-Efvy-e4q2XI4U";
@@ -69,6 +80,8 @@ function isBanned($id){
 $update   = json_decode(file_get_contents("php://input"), true);
 $message  = $update["message"] ?? null;
 $callback = $update["callback_query"] ?? null;
+$msgId = $message["message_id"] ?? null;
+$chat  = $message["chat"]["id"] ?? null;
 
 /* ====== BLOQUEIO GLOBAL ====== */
 
