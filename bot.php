@@ -1373,49 +1373,12 @@ Tempo resposta API: {$json["responseTime"]}
 
 function consultaCPF1($chat,$cpf){
 
-global $STICKER_LOADING;
-
-/* sticker carregando */
-$sticker = tg("sendSticker",[
-"chat_id"=>$chat,
-"sticker"=>$STICKER_LOADING
-]);
-
-$stickerData = json_decode($sticker,true);
-$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
-
-/* limpa cpf */
 $cpf = preg_replace('/\D/','',$cpf);
 
-if(strlen($cpf) != 11){
-
-if($stickerMsgId){
-tg("deleteMessage",[
-"chat_id"=>$chat,
-"message_id"=>$stickerMsgId
-]);
-}
-
-tg("sendMessage",[
-"chat_id"=>$chat,
-"text"=>"❌ CPF inválido.\nUse: <code>/cpf1 00000000000</code>",
-"parse_mode"=>"HTML"
-]);
-return;
-}
-
-/* API */
 $url = "https://orbyta.online/api/apifullcpf?cpf={$cpf}&token=FNiPeeltHc5pwy7HWnPCiIs7zIRr7SDB";
+
 $res = @file_get_contents($url);
 $json = json_decode($res,true);
-
-/* remove sticker */
-if($stickerMsgId){
-tg("deleteMessage",[
-"chat_id"=>$chat,
-"message_id"=>$stickerMsgId
-]);
-}
 
 if(!$json){
 tg("sendMessage",[
@@ -1425,13 +1388,65 @@ tg("sendMessage",[
 return;
 }
 
-/* dados */
+/* dados pessoais */
+
 $p = $json["dados_pessoais"] ?? [];
 
-/* txt */
-$txt =
-"CONSULTA CPF FULL — ASTRO SEARCH
-=================================
+/* familia */
+
+$fam = "";
+if(!empty($json["familia"])){
+foreach($json["familia"] as $f){
+$fam .= $f["vinculo"].": ".$f["nome"]." (".$f["cpf_parente"].")\n";
+}
+}
+
+/* telefones */
+
+$tels = "";
+if(!empty($json["contatos"]["telefones"])){
+foreach($json["contatos"]["telefones"] as $t){
+$tels .= "(".$t["ddd"].") ".$t["numero"]." - ".$t["tipo"]."\n";
+}
+}
+
+/* emails */
+
+$emails = "";
+if(!empty($json["contatos"]["emails"])){
+foreach($json["contatos"]["emails"] as $e){
+$emails .= $e."\n";
+}
+}
+
+/* endereços */
+
+$ends = "";
+if(!empty($json["enderecos"])){
+foreach($json["enderecos"] as $e){
+$ends .= $e["logradouro"].", ".$e["numero"]." - ".$e["bairro"]." - ".$e["cidade"]."/".$e["uf"]." CEP ".$e["cep"]."\n";
+}
+}
+
+/* veículos */
+
+$veic = "";
+if(!empty($json["veiculos"])){
+foreach($json["veiculos"] as $v){
+$veic .= $v["modelo"]." - ".$v["ano"]."\n";
+}
+}
+
+/* financeiro */
+
+$renda = $json["financeiro"]["renda_estimada"] ?? "N/A";
+$score = $json["financeiro"]["score"]["csb8"] ?? "N/A";
+
+/* texto */
+
+$txt = "
+🔎 CONSULTA CPF FULL
+━━━━━━━━━━━━━━━━━━━━
 
 CPF: ".$p["cpf"]."
 Nome: ".$p["nome"]."
@@ -1440,28 +1455,50 @@ Sexo: ".$p["sexo"]."
 
 Mãe: ".$p["nome_mae"]."
 
---------------------------------
-Créditos: Astro Search
+Status Receita: ".$p["status_receita"]."
+
+━━━━━━━━━━━━━━━━━━━━
+👪 FAMILIA
+$fam
+
+━━━━━━━━━━━━━━━━━━━━
+📞 TELEFONES
+$tels
+
+━━━━━━━━━━━━━━━━━━━━
+📧 EMAILS
+$emails
+
+━━━━━━━━━━━━━━━━━━━━
+📍 ENDEREÇOS
+$ends
+
+━━━━━━━━━━━━━━━━━━━━
+🚗 VEICULOS
+$veic
+
+━━━━━━━━━━━━━━━━━━━━
+💰 FINANCEIRO
+
+Renda estimada: $renda
+Score: $score
+
+━━━━━━━━━━━━━━━━━━━━
+🤖 Astro Search
 ";
 
-/* cria arquivo */
-$file = tempnam(sys_get_temp_dir(),"cpf1_");
+/* criar txt */
+
+$file = tempnam(sys_get_temp_dir(),"cpf");
 file_put_contents($file,$txt);
 
-/* envia txt */
+/* enviar */
 
 tg("sendDocument",[
 "chat_id"=>$chat,
 "document"=>new CURLFile($file,"text/plain","cpf_{$cpf}.txt"),
-"caption"=>"🪪 <b>Consulta CPF concluída</b>",
-"parse_mode"=>"HTML",
-"reply_markup"=>json_encode([
-"inline_keyboard"=>[
-[
-["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
-]
-]
-])
+"caption"=>"🪪 Consulta CPF concluída",
+"parse_mode"=>"HTML"
 ]);
 
 unlink($file);
