@@ -5,6 +5,9 @@ error_reporting(0);
 
 $TOKEN = "8241553232:AAGvxGZhHWJkAzKxQ-RsE-Efvy-e4q2XI4U";
 $API   = "https://api.telegram.org/bot{$TOKEN}";
+$CANAL = "@astrosearch";
+$LINK_CANAL = "https://t.me/astrosearch";
+
 
 /* IMAGEM */
 $START_PHOTO = "https://conventional-magenta-fxkyikrbqe.edgeone.app/E8D6A8B8-36F3-4AE0-8493-E2C66DF18EF3.png";
@@ -64,6 +67,43 @@ $callback = $update["callback_query"] ?? null;
 
 $userId = $message["from"]["id"] ?? $callback["from"]["id"] ?? null;
 
+$chatId = $message["chat"]["id"] ?? $callback["message"]["chat"]["id"] ?? null;
+
+if($userId && !entrouCanal($userId)){
+
+    if($message){
+        bloquearCanal($chatId);
+    }
+
+    if($callback){
+
+        answer($callback["id"]);
+
+        if($callback["data"] == "verificar_canal"){
+
+            if(entrouCanal($userId)){
+                menuPrincipal(
+                    $chatId,
+                    $callback["from"]["first_name"],
+                    $userId,
+                    true,
+                    $callback["message"]["message_id"]
+                );
+            }else{
+                tg("answerCallbackQuery",[
+                    "callback_query_id"=>$callback["id"],
+                    "text"=>"❌ Você ainda não entrou no canal.",
+                    "show_alert"=>true
+                ]);
+            }
+
+        }
+
+    }
+
+    exit;
+}
+
 if($userId && isBanned($userId)){
 
     if($message){
@@ -100,6 +140,53 @@ function tg($method, $data){
 
 function answer($id){
     tg("answerCallbackQuery", ["callback_query_id"=>$id]);
+}
+
+function entrouCanal($user_id){
+    global $API, $CANAL;
+
+    $url = $API."/getChatMember?chat_id={$CANAL}&user_id={$user_id}";
+    $res = json_decode(file_get_contents($url), true);
+
+    if(isset($res["result"]["status"])){
+
+        $status = $res["result"]["status"];
+
+        if($status == "member" || $status == "administrator" || $status == "creator"){
+            return true;
+        }
+
+    }
+
+    return false;
+}
+
+function bloquearCanal($chat){
+    global $LINK_CANAL;
+
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>
+"🚫 <b>Acesso bloqueado</b>
+
+Para usar este bot você precisa entrar no nosso canal.
+
+📢 <b>Canal:</b>
+{$LINK_CANAL}
+
+Depois de entrar clique no botão abaixo.",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"📢 Entrar no Canal","url"=>$LINK_CANAL]
+                ],
+                [
+                    ["text"=>"✅ Já Entrei","callback_data"=>"verificar_canal"]
+                ]
+            ]
+        ])
+    ]);
 }
 
 /* ================= TUTORIAL / BLOQUEIO ================= */
