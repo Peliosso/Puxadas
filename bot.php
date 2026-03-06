@@ -63,6 +63,58 @@ $update   = json_decode(file_get_contents("php://input"), true);
 $message  = $update["message"] ?? null;
 $callback = $update["callback_query"] ?? null;
 
+if($callback){
+
+$chat = $callback["message"]["chat"]["id"];
+$msg  = $callback["message"]["message_id"];
+$data = $callback["data"];
+$user = $callback["from"];
+
+answer($callback["id"]);
+
+/* VERIFICAR CANAL */
+
+if($data == "verificar_canal"){
+
+    if(entrouCanal($user["id"])){
+
+        menuPrincipal(
+            $chat,
+            $user["first_name"],
+            $user["id"],
+            true,
+            $msg
+        );
+
+    }else{
+
+        tg("answerCallbackQuery",[
+            "callback_query_id"=>$callback["id"],
+            "text"=>"❌ Você ainda não entrou no canal.",
+            "show_alert"=>true
+        ]);
+
+    }
+
+}
+
+/* MENU */
+
+if($data == "voltar_menu"){
+    menuPrincipal($chat,$user["first_name"],$user["id"],true,$msg);
+}
+
+if($data == "catalogo_1"){
+    catalogo1($chat,$msg);
+}
+
+if($data == "catalogo_2"){
+    catalogo2($chat,$msg);
+}
+
+exit;
+}
+
 /* ====== BLOQUEIO GLOBAL ====== */
 
 $userId = $message["from"]["id"] ?? $callback["from"]["id"] ?? null;
