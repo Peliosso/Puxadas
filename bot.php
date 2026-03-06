@@ -42,28 +42,13 @@ $VIP_IDS = [
     1236474129,
 ];
 
-$VIP_GRUPOS = [
-    -1003718470772
-];
-
 $BANIDOS = [
     8017850151
 ];
 
-function isVip($id, $chat_id = null){
-    global $VIP_IDS, $VIP_GRUPOS;
-
-    // usuário VIP
-    if(in_array($id, $VIP_IDS)){
-        return true;
-    }
-
-    // grupo VIP
-    if($chat_id && in_array($chat_id, $VIP_GRUPOS)){
-        return true;
-    }
-
-    return false;
+function isVip($id){
+    global $VIP_IDS;
+    return in_array($id, $VIP_IDS);
 }
 
 function isBanned($id){
@@ -1749,31 +1734,10 @@ $vipCmds = ["/cpf","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefo
     }
 
     // 🔒 depois verifica VIP
-    if(!isVip($userId, $chatId)){
-    bloquearConsulta($chatId);
-    return;
-}
-
-if(strpos($text, "/idgrupo") === 0){
-
-    $tipo = $message["chat"]["type"];
-
-    if($tipo == "private"){
-        tg("sendMessage",[
-            "chat_id"=>$chatId,
-            "text"=>"❌ Este comando funciona apenas em grupos."
-        ]);
-        return;
+    if(!isVip($userId)){
+        bloquearConsulta($chat);
+        exit;
     }
-
-    tg("sendMessage",[
-        "chat_id"=>$chatId,
-        "text"=>"🆔 <b>ID deste grupo:</b>\n<code>{$chatId}</code>",
-        "parse_mode"=>"HTML"
-    ]);
-
-    return;
-}
 
         if($cmd === "/cpf"){
             $arg ? consultaCPF($chat, $arg) : tutorial($chat, "/cpf");
