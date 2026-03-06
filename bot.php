@@ -290,6 +290,7 @@ tg("editMessageCaption",[
 /parentes - 🆕
 /vizinhos - 🆕
 /foto - 🆕
+/cpf1 - 🆕
 /cpf
 /nome
 /rg
@@ -1370,6 +1371,150 @@ Tempo resposta API: {$json["responseTime"]}
     unlink($file);
 }
 
+function consultaCPF1($chat,$cpf){
+
+global $STICKER_LOADING;
+
+$cpf = preg_replace('/\D/','',$cpf);
+
+if(strlen($cpf) != 11){
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ CPF inválido\nUse: /cpf1 00000000000"
+]);
+return;
+}
+
+/* API */
+$url = "https://orbyta.online/api/apifullcpf?cpf={$cpf}&token=FNiPeeltHc5pwy7HWnPCiIs7zIRr7SDB";
+
+$resposta = @file_get_contents($url);
+$json = json_decode($resposta,true);
+
+if(!$json){
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ Erro na consulta."
+]);
+return;
+}
+
+$p = $json["dados_pessoais"];
+
+/* ===== FAMILIA ===== */
+
+$fam = "";
+if(isset($json["familia"])){
+foreach($json["familia"] as $f){
+$fam .= $f["vinculo"].": ".$f["nome"]." (".$f["cpf_parente"].")\n";
+}
+}
+
+/* ===== TELEFONES ===== */
+
+$tels = "";
+if(isset($json["contatos"]["telefones"])){
+foreach($json["contatos"]["telefones"] as $t){
+$tels .= "(".$t["ddd"].") ".$t["numero"]." - ".$t["tipo"]."\n";
+}
+}
+
+/* ===== EMAILS ===== */
+
+$emails = "";
+if(isset($json["contatos"]["emails"])){
+foreach($json["contatos"]["emails"] as $e){
+$emails .= $e."\n";
+}
+}
+
+/* ===== ENDEREÇOS ===== */
+
+$ends = "";
+if(isset($json["enderecos"])){
+foreach($json["enderecos"] as $e){
+$ends .= $e["logradouro"].", ".$e["numero"]." - ".$e["bairro"]." - ".$e["cidade"]."/".$e["uf"]." CEP ".$e["cep"]."\n";
+}
+}
+
+/* ===== VEICULOS ===== */
+
+$veic = "";
+if(isset($json["veiculos"])){
+foreach($json["veiculos"] as $v){
+$veic .= $v["modelo"]." - ".$v["ano"]."\n";
+}
+}
+
+/* ===== FINANCEIRO ===== */
+
+$score = $json["financeiro"]["score"]["csb8"] ?? "";
+$renda = $json["financeiro"]["renda_estimada"] ?? "";
+
+/* TXT */
+
+$txt = "
+
+🔎 CONSULTA CPF FULL
+━━━━━━━━━━━━━━━━━━━━
+
+CPF: ".$p["cpf"]."
+Nome: ".$p["nome"]."
+Nascimento: ".$p["data_nascimento"]."
+Sexo: ".$p["sexo"]."
+
+Mãe: ".$p["nome_mae"]."
+
+Status Receita: ".$p["status_receita"]."
+
+━━━━━━━━━━━━━━━━━━━━
+👪 FAMILIARES
+$fam
+
+━━━━━━━━━━━━━━━━━━━━
+📞 TELEFONES
+$tels
+
+━━━━━━━━━━━━━━━━━━━━
+📧 EMAILS
+$emails
+
+━━━━━━━━━━━━━━━━━━━━
+📍 ENDEREÇOS
+$ends
+
+━━━━━━━━━━━━━━━━━━━━
+🚗 VEÍCULOS
+$veic
+
+━━━━━━━━━━━━━━━━━━━━
+💰 FINANCEIRO
+
+Renda estimada: $renda
+Score: $score
+
+━━━━━━━━━━━━━━━━━━━━
+🤖 Astro Search
+";
+
+/* criar txt */
+
+$file = tempnam(sys_get_temp_dir(),"cpf");
+file_put_contents($file,$txt);
+
+/* enviar */
+
+tg("sendDocument",[
+"chat_id"=>$chat,
+"document"=>new CURLFile($file,"text/plain","cpf_{$cpf}.txt"),
+"caption"=>"🪪 Consulta CPF concluída",
+"parse_mode"=>"HTML"
+]);
+
+unlink($file);
+
+}
+
 function consultaCPF($chat, $cpf){
     global $STICKER_LOADING;
 
@@ -1535,7 +1680,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     }
 
     // ===== COMANDOS VIP =====
-$vipCmds = ["/cpf","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
+$vipCmds = ["/cpf","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
     if(in_array($cmd, $vipCmds)){
 
     // ❗ primeiro valida se enviou argumento
@@ -1552,6 +1697,11 @@ $vipCmds = ["/cpf","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/em
 
         if($cmd === "/cpf"){
             $arg ? consultaCPF($chat, $arg) : tutorial($chat, "/cpf");
+            exit;
+        }
+        
+        if($cmd === "/cpf"){
+            $arg ? consultaCPF1($chat, $arg) : tutorial($chat, "/cpf");
             exit;
         }
         
