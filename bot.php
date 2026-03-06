@@ -1373,132 +1373,186 @@ Tempo resposta API: {$json["responseTime"]}
 
 function consultaCPF1($chat,$cpf){
 
+global $STICKER_LOADING;
+
+$sticker = tg("sendSticker",[
+"chat_id"=>$chat,
+"sticker"=>$STICKER_LOADING
+]);
+
+$stickerData = json_decode($sticker,true);
+$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
 $cpf = preg_replace('/\D/','',$cpf);
 
-$url = "https://orbyta.online/api/apifullcpf?cpf={$cpf}&token=FNiPeeltHc5pwy7HWnPCiIs7zIRr7SDB";
+if(strlen($cpf) != 11){
 
-$res = @file_get_contents($url);
-$json = json_decode($res,true);
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
 
-if(!$json){
 tg("sendMessage",[
 "chat_id"=>$chat,
-"text"=>"❌ Erro na consulta."
+"text"=>"❌ CPF inválido.\nUse: <code>/cpf1 00000000000</code>",
+"parse_mode"=>"HTML"
 ]);
+
 return;
 }
 
-/* dados pessoais */
+$url = "https://orbyta.online/api/apifullcpf?cpf={$cpf}&token=FNiPeeltHc5pwy7HWnPCiIs7zIRr7SDB";
+$resp = @file_get_contents($url);
+$json = json_decode($resp,true);
 
-$p = $json["dados_pessoais"] ?? [];
-
-/* familia */
-
-$fam = "";
-if(!empty($json["familia"])){
-foreach($json["familia"] as $f){
-$fam .= $f["vinculo"].": ".$f["nome"]." (".$f["cpf_parente"].")\n";
-}
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
 }
 
-/* telefones */
+if(!$json || $json["execucao"]["status"] != "ENCONTRADO"){
 
-$tels = "";
-if(!empty($json["contatos"]["telefones"])){
-foreach($json["contatos"]["telefones"] as $t){
-$tels .= "(".$t["ddd"].") ".$t["numero"]." - ".$t["tipo"]."\n";
-}
-}
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ CPF não encontrado."
+]);
 
-/* emails */
-
-$emails = "";
-if(!empty($json["contatos"]["emails"])){
-foreach($json["contatos"]["emails"] as $e){
-$emails .= $e."\n";
-}
+return;
 }
 
-/* endereços */
+$p = $json["dados_pessoais"];
 
-$ends = "";
-if(!empty($json["enderecos"])){
-foreach($json["enderecos"] as $e){
-$ends .= $e["logradouro"].", ".$e["numero"]." - ".$e["bairro"]." - ".$e["cidade"]."/".$e["uf"]." CEP ".$e["cep"]."\n";
-}
-}
+$txt = "CONSULTA CPF FULL — ASTRO SEARCH
+=================================
 
-/* veículos */
+CPF: {$p["cpf"]}
+Nome: {$p["nome"]}
+Nascimento: {$p["data_nascimento"]}
+Sexo: {$p["sexo"]}
 
-$veic = "";
-if(!empty($json["veiculos"])){
-foreach($json["veiculos"] as $v){
-$veic .= $v["modelo"]." - ".$v["ano"]."\n";
-}
-}
+Mãe: {$p["nome_mae"]}
+Status Receita: {$p["status_receita"]}
 
-/* financeiro */
-
-$renda = $json["financeiro"]["renda_estimada"] ?? "N/A";
-$score = $json["financeiro"]["score"]["csb8"] ?? "N/A";
-
-/* texto */
-
-$txt = "
-🔎 CONSULTA CPF FULL
-━━━━━━━━━━━━━━━━━━━━
-
-CPF: ".$p["cpf"]."
-Nome: ".$p["nome"]."
-Nascimento: ".$p["data_nascimento"]."
-Sexo: ".$p["sexo"]."
-
-Mãe: ".$p["nome_mae"]."
-
-Status Receita: ".$p["status_receita"]."
-
-━━━━━━━━━━━━━━━━━━━━
-👪 FAMILIA
-$fam
-
-━━━━━━━━━━━━━━━━━━━━
-📞 TELEFONES
-$tels
-
-━━━━━━━━━━━━━━━━━━━━
-📧 EMAILS
-$emails
-
-━━━━━━━━━━━━━━━━━━━━
-📍 ENDEREÇOS
-$ends
-
-━━━━━━━━━━━━━━━━━━━━
-🚗 VEICULOS
-$veic
-
-━━━━━━━━━━━━━━━━━━━━
-💰 FINANCEIRO
-
-Renda estimada: $renda
-Score: $score
-
-━━━━━━━━━━━━━━━━━━━━
-🤖 Astro Search
+--------------------------------
 ";
 
-/* criar txt */
+if(isset($json["familia"])){
 
-$file = tempnam(sys_get_temp_dir(),"cpf");
+$txt .= "\nFAMILIARES
+--------------------------------\n";
+
+foreach($json["familia"] as $f){
+
+$txt .= "{$f["vinculo"]}: {$f["nome"]} - CPF: {$f["cpf_parente"]}\n";
+
+}
+
+}
+
+if(isset($json["contatos"]["telefones"])){
+
+$txt .= "\nTELEFONES
+--------------------------------\n";
+
+foreach($json["contatos"]["telefones"] as $t){
+
+$txt .= "({$t["ddd"]}) {$t["numero"]} - {$t["tipo"]}\n";
+
+}
+
+}
+
+if(isset($json["contatos"]["emails"])){
+
+$txt .= "\nEMAILS
+--------------------------------\n";
+
+foreach($json["contatos"]["emails"] as $e){
+
+$txt .= "{$e}\n";
+
+}
+
+}
+
+if(isset($json["enderecos"])){
+
+$txt .= "\nENDEREÇOS
+--------------------------------\n";
+
+foreach($json["enderecos"] as $e){
+
+$txt .= "{$e["logradouro"]}, {$e["numero"]} - {$e["bairro"]}\n{$e["cidade"]}/{$e["uf"]} - CEP {$e["cep"]}\n\n";
+
+}
+
+}
+
+if(isset($json["veiculos"])){
+
+$txt .= "\nVEÍCULOS
+--------------------------------\n";
+
+foreach($json["veiculos"] as $v){
+
+$txt .= "{$v["modelo"]} - Ano {$v["ano"]}\n";
+
+}
+
+}
+
+if(isset($json["financeiro"])){
+
+$f = $json["financeiro"];
+
+$txt .= "\nFINANCEIRO
+--------------------------------\n";
+
+$txt .= "PIS: {$f["pis"]}\n";
+$txt .= "Renda Estimada: {$f["renda_estimada"]}\n";
+$txt .= "Score CSB8: {$f["score"]["csb8"]}\n";
+$txt .= "Score CSBA: {$f["score"]["csba"]}\n";
+
+}
+
+if(isset($json["dados_bancarios"])){
+
+$txt .= "\nDADOS BANCÁRIOS
+--------------------------------\n";
+
+foreach($json["dados_bancarios"] as $b){
+
+$txt .= "{$b["instituicao"]} - Agência {$b["agencia"]}\n";
+
+}
+
+}
+
+$txt .= "\n--------------------------------
+Consulta via:
+Astro Search
+";
+
+$file = tempnam(sys_get_temp_dir(),"cpf_");
 file_put_contents($file,$txt);
-
-/* enviar */
 
 tg("sendDocument",[
 "chat_id"=>$chat,
-"document"=>new CURLFile($file,"text/plain","cpf_{$cpf}.txt"),
-"caption"=>"🪪 Consulta CPF concluída",
-"parse_mode"=>"HTML"
+"document"=>new CURLFile($file,"text/plain","cpf_full_{$cpf}.txt"),
+"caption"=>"🧾 <b>Consulta de CPF FULL concluída</b>\n\nCréditos: <b>Astro Search</b>",
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+]
+]
+])
 ]);
 
 unlink($file);
