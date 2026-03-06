@@ -670,7 +670,7 @@ function consultaEmail($chat, $email){
     }
 
     // 🔎 API
-    $url = "https://sara-api.xyz/api/consultas/email?email={$email}&apikey=bocadavk";
+    $url = "https://sara-api.xyz/api/consultas/email?email={$email}&apikey=bocadavk_6VL";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -764,7 +764,7 @@ function consultaVizinhos($chat, $cpf){
     }
 
     // API
-    $url = "https://sara-api.xyz/api/consultas/vizinhos?cpf={$cpf}&apikey=bocadavk";
+    $url = "https://sara-api.xyz/api/consultas/vizinhos?cpf={$cpf}&apikey=bocadavk_6VL";
     $resp = @file_get_contents($url);
     $json = json_decode($resp,true);
 
@@ -862,7 +862,7 @@ function consultaFoto($chat, $cpf){
     }
 
     // 🔥 API FOTO
-    $url = "https://sara-api.xyz/api/consultas/fotov2?cpf={$cpf}&apikey=bocadavk";
+    $url = "https://sara-api.xyz/api/consultas/fotov2?cpf={$cpf}&apikey=bocadavk_6VL";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -967,7 +967,7 @@ function consultaObito($chat, $cpf){
     // =========================
     // 🔎 CONSULTA API CPF
     // =========================
-    $url = "https://sara-api.xyz/api/consultas/cpf?cpf={$cpf}&apikey=bocadavk";
+    $url = "https://sara-api.xyz/api/consultas/cpf?cpf={$cpf}&apikey=bocadavk_6VL";
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
@@ -1105,7 +1105,7 @@ function consultaTelefone($chat, $telefone){
     }
 
     // 🔥 API TELEFONE
-    $url = "https://sara-api.xyz/api/consultas/telefone?telefone={$telefone}&apikey=bocadavk";
+    $url = "https://sara-api.xyz/api/consultas/telefone?telefone={$telefone}&apikey=bocadavk_6VL";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -1207,7 +1207,7 @@ function consultaNome($chat, $nome){
     $nomeUrl = urlencode($nome);
 
     // 🔥 API SARA
-    $url = "https://sara-api.xyz/api/consultas/nome?nome={$nomeUrl}&apikey=bocadavk";
+    $url = "https://sara-api.xyz/api/consultas/nome?nome={$nomeUrl}&apikey=bocadavk_6VL";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -1306,7 +1306,7 @@ function consultaParentes($chat, $cpf){
     }
 
     // 🔥 API SARA PARENTES
-    $url = "https://sara-api.xyz/api/consultas/parentes?cpf={$cpf}&apikey=bocadavk";
+    $url = "https://sara-api.xyz/api/consultas/parentes?cpf={$cpf}&apikey=bocadavk_6VL";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -1595,7 +1595,7 @@ function consultaCPF($chat, $cpf){
     }
 
     // 🔥 NOVA API SARA
-    $url = "https://sara-api.xyz/api/consultas/cpf?cpf={$cpf}&apikey=bocadavk";
+    $url = "https://sara-api.xyz/api/consultas/cpf?cpf={$cpf}&apikey=bocadavk_6VL";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
