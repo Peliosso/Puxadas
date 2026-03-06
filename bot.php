@@ -71,36 +71,34 @@ $chatId = $message["chat"]["id"] ?? $callback["message"]["chat"]["id"] ?? null;
 
 if($userId && !entrouCanal($userId)){
 
-    if($message){
-        bloquearCanal($chatId);
-    }
-
-    if($callback){
+    if($callback && $callback["data"] == "verificar_canal"){
 
         answer($callback["id"]);
 
-        if($callback["data"] == "verificar_canal"){
+        if(entrouCanal($userId)){
 
-            if(entrouCanal($userId)){
-                menuPrincipal(
-                    $chatId,
-                    $callback["from"]["first_name"],
-                    $userId,
-                    true,
-                    $callback["message"]["message_id"]
-                );
-            }else{
-                tg("answerCallbackQuery",[
-                    "callback_query_id"=>$callback["id"],
-                    "text"=>"❌ Você ainda não entrou no canal.",
-                    "show_alert"=>true
-                ]);
-            }
+            menuPrincipal(
+                $chatId,
+                $callback["from"]["first_name"],
+                $userId,
+                true,
+                $callback["message"]["message_id"]
+            );
+
+        }else{
+
+            tg("answerCallbackQuery",[
+                "callback_query_id"=>$callback["id"],
+                "text"=>"❌ Você ainda não entrou no canal.",
+                "show_alert"=>true
+            ]);
 
         }
 
+        exit;
     }
 
+    bloquearCanal($chatId);
     exit;
 }
 
