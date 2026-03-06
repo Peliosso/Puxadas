@@ -1754,6 +1754,27 @@ $vipCmds = ["/cpf","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefo
     return;
 }
 
+if(strpos($text, "/idgrupo") === 0){
+
+    $tipo = $message["chat"]["type"];
+
+    if($tipo == "private"){
+        tg("sendMessage",[
+            "chat_id"=>$chatId,
+            "text"=>"❌ Este comando funciona apenas em grupos."
+        ]);
+        return;
+    }
+
+    tg("sendMessage",[
+        "chat_id"=>$chatId,
+        "text"=>"🆔 <b>ID deste grupo:</b>\n<code>{$chatId}</code>",
+        "parse_mode"=>"HTML"
+    ]);
+
+    return;
+}
+
         if($cmd === "/cpf"){
             $arg ? consultaCPF($chat, $arg) : tutorial($chat, "/cpf");
             exit;
