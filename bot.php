@@ -1583,9 +1583,42 @@ $vipCmds = ["/cpf","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefo
     }
 
         if($cmd === "/cpf"){
-            $arg ? consultaCPF($chat, $arg) : tutorial($chat, "/cpf");
-            exit;
-        }
+
+    if(!$arg){
+        tutorial($chat, "/cpf");
+        exit;
+    }
+
+    $cpf = preg_replace('/\D/','',$arg);
+
+    if(strlen($cpf) != 11){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ CPF inválido."
+        ]);
+        exit;
+    }
+
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>"🔎 <b>Selecione o tipo de consulta</b>\n\nCPF: <code>{$cpf}</code>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🧾 CPF Básico","callback_data"=>"cpf_basico_{$cpf}"],
+                    ["text"=>"📊 CPF Full","callback_data"=>"cpf_full_{$cpf}"]
+                ],
+                [
+                    ["text"=>"🏠 Vizinhos","callback_data"=>"cpf_vizinhos_{$cpf}"],
+                    ["text"=>"👨‍👩‍👧 Parentes","callback_data"=>"cpf_parentes_{$cpf}"]
+                ]
+            ]
+        ])
+    ]);
+
+    exit;
+}
         
         if($cmd === "/cpf1"){
             $arg ? consultaCPF1($chat, $arg) : tutorial($chat, "/cpf");
@@ -1769,6 +1802,62 @@ if(isset($callback["message"]["photo"])){
 }
 
 break;
+
+// CPF BASICO
+if(str_starts_with($callback["data"], "cpf_basico_")){
+
+    $cpf = explode("_",$callback["data"])[2];
+
+    if(!isVip($id)){
+        bloquearConsulta($chat);
+        exit;
+    }
+
+    consultaCPF($chat,$cpf);
+    exit;
+}
+
+// CPF FULL
+if(str_starts_with($callback["data"], "cpf_full_")){
+
+    $cpf = explode("_",$callback["data"])[2];
+
+    if(!isVip($id)){
+        bloquearConsulta($chat);
+        exit;
+    }
+
+    consultaCPF1($chat,$cpf);
+    exit;
+}
+
+// VIZINHOS
+if(str_starts_with($callback["data"], "cpf_vizinhos_")){
+
+    $cpf = explode("_",$callback["data"])[2];
+
+    if(!isVip($id)){
+        bloquearConsulta($chat);
+        exit;
+    }
+
+    consultaVizinhos($chat,$cpf);
+    exit;
+}
+
+// PARENTES
+if(str_starts_with($callback["data"], "cpf_parentes_")){
+
+    $cpf = explode("_",$callback["data"])[2];
+
+    if(!isVip($id)){
+        bloquearConsulta($chat);
+        exit;
+    }
+
+    consultaParentes($chat,$cpf);
+    exit;
+}
 
         case "conta":
 
