@@ -313,10 +313,11 @@ tg("editMessageCaption",[
 
 🔱 <b>VIP</b>
 
-/fotorj - 🆕
 /parentes - 🆕
 /vizinhos - 🆕
 /foto - 🆕
+/fotorj - 🆕
+/fotosp - 🆕
 /cpf1 - 🆕
 /cpf
 /nome
@@ -853,22 +854,21 @@ Cidade: {$v["cidade"]}
     unlink($file);
 }
 
-function consultaFoto($chat, $cpf){
+function consultaFotoRJ($chat, $cpf){
     global $STICKER_LOADING;
 
-    // 🎬 Sticker loading
     $sticker = tg("sendSticker",[
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
     ]);
 
-    $stickerData = json_decode($sticker, true);
+    $stickerData = json_decode($sticker,true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-    // limpa cpf
     $cpf = preg_replace('/\D/','',$cpf);
 
     if(strlen($cpf) != 11){
+
         if($stickerMsgId){
             tg("deleteMessage",[
                 "chat_id"=>$chat,
@@ -878,18 +878,17 @@ function consultaFoto($chat, $cpf){
 
         tg("sendMessage",[
             "chat_id"=>$chat,
-            "text"=>"❌ CPF inválido.\nUse: <code>/foto 00000000000</code>",
+            "text"=>"❌ CPF inválido.\nUse: <code>/fotorj 00000000000</code>",
             "parse_mode"=>"HTML"
         ]);
+
         return;
     }
 
-    // 🔥 API FOTO
-    $url = "https://sara-api.xyz/api/consultas/fotov2?cpf={$cpf}&apikey=bocadavk_6VL";
+    $url = "https://orbyta.online/api/fotorj?cpf={$cpf}&token=FNiPeeltHc5pwy7HWnPCiIs7zIRr7SDB";
     $resp = @file_get_contents($url);
-    $json = json_decode($resp, true);
+    $json = json_decode($resp,true);
 
-    // remove sticker
     if($stickerMsgId){
         tg("deleteMessage",[
             "chat_id"=>$chat,
@@ -897,25 +896,33 @@ function consultaFoto($chat, $cpf){
         ]);
     }
 
-    if(!$json || !$json["success"] || empty($json["foto"])){
+    if(!$json || !$json["status"]){
+
         tg("sendMessage",[
             "chat_id"=>$chat,
-            "text"=>"❌ Foto não encontrada."
+            "text"=>"❌ Foto RJ não encontrada."
         ]);
+
         return;
     }
 
-    // 🔥 REMOVE prefixo base64
-    $base64 = explode(",", $json["foto"])[1];
-    $imagem = base64_decode($base64);
+    $fotoBase64 = $json["data"]["foto"];
+    $imagem = base64_decode($fotoBase64);
 
-    $file = tempnam(sys_get_temp_dir(), "foto_");
-    file_put_contents($file, $imagem);
+    $file = tempnam(sys_get_temp_dir(),"fotorj_");
+    file_put_contents($file,$imagem);
 
     tg("sendPhoto",[
         "chat_id"=>$chat,
-        "photo"=>new CURLFile($file, "image/jpeg", "foto_{$cpf}.jpg"),
-        "caption"=>"📸 <b>FOTO LOCALIZADA</b>\n\nCPF: <code>{$cpf}</code>\nEstado: {$json["estado"]}\n\nCréditos: <b>Astro Search</b>",
+        "photo"=>new CURLFile($file,"image/jpeg","fotorj_{$cpf}.jpg"),
+        "caption"=>"📸 <b>FOTO RJ LOCALIZADA</b>
+
+👤 Nome: {$json["data"]["nome"]}
+🆔 CPF: <code>{$json["data"]["cpf"]}</code>
+📅 Nascimento: {$json["data"]["nascimento"]}
+🪪 RG: {$json["data"]["rg"]}
+
+Créditos: <b>Astro Search</b>",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
@@ -1008,21 +1015,22 @@ Créditos: <b>Astro Search</b>",
     unlink($file);
 }
 
-function consultaFotoRJ($chat, $cpf){
+function consultaFoto($chat, $cpf){
     global $STICKER_LOADING;
 
+    // 🎬 Sticker loading
     $sticker = tg("sendSticker",[
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
     ]);
 
-    $stickerData = json_decode($sticker,true);
+    $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
+    // limpa cpf
     $cpf = preg_replace('/\D/','',$cpf);
 
     if(strlen($cpf) != 11){
-
         if($stickerMsgId){
             tg("deleteMessage",[
                 "chat_id"=>$chat,
@@ -1032,17 +1040,18 @@ function consultaFotoRJ($chat, $cpf){
 
         tg("sendMessage",[
             "chat_id"=>$chat,
-            "text"=>"❌ CPF inválido.\nUse: <code>/fotorj 00000000000</code>",
+            "text"=>"❌ CPF inválido.\nUse: <code>/foto 00000000000</code>",
             "parse_mode"=>"HTML"
         ]);
-
         return;
     }
 
-    $url = "https://orbyta.online/api/fotorj?cpf={$cpf}&token=FNiPeeltHc5pwy7HWnPCiIs7zIRr7SDB";
+    // 🔥 API FOTO
+    $url = "https://sara-api.xyz/api/consultas/fotov2?cpf={$cpf}&apikey=bocadavk_6VL";
     $resp = @file_get_contents($url);
-    $json = json_decode($resp,true);
+    $json = json_decode($resp, true);
 
+    // remove sticker
     if($stickerMsgId){
         tg("deleteMessage",[
             "chat_id"=>$chat,
@@ -1050,33 +1059,25 @@ function consultaFotoRJ($chat, $cpf){
         ]);
     }
 
-    if(!$json || !$json["status"]){
-
+    if(!$json || !$json["success"] || empty($json["foto"])){
         tg("sendMessage",[
             "chat_id"=>$chat,
-            "text"=>"❌ Foto RJ não encontrada."
+            "text"=>"❌ Foto não encontrada."
         ]);
-
         return;
     }
 
-    $fotoBase64 = $json["data"]["foto"];
-    $imagem = base64_decode($fotoBase64);
+    // 🔥 REMOVE prefixo base64
+    $base64 = explode(",", $json["foto"])[1];
+    $imagem = base64_decode($base64);
 
-    $file = tempnam(sys_get_temp_dir(),"fotorj_");
-    file_put_contents($file,$imagem);
+    $file = tempnam(sys_get_temp_dir(), "foto_");
+    file_put_contents($file, $imagem);
 
     tg("sendPhoto",[
         "chat_id"=>$chat,
-        "photo"=>new CURLFile($file,"image/jpeg","fotorj_{$cpf}.jpg"),
-        "caption"=>"📸 <b>FOTO RJ LOCALIZADA</b>
-
-👤 Nome: {$json["data"]["nome"]}
-🆔 CPF: <code>{$json["data"]["cpf"]}</code>
-📅 Nascimento: {$json["data"]["nascimento"]}
-🪪 RG: {$json["data"]["rg"]}
-
-Créditos: <b>Astro Search</b>",
+        "photo"=>new CURLFile($file, "image/jpeg", "foto_{$cpf}.jpg"),
+        "caption"=>"📸 <b>FOTO LOCALIZADA</b>\n\nCPF: <code>{$cpf}</code>\nEstado: {$json["estado"]}\n\nCréditos: <b>Astro Search</b>",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
@@ -1730,7 +1731,9 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     }
 
     // ===== COMANDOS VIP =====
-$vipCmds = ["/cpf","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto","/fotorj","/fotosp"];
+$vipCmds = ["/cpf","/fotorj","/fotosp","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
+    if(in_array($cmd, $vipCmds)){
+
     // ❗ primeiro valida se enviou argumento
     if(!$arg){
         tutorial($chat, $cmd);
@@ -1773,13 +1776,13 @@ $vipCmds = ["/cpf","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefo
     exit;
 }
 
-if($cmd === "/fotorj"){
-    consultaFotoRJ($chat, $arg);
+if($cmd === "/fotosp"){
+    consultaFotoSP($chat, $arg);
     exit;
 }
 
-if($cmd === "/fotosp"){
-    consultaFotoSP($chat, $arg);
+if($cmd === "/fotorj"){
+    consultaFotoRJ($chat, $arg);
     exit;
 }
 
@@ -1970,4 +1973,3 @@ $plano = isVip($id) ? "VIP" : "Grátis";
 }
 
 echo "OK";
-
