@@ -929,6 +929,85 @@ function consultaFoto($chat, $cpf){
     unlink($file);
 }
 
+function consultaFotoSP($chat, $cpf){
+    global $STICKER_LOADING;
+
+    $sticker = tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+
+    $stickerData = json_decode($sticker,true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+    $cpf = preg_replace('/\D/','',$cpf);
+
+    if(strlen($cpf) != 11){
+
+        if($stickerMsgId){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
+        }
+
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ CPF inválido.\nUse: <code>/fotosp 00000000000</code>",
+            "parse_mode"=>"HTML"
+        ]);
+
+        return;
+    }
+
+    $url = "https://sara-api.xyz/api/consultas/fotosp?cpf={$cpf}&apikey=bocadavk_6VL";
+    $resp = @file_get_contents($url);
+    $json = json_decode($resp,true);
+
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
+
+    if(!$json || !$json["success"] || empty($json["foto"])){
+
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Foto SP não encontrada."
+        ]);
+
+        return;
+    }
+
+    $imagem = base64_decode($json["foto"]);
+
+    $file = tempnam(sys_get_temp_dir(),"fotosp_");
+    file_put_contents($file,$imagem);
+
+    tg("sendPhoto",[
+        "chat_id"=>$chat,
+        "photo"=>new CURLFile($file,"image/jpeg","fotosp_{$cpf}.jpg"),
+        "caption"=>"📸 <b>FOTO SP LOCALIZADA</b>
+
+🆔 CPF: <code>{$json["cpf"]}</code>
+📍 Estado: {$json["estado"]}
+
+Créditos: <b>Astro Search</b>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+                ]
+            ]
+        ])
+    ]);
+
+    unlink($file);
+}
+
 function consultaFotoRJ($chat, $cpf){
     global $STICKER_LOADING;
 
@@ -1651,8 +1730,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     }
 
     // ===== COMANDOS VIP =====
-$vipCmds = ["/cpf","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto","/fotorj"];    if(in_array($cmd, $vipCmds)){
-
+$vipCmds = ["/cpf","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto","/fotorj","/fotoma","/fotosp"];
     // ❗ primeiro valida se enviou argumento
     if(!$arg){
         tutorial($chat, $cmd);
@@ -1697,6 +1775,11 @@ $vipCmds = ["/cpf","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefo
 
 if($cmd === "/fotorj"){
     consultaFotoRJ($chat, $arg);
+    exit;
+}
+
+if($cmd === "/fotosp"){
+    consultaFotoSP($chat, $arg);
     exit;
 }
 
