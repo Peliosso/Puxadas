@@ -313,6 +313,7 @@ tg("editMessageCaption",[
 
 🔱 <b>VIP</b>
 
+/fotorj - 🆕
 /parentes - 🆕
 /vizinhos - 🆕
 /foto - 🆕
@@ -915,6 +916,88 @@ function consultaFoto($chat, $cpf){
         "chat_id"=>$chat,
         "photo"=>new CURLFile($file, "image/jpeg", "foto_{$cpf}.jpg"),
         "caption"=>"📸 <b>FOTO LOCALIZADA</b>\n\nCPF: <code>{$cpf}</code>\nEstado: {$json["estado"]}\n\nCréditos: <b>Astro Search</b>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+                ]
+            ]
+        ])
+    ]);
+
+    unlink($file);
+}
+
+function consultaFotoRJ($chat, $cpf){
+    global $STICKER_LOADING;
+
+    $sticker = tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+
+    $stickerData = json_decode($sticker,true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+    $cpf = preg_replace('/\D/','',$cpf);
+
+    if(strlen($cpf) != 11){
+
+        if($stickerMsgId){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
+        }
+
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ CPF inválido.\nUse: <code>/fotorj 00000000000</code>",
+            "parse_mode"=>"HTML"
+        ]);
+
+        return;
+    }
+
+    $url = "https://orbyta.online/api/fotorj?cpf={$cpf}&token=FNiPeeltHc5pwy7HWnPCiIs7zIRr7SDB";
+    $resp = @file_get_contents($url);
+    $json = json_decode($resp,true);
+
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
+
+    if(!$json || !$json["status"]){
+
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Foto RJ não encontrada."
+        ]);
+
+        return;
+    }
+
+    $fotoBase64 = $json["data"]["foto"];
+    $imagem = base64_decode($fotoBase64);
+
+    $file = tempnam(sys_get_temp_dir(),"fotorj_");
+    file_put_contents($file,$imagem);
+
+    tg("sendPhoto",[
+        "chat_id"=>$chat,
+        "photo"=>new CURLFile($file,"image/jpeg","fotorj_{$cpf}.jpg"),
+        "caption"=>"📸 <b>FOTO RJ LOCALIZADA</b>
+
+👤 Nome: {$json["data"]["nome"]}
+🆔 CPF: <code>{$json["data"]["cpf"]}</code>
+📅 Nascimento: {$json["data"]["nascimento"]}
+🪪 RG: {$json["data"]["rg"]}
+
+Créditos: <b>Astro Search</b>",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
@@ -1568,8 +1651,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     }
 
     // ===== COMANDOS VIP =====
-$vipCmds = ["/cpf","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
-    if(in_array($cmd, $vipCmds)){
+$vipCmds = ["/cpf","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto","/fotorj"];    if(in_array($cmd, $vipCmds)){
 
     // ❗ primeiro valida se enviou argumento
     if(!$arg){
@@ -1610,6 +1692,11 @@ $vipCmds = ["/cpf","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefo
         
         if($cmd === "/foto"){
     consultaFoto($chat, $arg);
+    exit;
+}
+
+if($cmd === "/fotorj"){
+    consultaFotoRJ($chat, $arg);
     exit;
 }
 
