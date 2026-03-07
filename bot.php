@@ -1730,7 +1730,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     }
 
     // ===== COMANDOS VIP =====
-$vipCmds = ["/cpf","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto","/fotorj","/fotoma","/fotosp"];
+$vipCmds = ["/cpf","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto","/fotorj","/fotosp"];
     // ❗ primeiro valida se enviou argumento
     if(!$arg){
         tutorial($chat, $cmd);
