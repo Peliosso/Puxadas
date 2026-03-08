@@ -1890,20 +1890,20 @@ tg("editMessageText",[
     }
 
     if($tipo == "cpf_simples"){
-        consultaCPF($chat,$msg,$cpf);
-    }
+    consultaCPF($chat,$cpf);
+}
 
-    if($tipo == "cpf_full"){
-        consultaCPF1($chat,$msg,$cpf);
-    }
+if($tipo == "cpf_full"){
+    consultaCPF1($chat,$cpf);
+}
 
-    if($tipo == "cpf_vizinhos"){
-        consultaVizinhos($chat,$msg,$cpf);
-    }
+if($tipo == "cpf_vizinhos"){
+    consultaVizinhos($chat,$cpf);
+}
 
-    if($tipo == "cpf_parentes"){
-        consultaParentes($chat,$msg,$cpf);
-    }
+if($tipo == "cpf_parentes"){
+    consultaParentes($chat,$cpf);
+}
 
     exit;
 }
