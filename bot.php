@@ -1855,7 +1855,15 @@ if(str_starts_with($callback["data"],"cpf_")){
     tg("editMessageText",[
 "chat_id"=>$chat,
 "message_id"=>$msg,
-"text"=>"🔎 <b>Consultando CPF...</b>\n\n<code>{$cpf}</code>",
+"text"=>"🔎 <b>INICIANDO CONSULTA</b>
+
+📄 <b>Documento:</b> CPF
+🪪 <b>Número:</b> <code>{$cpf}</code>
+
+⏳ <i>Buscando informações nas bases de dados...</i>
+
+━━━━━━━━━━━━━━
+💎 <b>Consulta VIP em andamento</b>",
 "parse_mode"=>"HTML"
 ]);
 
