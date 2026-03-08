@@ -1852,6 +1852,23 @@ if(str_starts_with($callback["data"],"cpf_")){
     $tipo = $dados[0];
     $cpf  = $dados[1];
     
+    // nome do módulo
+    if($tipo == "cpf_simples"){
+        $modulo = "CPF Simples";
+    }
+
+    if($tipo == "cpf_full"){
+        $modulo = "CPF Completo";
+    }
+
+    if($tipo == "cpf_vizinhos"){
+        $modulo = "Vizinhos pelo CPF";
+    }
+
+    if($tipo == "cpf_parentes"){
+        $modulo = "Parentes pelo CPF";
+    }
+    
     tg("editMessageText",[
 "chat_id"=>$chat,
 "message_id"=>$msg,
