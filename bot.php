@@ -1851,6 +1851,13 @@ if(str_starts_with($callback["data"],"cpf_")){
     $dados = explode("|",$callback["data"]);
     $tipo = $dados[0];
     $cpf  = $dados[1];
+    
+    tg("editMessageText",[
+"chat_id"=>$chat,
+"message_id"=>$msg,
+"text"=>"🔎 <b>Consultando CPF...</b>\n\n<code>{$cpf}</code>",
+"parse_mode"=>"HTML"
+]);
 
     if(!isVip($id)){
         bloquearConsulta($chat);
