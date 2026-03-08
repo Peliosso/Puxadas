@@ -1756,9 +1756,32 @@ $vipCmds = ["/cpf","/fotorj","/fotosp","/cpf1","/vizinhos","/parentes","/nome","
     }
 
         if($cmd === "/cpf"){
-            $arg ? consultaCPF($chat, $arg) : tutorial($chat, "/cpf");
-            exit;
-        }
+
+    if(!$arg){
+        tutorial($chat,"/cpf");
+        exit;
+    }
+
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>"🔎 <b>Selecione o tipo de consulta</b>\n\nCPF: <code>{$arg}</code>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"📄 CPF Simples","callback_data"=>"cpf_simples|{$arg}"],
+                    ["text"=>"📑 CPF Full","callback_data"=>"cpf_full|{$arg}"]
+                ],
+                [
+                    ["text"=>"🏠 Vizinhos","callback_data"=>"cpf_vizinhos|{$arg}"],
+                    ["text"=>"👨‍👩‍👧 Parentes","callback_data"=>"cpf_parentes|{$arg}"]
+                ]
+            ]
+        ])
+    ]);
+
+    exit;
+}
         
         if($cmd === "/cpf1"){
             $arg ? consultaCPF1($chat, $arg) : tutorial($chat, "/cpf");
@@ -1910,6 +1933,36 @@ if(isset($callback["message"]["photo"])){
 }
 
 break;
+
+if(str_starts_with($callback["data"],"cpf_")){
+
+    $dados = explode("|",$callback["data"]);
+    $tipo = $dados[0];
+    $cpf  = $dados[1];
+
+    if(!isVip($id)){
+        bloquearConsulta($chat);
+        exit;
+    }
+
+    if($tipo == "cpf_simples"){
+        consultaCPF($chat,$cpf);
+    }
+
+    if($tipo == "cpf_full"){
+        consultaCPF1($chat,$cpf);
+    }
+
+    if($tipo == "cpf_vizinhos"){
+        consultaVizinhos($chat,$cpf);
+    }
+
+    if($tipo == "cpf_parentes"){
+        consultaParentes($chat,$cpf);
+    }
+
+    exit;
+}
 
 case "copiar_pix":
 
