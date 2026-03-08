@@ -1843,6 +1843,38 @@ if($callback){
     $msg  = $callback["message"]["message_id"];
     $nome = $callback["from"]["first_name"] ?? "usuário";
     $id   = $callback["from"]["id"];
+    
+    // ===== CALLBACK CPF BOTÕES =====
+
+if(str_starts_with($callback["data"],"cpf_")){
+
+    $dados = explode("|",$callback["data"]);
+    $tipo = $dados[0];
+    $cpf  = $dados[1];
+
+    if(!isVip($id)){
+        bloquearConsulta($chat);
+        exit;
+    }
+
+    if($tipo == "cpf_simples"){
+        consultaCPF($chat,$cpf);
+    }
+
+    if($tipo == "cpf_full"){
+        consultaCPF1($chat,$cpf);
+    }
+
+    if($tipo == "cpf_vizinhos"){
+        consultaVizinhos($chat,$cpf);
+    }
+
+    if($tipo == "cpf_parentes"){
+        consultaParentes($chat,$cpf);
+    }
+
+    exit;
+}
 
     switch($callback["data"]){
 
@@ -1933,36 +1965,6 @@ if(isset($callback["message"]["photo"])){
 }
 
 break;
-
-if(str_starts_with($callback["data"],"cpf_")){
-
-    $dados = explode("|",$callback["data"]);
-    $tipo = $dados[0];
-    $cpf  = $dados[1];
-
-    if(!isVip($id)){
-        bloquearConsulta($chat);
-        exit;
-    }
-
-    if($tipo == "cpf_simples"){
-        consultaCPF($chat,$cpf);
-    }
-
-    if($tipo == "cpf_full"){
-        consultaCPF1($chat,$cpf);
-    }
-
-    if($tipo == "cpf_vizinhos"){
-        consultaVizinhos($chat,$cpf);
-    }
-
-    if($tipo == "cpf_parentes"){
-        consultaParentes($chat,$cpf);
-    }
-
-    exit;
-}
 
 case "copiar_pix":
 
