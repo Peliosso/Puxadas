@@ -1869,18 +1869,18 @@ if(str_starts_with($callback["data"],"cpf_")){
         $modulo = "Parentes pelo CPF";
     }
     
-    tg("editMessageText",[
+tg("editMessageText",[
 "chat_id"=>$chat,
 "message_id"=>$msg,
-"text"=>"🔎 <b>INICIANDO CONSULTA</b>
+"text"=>"🔎 <b>CONSULTA INICIADA</b>
 
-📄 <b>Documento:</b> CPF
-🪪 <b>Número:</b> <code>{$cpf}</code>
+📂 <b>Módulo:</b> {$modulo}
+🪪 <b>CPF:</b> <code>{$cpf}</code>
 
-⏳ <i>Buscando informações nas bases de dados...</i>
+⏳ <i>Processando consulta nas bases de dados...</i>
 
 ━━━━━━━━━━━━━━
-💎 <b>Consulta VIP em andamento</b>",
+💎 <b>Consulta VIP Astro Search</b>",
 "parse_mode"=>"HTML"
 ]);
 
@@ -1890,19 +1890,19 @@ if(str_starts_with($callback["data"],"cpf_")){
     }
 
     if($tipo == "cpf_simples"){
-        consultaCPF($chat,$cpf);
+        consultaCPF($chat,$msg,$cpf);
     }
 
     if($tipo == "cpf_full"){
-        consultaCPF1($chat,$cpf);
+        consultaCPF1($chat,$msg,$cpf);
     }
 
     if($tipo == "cpf_vizinhos"){
-        consultaVizinhos($chat,$cpf);
+        consultaVizinhos($chat,$msg,$cpf);
     }
 
     if($tipo == "cpf_parentes"){
-        consultaParentes($chat,$cpf);
+        consultaParentes($chat,$msg,$cpf);
     }
 
     exit;
