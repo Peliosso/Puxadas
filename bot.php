@@ -1468,6 +1468,16 @@ Nascimento: {$p["data_nascimento"]}
 Sexo: {$p["sexo"]}
 
 Mãe: {$p["nome_mae"]}
+Estado Civil: ".($p["estado_civil"] ?? "Não informado")."
+Nacionalidade: ".($p["nacionalidade"] ?? "Não informado")."
+
+RG: ".($p["rg"] ?? "Não informado")."
+Orgão Emissor: ".($p["orgao_emissor"] ?? "Não informado")."
+Data Emissão RG: ".($p["data_emissao_rg"] ?? "Não informado")."
+
+Naturalidade: ".($p["naturalidade"] ?? "Não informado")."
+CNS: ".($p["cns"] ?? "Não informado")."
+
 Status Receita: {$p["status_receita"]}
 
 --------------------------------
@@ -1480,7 +1490,7 @@ $txt .= "\nFAMILIARES
 
 foreach($json["familia"] as $f){
 
-$txt .= "{$f["vinculo"]}: {$f["nome"]} - CPF: {$f["cpf_parente"]}\n";
+$txt .= "{$f["vinculo"]}: {$f["nome"]} - CPF {$f["cpf_parente"]}\n";
 
 }
 
@@ -1519,7 +1529,9 @@ $txt .= "\nENDEREÇOS
 
 foreach($json["enderecos"] as $e){
 
-$txt .= "{$e["logradouro"]}, {$e["numero"]} - {$e["bairro"]}\n{$e["cidade"]}/{$e["uf"]} - CEP {$e["cep"]}\n\n";
+$txt .= "{$e["logradouro"]}, {$e["numero"]}\n";
+$txt .= "{$e["bairro"]} - {$e["cidade"]}/{$e["uf"]}\n";
+$txt .= "CEP {$e["cep"]}\n\n";
 
 }
 
@@ -1547,8 +1559,13 @@ $txt .= "\nFINANCEIRO
 
 $txt .= "PIS: {$f["pis"]}\n";
 $txt .= "Renda Estimada: {$f["renda_estimada"]}\n";
+
+if(isset($f["score"])){
+
 $txt .= "Score CSB8: {$f["score"]["csb8"]}\n";
 $txt .= "Score CSBA: {$f["score"]["csba"]}\n";
+
+}
 
 }
 
@@ -1560,6 +1577,50 @@ $txt .= "\nDADOS BANCÁRIOS
 foreach($json["dados_bancarios"] as $b){
 
 $txt .= "{$b["instituicao"]} - Agência {$b["agencia"]}\n";
+
+}
+
+}
+
+if(isset($json["trabalho"])){
+
+$t = $json["trabalho"];
+
+$txt .= "\nTRABALHO
+--------------------------------\n";
+
+$txt .= "CBO: ".($t["cbo"] ?? "Não informado")."\n";
+
+}
+
+if(isset($json["servidor_publico"])){
+
+$s = $json["servidor_publico"];
+
+$txt .= "\nSERVIDOR PÚBLICO
+--------------------------------\n";
+
+$txt .= "Funcionário Público: ".($s["is_funcionario_publico"] ? "SIM" : "NÃO")."\n";
+
+}
+
+if(isset($json["titulo_eleitor"])){
+
+$txt .= "\nTÍTULO DE ELEITOR
+--------------------------------\n";
+
+$txt .= $json["titulo_eleitor"]."\n";
+
+}
+
+if(isset($json["perfil_consumo"])){
+
+$txt .= "\nPERFIL DE CONSUMO
+--------------------------------\n";
+
+foreach($json["perfil_consumo"] as $k=>$v){
+
+$txt .= strtoupper($k).": ".$v."\n";
 
 }
 
@@ -1577,12 +1638,197 @@ tg("sendDocument",[
 "chat_id"=>$chat,
 "document"=>new CURLFile($file,"text/plain","cpf_full_{$cpf}.txt"),
 "caption"=>"🧾 <b>Consulta de CPF FULL concluída</b>\n\nCréditos: <b>Astro Search</b>",
+"parse_mode"=>"HTML"
+]);
+
+unlink($file);
+
+}
+
+function consultaPlaca($chat, $placa){
+
+    global $STICKER_LOADING;
+
+    // Sticker de carregamento
+    $sticker = tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+
+    $stickerData = json_decode($sticker,true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+    $placa = strtoupper(preg_replace('/[^A-Za-z0-9]/','',$placa));
+
+    if(strlen($placa) < 7){
+
+        if($stickerMsgId){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
+        }
+
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Placa inválida.\nUse: <code>/placa ABC1234</code>",
+            "parse_mode"=>"HTML"
+        ]);
+
+        return;
+    }
+
+    // Consulta API
+    $url = "https://orbyta.online/api/veiculo?placa={$placa}&token=FNiPeeltHc5pwy7HWnPCiIs7zIRr7SDB";
+    $resp = @file_get_contents($url);
+    $json = json_decode($resp,true);
+
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
+
+    if(!$json || !$json["success"]){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Veículo não encontrado."
+        ]);
+        return;
+    }
+
+    $d = $json["data"];
+    $c = $d["caracteristicas"] ?? [];
+    $cir = $d["circulacao"] ?? [];
+    $prop = $d["proprietario"] ?? [];
+    $end = $prop["endereco"] ?? [];
+    $lic = $d["licenciamento"] ?? [];
+    $eixos = $c["eixosSuspensao"] ?? [];
+
+$txt = "
+CONSULTA DE PLACA — ASTRO SEARCH
+================================
+
+PLACA NACIONAL: ".($d["placaNacional"] ?? "Não informado")."
+PLACA MERCOSUL: ".($d["placaMercosul"] ?? "Não informado")."
+
+CHASSI: ".($d["chassi"] ?? "Não informado")."
+RENAVAM: ".($d["renavam"] ?? "Não informado")."
+MOTOR: ".($d["motor"] ?? "Não informado")."
+
+================================
+CARACTERÍSTICAS
+================================
+
+Marca/Modelo: ".($c["marcaModelo"] ?? "Não informado")."
+Cor: ".($c["corVeiculo"] ?? "Não informado")."
+Espécie: ".($c["especieVeiculo"] ?? "Não informado")."
+Carroceria: ".($c["carroceria"] ?? "Não informado")."
+
+Tipo: ".($c["tipoVeiculo"] ?? "Não informado")."
+Combustível: ".($c["combustivel"] ?? "Não informado")."
+
+Ano Fabricação: ".($c["anoFabricacao"] ?? "Não informado")."
+Ano Modelo: ".($c["anoModelo"] ?? "Não informado")."
+
+Potência: ".($c["potencia"] ?? "Não informado")."
+Cilindradas: ".($c["cilindradas"] ?? "Não informado")."
+
+Passageiros: ".($c["capacidPassageiros"] ?? "Não informado")."
+Capacidade Carga: ".($c["capacidCarga"] ?? "Não informado")."
+
+Peso Bruto: ".($c["pesoBruto"] ?? "Não informado")."
+Capacidade Tração: ".($c["capacidMaxTracao"] ?? "Não informado")."
+
+================================
+EIXOS
+================================
+
+Total Eixos: ".($eixos["eixos"] ?? "Não informado")."
+Eixo Traseiro: ".($eixos["eixoTraseiro"] ?? "Não informado")."
+Terceiro Eixo: ".($eixos["terceiroEixo"] ?? "Não informado")."
+
+================================
+CIRCULAÇÃO
+================================
+
+Situação Veículo: ".($cir["situacaoVeiculo"] ?? "Não informado")."
+Situação Chassi: ".($cir["situacaoChassi"] ?? "Não informado")."
+
+Município: ".($cir["municipio"] ?? "Não informado")."
+UF: ".($cir["uf"] ?? "Não informado")."
+
+================================
+PROPRIETÁRIO
+================================
+
+Nome: ".($prop["nome"] ?? "Não informado")."
+CPF/CNPJ: ".($prop["cpfCnpj"] ?? "Não informado")."
+
+Logradouro: ".($end["logradouro"] ?? "Não informado")."
+Número: ".($end["numero"] ?? "Não informado")."
+Complemento: ".($end["complemento"] ?? "Não informado")."
+
+Bairro: ".($end["bairro"] ?? "Não informado")."
+Cidade: ".($end["cidade"] ?? "Não informado")."
+UF: ".($end["siglaUf"] ?? "Não informado")."
+CEP: ".($end["cep"] ?? "Não informado")."
+
+================================
+LICENCIAMENTO
+================================
+
+Data Emplacamento: ".($lic["dataEmplacamento"] ?? "Não informado")."
+Última Atualização: ".($lic["dataUltimaAtualizacao"] ?? "Não informado")."
+
+================================
+RESTRIÇÕES
+================================
+";
+
+if(!empty($d["restricoes"])){
+    foreach($d["restricoes"] as $r){
+        $txt .= "- ".$r."\n";
+    }
+}else{
+    $txt .= "Nenhuma restrição encontrada\n";
+}
+
+$txt .= "
+
+================================
+RADARES
+================================
+";
+
+if(!empty($d["radares"])){
+    foreach($d["radares"] as $r){
+        $txt .= "- ".$r."\n";
+    }
+}else{
+    $txt .= "Nenhum radar registrado\n";
+}
+
+$txt .= "
+
+--------------------------------
+Consulta via:
+Astro Search
+";
+
+$file = tempnam(sys_get_temp_dir(),"placa_");
+file_put_contents($file,$txt);
+
+tg("sendDocument",[
+"chat_id"=>$chat,
+"document"=>new CURLFile($file,"text/plain","placa_{$placa}.txt"),
+"caption"=>"🚗 <b>Consulta de Placa concluída</b>\n\nCréditos: <b>Astro Search</b>",
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
 [
-["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
 ]
 ]
 ])
@@ -1789,6 +2035,11 @@ $vipCmds = ["/cpf","/fotorj","/fotosp","/cpf1","/vizinhos","/parentes","/nome","
             $arg ? consultaCPF1($chat, $arg) : tutorial($chat, "/cpf");
             exit;
         }
+        
+        if($cmd === "/placa"){
+    consultaPlaca($chat, $arg);
+    exit;
+}
         
         if($cmd === "/parentes"){
     consultaParentes($chat, $arg);
