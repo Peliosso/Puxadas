@@ -1664,6 +1664,141 @@ unlink($file);
 
 }
 
+function consultaCPF2($chat,$cpf){
+
+global $STICKER_LOADING;
+
+$sticker = tg("sendSticker",[
+"chat_id"=>$chat,
+"sticker"=>$STICKER_LOADING
+]);
+
+$stickerData = json_decode($sticker,true);
+$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+$cpf = preg_replace('/\D/','',$cpf);
+
+if(strlen($cpf) != 11){
+
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
+
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ CPF inválido.\nUse: <code>/cpf2 00000000000</code>",
+"parse_mode"=>"HTML"
+]);
+
+return;
+}
+
+$url = "https://api.blackaut.shop/api/dados-pessoais/cpf?cpf={$cpf}&apikey=yy2MxoPWRcZJgOvuMi";
+
+$ch = curl_init($url);
+curl_setopt_array($ch,[
+CURLOPT_RETURNTRANSFER => true,
+CURLOPT_TIMEOUT => 20
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$data = json_decode($response,true);
+
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
+
+if(!$data || empty($data["resultado"])){
+
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ CPF não encontrado ou instabilidade na API."
+]);
+
+return;
+}
+
+$d = $data["resultado"];
+
+$txt = "
+╔══════════════════════════════╗
+   CONSULTA CPF VIP — ASTRO SEARCH
+╚══════════════════════════════╝
+
+DADOS PESSOAIS
+──────────────────────────────
+
+CPF: {$d["cpf"]}
+Nome: {$d["name"]}
+Sexo: {$d["gender"]}
+Nascimento: {$d["birth"]}
+Idade: {$d["age"]}
+Signo: {$d["sign"]}
+
+Mãe: {$d["mother_name"]}
+Pai: {$d["father_name"]}
+
+Estado civil: {$d["marital_status"]}
+RG: {$d["rg"]}
+
+Situação Receita: {$d["cd_sit_cad"]}
+Data situação: {$d["dt_sit_cad"]}
+
+";
+
+if(!empty($d["income"])){
+
+$txt .= "
+
+RENDA
+──────────────────────────────
+Renda estimada: R$ {$d["income"]}
+
+";
+}
+
+$txt .= "
+
+──────────────────────────────
+Consulta realizada via:
+ASTRO SEARCH
+";
+
+$file = "cache_cpf2_{$chat}.txt";
+file_put_contents($file,$txt);
+
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"✅ <b>Consulta VIP realizada</b>\n\nEscolha o formato do resultado:",
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"📄 Mostrar no Telegram","callback_data"=>"cpf2_msg|$cpf"]
+],
+[
+["text"=>"📁 Enviar arquivo TXT","callback_data"=>"cpf2_file|$cpf"]
+],
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+],
+[
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+]
+]
+])
+]);
+
+}
+
 function consultaPlaca($chat, $placa){
 
     global $STICKER_LOADING;
@@ -2007,7 +2142,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     }
 
     // ===== COMANDOS VIP =====
-$vipCmds = ["/cpf","/fotorj","/fotosp","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
+$vipCmds = ["/cpf","/fotorj","/fotosp","/cpf1","/cpf2","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
     if(in_array($cmd, $vipCmds)){
 
     // ❗ primeiro valida se enviou argumento
@@ -2054,6 +2189,11 @@ $vipCmds = ["/cpf","/fotorj","/fotosp","/cpf1","/vizinhos","/parentes","/nome","
             $arg ? consultaCPF1($chat, $arg) : tutorial($chat, "/cpf");
             exit;
         }
+        
+        if($cmd === "/cpf2"){
+    consultaCPF2($chat, $arg);
+    exit;
+}
         
         if($cmd === "/placa"){
     consultaPlaca($chat, $arg);
@@ -2109,6 +2249,66 @@ if($cmd === "/vizinhos"){
 /* ================= CALLBACKS ================= */
 
 if($callback){
+    
+    if(str_starts_with($callback["data"],"cpf2_msg")){
+
+$dados = explode("|",$callback["data"]);
+$cpf = $dados[1];
+
+$file = "cpf2_{$chat}.txt";
+
+$txt = file_get_contents($file);
+
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"<pre>$txt</pre>",
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+],
+[
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+]
+]
+])
+]);
+
+unlink($file);
+
+exit;
+}
+
+if(str_starts_with($callback["data"],"cpf2_file")){
+
+$dados = explode("|",$callback["data"]);
+$cpf = $dados[1];
+
+$file = "cpf2_{$chat}.txt";
+
+tg("sendDocument",[
+"chat_id"=>$chat,
+"document"=>new CURLFile($file,"text/plain","cpf2_{$cpf}.txt"),
+"caption"=>"📑 <b>Consulta CPF Premium</b>",
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+],
+[
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+]
+]
+])
+]);
+
+unlink($file);
+
+exit;
+}
+    
     answer($callback["id"]);
 
     $chat = $callback["message"]["chat"]["id"];
@@ -2131,6 +2331,10 @@ if(str_starts_with($callback["data"],"cpf_")){
 
     if($tipo == "cpf_full"){
         $modulo = "CPF Completo";
+    }
+    
+    if($acao == "cpf2"){
+        consultaCPF2($chat,$cpf);
     }
 
     if($tipo == "cpf_vizinhos"){
