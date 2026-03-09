@@ -1772,7 +1772,7 @@ Consulta realizada via:
 ASTRO SEARCH
 ";
 
-$file = "cache_cpf2_{$chat}.txt";
+$file = "cache_cpf2_{$cpf}.txt";
 file_put_contents($file,$txt);
 
 tg("sendMessage",[
@@ -2250,12 +2250,19 @@ if($cmd === "/vizinhos"){
 
 if($callback){
     
+    answer($callback["id"]);
+
+    $chat = $callback["message"]["chat"]["id"];
+    $msg  = $callback["message"]["message_id"];
+    $nome = $callback["from"]["first_name"] ?? "usuário";
+    $id   = $callback["from"]["id"];
+    
     if(str_starts_with($callback["data"],"cpf2_msg")){
 
 $dados = explode("|",$callback["data"]);
 $cpf = $dados[1];
 
-$file = "cache_cpf2_{$chat}.txt";
+$file = "cache_cpf2_{$cpf}.txt";
 
 $txt = file_get_contents($file);
 
@@ -2285,7 +2292,7 @@ if(str_starts_with($callback["data"],"cpf2_file")){
 $dados = explode("|",$callback["data"]);
 $cpf = $dados[1];
 
-$file = "cache_cpf2_{$chat}.txt";
+$file = "cache_cpf2_{$cpf}.txt";
 
 tg("sendDocument",[
 "chat_id"=>$chat,
@@ -2309,12 +2316,6 @@ unlink($file);
 exit;
 }
     
-    answer($callback["id"]);
-
-    $chat = $callback["message"]["chat"]["id"];
-    $msg  = $callback["message"]["message_id"];
-    $nome = $callback["from"]["first_name"] ?? "usuário";
-    $id   = $callback["from"]["id"];
     
     // ===== CALLBACK CPF BOTÕES =====
 
