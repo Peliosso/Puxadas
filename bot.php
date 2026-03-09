@@ -1448,7 +1448,7 @@ tg("sendMessage",[
 return;
 }
 
-$url = "https://api.blackaut.shop/api/dados-pessoais/cpf?cpf={$cpf}&apikey=EbmScZ0ntHf61KJz3H";
+$url = "https://api.blackaut.shop/api/dados-pessoais/cpf?cpf={$cpf}&apikey=yy2MxoPWRcZJgOvuMi";
 $response = @file_get_contents($url);
 $data = json_decode($response,true);
 
