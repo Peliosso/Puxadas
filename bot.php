@@ -2302,86 +2302,66 @@ $vipCmds = ["/cpf","/fotorj","/fotosp","/cpf1","/cpf2","/vizinhos","/parentes","
         exit;
     }
 
-        if($cmd === "/cpf"){
 
-    if(!$arg){
-        tutorial($chat,"/cpf");
-        exit;
-    }
+tg("sendMessage",[
+    "chat_id"=>$chat,
+    "text"=>"🔎 Consultando..."
+]);
 
-    tg("sendMessage",[
-        "chat_id"=>$chat,
-        "text"=>"🔎 <b>Selecione o tipo de consulta</b>\n\nCPF: <code>{$arg}</code>",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"📄 CPF Simples","callback_data"=>"cpf_simples|$arg"],
-                    ["text"=>"📊 CPF Completo","callback_data"=>"cpf_full|$arg"]
-                ],
-                [
-                    ["text"=>"📑 CPF2 (VIP+)","callback_data"=>"cpf2|$arg"]
-                ]
-            ]
-        ])
-    ]);
+switch($cmd){
 
-    exit;
-}
-        
-        if($cmd === "/cpf1"){
-            $arg ? consultaCPF1($chat, $arg) : tutorial($chat, "/cpf");
-            exit;
-        }
-        
-        if($cmd === "/cpf2"){
-    consultaCPF2($chat, $arg);
-    exit;
-}
-        
-        if($cmd === "/placa"){
-    consultaPlaca($chat, $arg);
-    exit;
-}
-        
-        if($cmd === "/parentes"){
-    consultaParentes($chat, $arg);
-    exit;
-        }
-        
-        if($cmd === "/nome"){
-            $arg ? consultaNome($chat, $arg) : tutorial($chat, "/nome");
-            exit;
-        }
-        
-        if($cmd === "/telefone"){
-    consultaTelefone($chat, $arg);
-    exit;
-}
-        
-        if($cmd === "/foto"){
-    consultaFoto($chat, $arg);
-    exit;
+    case "/cpf":
+        consultaCPF($chat,$arg);
+    break;
+
+    case "/cpf1":
+        consultaCPF1($chat,$arg);
+    break;
+
+    case "/cpf2":
+        consultaCPF2($chat,$arg);
+    break;
+
+    case "/nome":
+        consultaNome($chat,$arg);
+    break;
+
+    case "/telefone":
+        consultaTelefone($chat,$arg);
+    break;
+
+    case "/email":
+        consultaEmail($chat,$arg);
+    break;
+
+    case "/placa":
+        consultaPlaca($chat,$arg);
+    break;
+
+    case "/foto":
+        consultaFoto($chat,$arg);
+    break;
+
+    case "/fotorj":
+        consultaFotoRJ($chat,$arg);
+    break;
+
+    case "/fotosp":
+        consultaFotoSP($chat,$arg);
+    break;
+
+    case "/vizinhos":
+        consultaVizinhos($chat,$arg);
+    break;
+
+    case "/parentes":
+        consultaParentes($chat,$arg);
+    break;
+
 }
 
-if($cmd === "/fotosp"){
-    consultaFotoSP($chat, $arg);
-    exit;
+exit;
 }
-
-if($cmd === "/fotorj"){
-    consultaFotoRJ($chat, $arg);
-    exit;
-}
-
-if($cmd === "/email"){
-    consultaEmail($chat, $arg);
-    exit;
-}
-
-if($cmd === "/vizinhos"){
-    consultaVizinhos($chat, $arg);
-    exit;
 }
 
         // outros comandos VIP futuramente aqui
