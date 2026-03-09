@@ -2394,6 +2394,12 @@ if(str_starts_with($callback["data"],"cpf_")){
     if($tipo == "cpf_full"){
         $modulo = "CPF Completo";
     }
+    
+    if($tipo == "cpf2"){
+    $modulo = "CPF Premium";
+    }
+
+
 
     if($tipo == "cpf_vizinhos"){
         $modulo = "Vizinhos pelo CPF";
