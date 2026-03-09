@@ -2264,13 +2264,21 @@ $cpf = $dados[1];
 
 $file = "cache_cpf2_{$cpf}.txt";
 
+if(!file_exists($file)){
+exit;
+}
+
 $txt = file_get_contents($file);
+
+$partes = str_split($txt,4000);
+
+foreach($partes as $index => $parte){
 
 tg("sendMessage",[
 "chat_id"=>$chat,
-"text"=>"<pre>$txt</pre>",
+"text"=>"<pre>".$parte."</pre>",
 "parse_mode"=>"HTML",
-"reply_markup"=>json_encode([
+"reply_markup"=>$index == 0 ? json_encode([
 "inline_keyboard"=>[
 [
 ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
@@ -2279,13 +2287,14 @@ tg("sendMessage",[
 ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
 ]
 ]
-])
+]) : null
 ]);
+
+}
 
 unlink($file);
 
 exit;
-}
 
 if(str_starts_with($callback["data"],"cpf2_file")){
 
