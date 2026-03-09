@@ -1639,7 +1639,15 @@ tg("sendDocument",[
 "chat_id"=>$chat,
 "document"=>new CURLFile($file,"text/plain","cpf_full_{$cpf}.txt"),
 "caption"=>"🧾 <b>Consulta de CPF FULL concluída</b>\n\nCréditos: <b>Astro Search</b>",
-"parse_mode"=>"HTML"
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+    "inline_keyboard"=>[
+        [
+            ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
+            ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+        ]
+    ]
+])
 ]);
 
 unlink($file);
