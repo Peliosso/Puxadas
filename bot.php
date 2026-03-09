@@ -2255,7 +2255,7 @@ if($callback){
 $dados = explode("|",$callback["data"]);
 $cpf = $dados[1];
 
-$file = "cpf2_{$chat}.txt";
+$file = "cache_cpf2_{$chat}.txt";
 
 $txt = file_get_contents($file);
 
@@ -2285,7 +2285,7 @@ if(str_starts_with($callback["data"],"cpf2_file")){
 $dados = explode("|",$callback["data"]);
 $cpf = $dados[1];
 
-$file = "cpf2_{$chat}.txt";
+$file = "cache_cpf2_{$chat}.txt";
 
 tg("sendDocument",[
 "chat_id"=>$chat,
