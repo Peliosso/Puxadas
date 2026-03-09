@@ -1751,7 +1751,6 @@ RG: {$d["rg"]}
 
 Situação Receita: {$d["cd_sit_cad"]}
 Data situação: {$d["dt_sit_cad"]}
-
 ";
 
 if(!empty($d["income"])){
@@ -1761,7 +1760,91 @@ $txt .= "
 RENDA
 ──────────────────────────────
 Renda estimada: R$ {$d["income"]}
+";
+}
 
+# ENDEREÇOS
+if(!empty($d["addresses"])){
+
+$txt .= "
+
+ENDEREÇOS
+──────────────────────────────
+";
+
+foreach($d["addresses"] as $a){
+
+$txt .= "
+{$a["logr_type"]} {$a["logr_name"]}, {$a["logr_number"]}
+Bairro: {$a["neighborhood"]}
+Cidade: {$a["city"]} - {$a["state"]}
+CEP: {$a["zip_code"]}
+Complemento: {$a["logr_complement"]}
+";
+}
+}
+
+# TELEFONES
+if(!empty($d["telephones"])){
+
+$txt .= "
+
+TELEFONES
+──────────────────────────────
+";
+
+foreach($d["telephones"] as $t){
+
+$txt .= "
+({$t["ddd"]}) {$t["phone_number"]}
+Tipo: {$t["phone_type"]}
+";
+}
+}
+
+# PODER DE COMPRA
+if(!empty($d["purchasing_power"])){
+
+$p = $d["purchasing_power"];
+
+$txt .= "
+
+PODER AQUISITIVO
+──────────────────────────────
+Faixa: {$p["purchasing_power"]}
+Renda estimada: {$p["fx_purchasing_power"]}
+";
+}
+
+# PARENTES
+if(!empty($d["relatives"])){
+
+$txt .= "
+
+PARENTES
+──────────────────────────────
+";
+
+foreach($d["relatives"] as $r){
+
+$txt .= "
+{$r["name"]} - {$r["relationship"]}
+CPF: {$r["cpf_complete"]}
+";
+}
+}
+
+# SCORE
+if(!empty($d["score"])){
+
+$s = $d["score"];
+
+$txt .= "
+
+SCORE
+──────────────────────────────
+CSB8: {$s["csb8"]} ({$s["csb8_range"]})
+CSBA: {$s["csba"]} ({$s["csba_range"]})
 ";
 }
 
