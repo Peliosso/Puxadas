@@ -29,7 +29,6 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 /* ================= VIP ================= */
 
 $VIP_IDS = [
-    $VIP_IDS = [
     8357677967,
     7290941537,
     7997922326,
