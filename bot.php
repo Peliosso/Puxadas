@@ -1633,6 +1633,7 @@ tg("sendMessage",[
 ]
 ])
 ]);
+}
 
 function consultaCPF1($chat,$cpf){
 
