@@ -1482,7 +1482,7 @@ $d = $data["resultado"];
 
 $txt = "
 ╔══════════════════════════════╗
-      CONSULTA CPF VIP
+        CONSULTA CPF VIP
 ╚══════════════════════════════╝
 
 DADOS PESSOAIS
@@ -1501,10 +1501,14 @@ Pai: {$d["father_name"]}
 Estado civil: {$d["marital_status"]}
 Nacionalidade: {$d["nationality"]}
 
-CBO: {$d["cbo"]}
-
 Situação Receita: {$d["cd_sit_cad"]}
 Data situação: {$d["dt_sit_cad"]}
+
+CBO: {$d["cbo"]}
+
+";
+
+$txt .= "
 
 MOSAIC
 ──────────────────────────────
@@ -1514,6 +1518,32 @@ Mosaic novo: {$d["cd_mosaic_new"]}
 Mosaic secundário: {$d["cd_mosaic_secondary"]}
 
 ";
+
+$txt .= "
+
+RENDA
+──────────────────────────────
+
+Renda estimada: {$d["income"]}
+
+";
+
+if(!empty($d["purchasing_power"])){
+
+$pp = $d["purchasing_power"];
+
+$txt .= "
+
+PODER DE COMPRA
+──────────────────────────────
+
+Classificação: {$pp["purchasing_power"]}
+Faixa: {$pp["fx_purchasing_power"]}
+Renda estimada: {$pp["income_purchasing_power"]}
+
+";
+
+}
 
 if(!empty($d["pis"]["pis_number"])){
 
@@ -1525,6 +1555,7 @@ PIS
 Número: {$d["pis"]["pis_number"]}
 
 ";
+
 }
 
 if(!empty($d["score"])){
@@ -1538,6 +1569,7 @@ CSBA: {$d["score"]["csba"]}
 Faixa: {$d["score"]["csba_range"]}
 
 ";
+
 }
 
 if(!empty($d["addresses"])){
@@ -1557,7 +1589,7 @@ Bairro: {$a["neighborhood"]}
 Cidade: {$a["city"]} - {$a["state"]}
 CEP: {$a["zip_code"]}
 Complemento: {$a["logr_complement"]}
-Data inclusão: {$a["inclusion_date"]}
+Inclusão: {$a["inclusion_date"]}
 
 ";
 
@@ -1617,12 +1649,34 @@ Status: {$e["vt_status"]}
 
 }
 
+if(!empty($d["relatives"])){
+
+$txt .= "
+
+PARENTES
+──────────────────────────────
+";
+
+foreach($d["relatives"] as $r){
+
+$txt .= "
+
+Nome: {$r["name"]}
+CPF: {$r["cpf_complete"]}
+Relação: {$r["relationship"]}
+
+";
+
+}
+
+}
+
 $file = "cpf2_{$chat}.txt";
 file_put_contents($file,$txt);
 
 tg("sendMessage",[
 "chat_id"=>$chat,
-"text"=>"✅ <b>Consulta VIP realizada</b>\n\nEscolha o formato do arquivo:",
+"text"=>"✅ <b>Consulta CPF2 realizada</b>\n\nEscolha como deseja receber:",
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
@@ -1631,10 +1685,14 @@ tg("sendMessage",[
 ],
 [
 ["text"=>"📁 Enviar arquivo TXT","callback_data"=>"cpf2_file|$cpf"]
+],
+[
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
 ]
 ]
 ])
 ]);
+
 }
 
 function consultaCPF1($chat,$cpf){
@@ -2453,10 +2511,20 @@ $txt = file_get_contents($file);
 tg("sendMessage",[
 "chat_id"=>$chat,
 "text"=>"<pre>$txt</pre>",
-"parse_mode"=>"HTML"
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+],
+[
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+]
+]
+])
 ]);
 
-}
+unlink($file);
 
 exit;
 }
@@ -2473,11 +2541,19 @@ if(file_exists($file)){
 tg("sendDocument",[
 "chat_id"=>$chat,
 "document"=>new CURLFile($file,"text/plain","cpf2_{$cpf}.txt"),
-"caption"=>"📁 <b>Consulta CPF Premium</b>",
-"parse_mode"=>"HTML"
+"caption"=>"📑 <b>Consulta CPF Premium</b>",
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+],
+[
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+]
+]
+])
 ]);
-
-}
 
 unlink($file);
 
