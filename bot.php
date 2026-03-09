@@ -1441,7 +1441,7 @@ tg("deleteMessage",[
 
 tg("sendMessage",[
 "chat_id"=>$chat,
-"text"=>"❌ CPF inválido.\nUse: <code>/cpf2 00000000000</code>",
+"text"=>"❌ CPF inválido\nUse: <code>/cpf2 00000000000</code>",
 "parse_mode"=>"HTML"
 ]);
 
@@ -1449,7 +1449,16 @@ return;
 }
 
 $url = "https://api.blackaut.shop/api/dados-pessoais/cpf?cpf={$cpf}&apikey=yy2MxoPWRcZJgOvuMi";
-$response = @file_get_contents($url);
+
+$ch = curl_init($url);
+curl_setopt_array($ch,[
+CURLOPT_RETURNTRANSFER => true,
+CURLOPT_TIMEOUT => 20
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
 $data = json_decode($response,true);
 
 if($stickerMsgId){
@@ -1459,7 +1468,7 @@ tg("deleteMessage",[
 ]);
 }
 
-if(!$data || !$data["status"]){
+if(!$data || empty($data["resultado"])){
 
 tg("sendMessage",[
 "chat_id"=>$chat,
@@ -1473,7 +1482,7 @@ $d = $data["resultado"];
 
 $txt = "
 ╔══════════════════════════════╗
-   CONSULTA CPF — ASTRO SEARCH
+      CONSULTA CPF VIP
 ╚══════════════════════════════╝
 
 DADOS PESSOAIS
@@ -1490,41 +1499,32 @@ Mãe: {$d["mother_name"]}
 Pai: {$d["father_name"]}
 
 Estado civil: {$d["marital_status"]}
-RG: {$d["rg"]}
+Nacionalidade: {$d["nationality"]}
+
+CBO: {$d["cbo"]}
 
 Situação Receita: {$d["cd_sit_cad"]}
 Data situação: {$d["dt_sit_cad"]}
 
+MOSAIC
+──────────────────────────────
+
+Mosaic principal: {$d["cd_mosaic"]}
+Mosaic novo: {$d["cd_mosaic_new"]}
+Mosaic secundário: {$d["cd_mosaic_secondary"]}
+
 ";
 
-if(!empty($d["income"])){
+if(!empty($d["pis"]["pis_number"])){
 
 $txt .= "
 
-RENDA
+PIS
 ──────────────────────────────
 
-Renda estimada: R$ {$d["income"]}
+Número: {$d["pis"]["pis_number"]}
 
 ";
-
-}
-
-if(!empty($d["purchasing_power"])){
-
-$p = $d["purchasing_power"];
-
-$txt .= "
-
-PODER DE COMPRA
-──────────────────────────────
-
-Classe: {$p["purchasing_power"]}
-Faixa: {$p["fx_purchasing_power"]}
-Renda estimada: R$ ".number_format($p["income_purchasing_power"],2,",",".")."
-
-";
-
 }
 
 if(!empty($d["score"])){
@@ -1534,11 +1534,10 @@ $txt .= "
 SCORE
 ──────────────────────────────
 
-CSB8: {$d["score"]["csb8"]} ({$d["score"]["csb8_range"]})
-CSBA: {$d["score"]["csba"]} ({$d["score"]["csba_range"]})
+CSBA: {$d["score"]["csba"]}
+Faixa: {$d["score"]["csba_range"]}
 
 ";
-
 }
 
 if(!empty($d["addresses"])){
@@ -1558,6 +1557,7 @@ Bairro: {$a["neighborhood"]}
 Cidade: {$a["city"]} - {$a["state"]}
 CEP: {$a["zip_code"]}
 Complemento: {$a["logr_complement"]}
+Data inclusão: {$a["inclusion_date"]}
 
 ";
 
@@ -1575,12 +1575,19 @@ TELEFONES
 
 foreach($d["telephones"] as $t){
 
-$tipo = $t["phone_type"] == "3" ? "CELULAR" : "FIXO";
+$tipo = match($t["phone_type"]){
+"1"=>"RESIDENCIAL",
+"2"=>"COMERCIAL",
+"3"=>"CELULAR",
+default=>"OUTRO"
+};
 
 $txt .= "
 
 Tipo: $tipo
 Número: ({$t["ddd"]}) {$t["phone_number"]}
+Classificação: {$t["classification"]}
+Inclusão: {$t["inclusion_date"]}
 
 ";
 
@@ -1598,27 +1605,11 @@ EMAILS
 
 foreach($d["emails"] as $e){
 
-$txt .= "{$e["email"]}\n";
-
-}
-
-}
-
-if(!empty($d["relatives"])){
-
 $txt .= "
 
-PARENTES
-──────────────────────────────
-";
-
-foreach($d["relatives"] as $r){
-
-$txt .= "
-
-Nome: {$r["name"]}
-CPF: {$r["cpf_complete"]}
-Vínculo: {$r["relationship"]}
+Email: {$e["email"]}
+Score: {$e["email_score"]}
+Status: {$e["vt_status"]}
 
 ";
 
@@ -1626,49 +1617,22 @@ Vínculo: {$r["relationship"]}
 
 }
 
-if(!empty($d["tse"])){
-
-$txt .= "
-
-DADOS ELEITORAIS
-──────────────────────────────
-
-Zona: {$d["tse"]["zone"]}
-Seção: {$d["tse"]["section"]}
-Título: {$d["tse"]["voter_id"]}
-
-";
-
-}
-
-$txt .= "
-
-──────────────────────────────
-Consulta realizada via:
-ASTRO SEARCH
-";
-
-$file = tempnam(sys_get_temp_dir(),"cpf2_");
+$file = "cpf2_{$chat}.txt";
 file_put_contents($file,$txt);
 
-tg("sendDocument",[
+tg("sendMessage",[
 "chat_id"=>$chat,
-"document"=>new CURLFile($file,"text/plain","cpf2_{$cpf}.txt"),
-"caption"=>"🧾 <b>Consulta CPF2 concluída</b>\n\nCréditos: <b>Astro Search</b>",
+"text"=>"✅ <b>Consulta VIP realizada</b>\n\nEscolha o formato do arquivo:",
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
 [
-["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+["text"=>"📄 TXT","callback_data"=>"cpf2_txt|$cpf"],
+["text"=>"📑 PDF","callback_data"=>"cpf2_pdf|$cpf"]
 ]
 ]
 ])
 ]);
-
-unlink($file);
-
-}
 
 function consultaCPF1($chat,$cpf){
 
@@ -2438,6 +2402,10 @@ if($tipo == "cpf_full"){
     consultaCPF1($chat,$cpf);
 }
 
+if($tipo == "cpf2"){
+    consultaCPF2($chat,$cpf);
+}
+
 if($tipo == "cpf_vizinhos"){
     consultaVizinhos($chat,$cpf);
 }
@@ -2447,6 +2415,44 @@ if($tipo == "cpf_parentes"){
 }
 
     exit;
+}
+
+if(str_starts_with($callback["data"],"cpf2_txt")){
+
+$dados = explode("|",$callback["data"]);
+$cpf = $dados[1];
+
+$file = "cpf2_{$chat}.txt";
+
+tg("sendDocument",[
+"chat_id"=>$chat,
+"document"=>new CURLFile($file,"text/plain","cpf2_{$cpf}.txt"),
+"caption"=>"🧾 <b>Consulta VIP realizada</b>",
+"parse_mode"=>"HTML"
+]);
+
+unlink($file);
+
+exit;
+}
+
+if(str_starts_with($callback["data"],"cpf2_pdf")){
+
+$dados = explode("|",$callback["data"]);
+$cpf = $dados[1];
+
+$file = "cpf2_{$chat}.txt";
+
+tg("sendDocument",[
+"chat_id"=>$chat,
+"document"=>new CURLFile($file,"application/pdf","cpf2_{$cpf}.pdf"),
+"caption"=>"📑 <b>Consulta VIP realizada</b>",
+"parse_mode"=>"HTML"
+]);
+
+unlink($file);
+
+exit;
 }
 
     switch($callback["data"]){
