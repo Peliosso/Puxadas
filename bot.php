@@ -1415,6 +1415,260 @@ Tempo resposta API: {$json["responseTime"]}
     unlink($file);
 }
 
+function consultaCPF2($chat,$cpf){
+
+global $STICKER_LOADING;
+
+$sticker = tg("sendSticker",[
+"chat_id"=>$chat,
+"sticker"=>$STICKER_LOADING
+]);
+
+$stickerData = json_decode($sticker,true);
+$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+$cpf = preg_replace('/\D/','',$cpf);
+
+if(strlen($cpf) != 11){
+
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
+
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ CPF inválido.\nUse: <code>/cpf2 00000000000</code>",
+"parse_mode"=>"HTML"
+]);
+
+return;
+}
+
+$url = "https://api.blackaut.shop/api/dados-pessoais/cpf?cpf={$cpf}&apikey=EbmScZ0ntHf61KJz3H";
+$response = @file_get_contents($url);
+$data = json_decode($response,true);
+
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
+
+if(!$data || !$data["status"]){
+
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ CPF não encontrado."
+]);
+
+return;
+}
+
+$d = $data["resultado"];
+
+$txt = "
+╔══════════════════════════════╗
+   CONSULTA CPF — ASTRO SEARCH
+╚══════════════════════════════╝
+
+DADOS PESSOAIS
+──────────────────────────────
+
+CPF: {$d["cpf"]}
+Nome: {$d["name"]}
+Sexo: {$d["gender"]}
+Nascimento: {$d["birth"]}
+Idade: {$d["age"]}
+Signo: {$d["sign"]}
+
+Mãe: {$d["mother_name"]}
+Pai: {$d["father_name"]}
+
+Estado civil: {$d["marital_status"]}
+RG: {$d["rg"]}
+
+Situação Receita: {$d["cd_sit_cad"]}
+Data situação: {$d["dt_sit_cad"]}
+
+";
+
+if(!empty($d["income"])){
+
+$txt .= "
+
+RENDA
+──────────────────────────────
+
+Renda estimada: R$ {$d["income"]}
+
+";
+
+}
+
+if(!empty($d["purchasing_power"])){
+
+$p = $d["purchasing_power"];
+
+$txt .= "
+
+PODER DE COMPRA
+──────────────────────────────
+
+Classe: {$p["purchasing_power"]}
+Faixa: {$p["fx_purchasing_power"]}
+Renda estimada: R$ ".number_format($p["income_purchasing_power"],2,",",".")."
+
+";
+
+}
+
+if(!empty($d["score"])){
+
+$txt .= "
+
+SCORE
+──────────────────────────────
+
+CSB8: {$d["score"]["csb8"]} ({$d["score"]["csb8_range"]})
+CSBA: {$d["score"]["csba"]} ({$d["score"]["csba_range"]})
+
+";
+
+}
+
+if(!empty($d["addresses"])){
+
+$txt .= "
+
+ENDEREÇOS
+──────────────────────────────
+";
+
+foreach($d["addresses"] as $a){
+
+$txt .= "
+
+{$a["logr_type"]} {$a["logr_name"]}, {$a["logr_number"]}
+Bairro: {$a["neighborhood"]}
+Cidade: {$a["city"]} - {$a["state"]}
+CEP: {$a["zip_code"]}
+Complemento: {$a["logr_complement"]}
+
+";
+
+}
+
+}
+
+if(!empty($d["telephones"])){
+
+$txt .= "
+
+TELEFONES
+──────────────────────────────
+";
+
+foreach($d["telephones"] as $t){
+
+$tipo = $t["phone_type"] == "3" ? "CELULAR" : "FIXO";
+
+$txt .= "
+
+Tipo: $tipo
+Número: ({$t["ddd"]}) {$t["phone_number"]}
+
+";
+
+}
+
+}
+
+if(!empty($d["emails"])){
+
+$txt .= "
+
+EMAILS
+──────────────────────────────
+";
+
+foreach($d["emails"] as $e){
+
+$txt .= "{$e["email"]}\n";
+
+}
+
+}
+
+if(!empty($d["relatives"])){
+
+$txt .= "
+
+PARENTES
+──────────────────────────────
+";
+
+foreach($d["relatives"] as $r){
+
+$txt .= "
+
+Nome: {$r["name"]}
+CPF: {$r["cpf_complete"]}
+Vínculo: {$r["relationship"]}
+
+";
+
+}
+
+}
+
+if(!empty($d["tse"])){
+
+$txt .= "
+
+DADOS ELEITORAIS
+──────────────────────────────
+
+Zona: {$d["tse"]["zone"]}
+Seção: {$d["tse"]["section"]}
+Título: {$d["tse"]["voter_id"]}
+
+";
+
+}
+
+$txt .= "
+
+──────────────────────────────
+Consulta realizada via:
+ASTRO SEARCH
+";
+
+$file = tempnam(sys_get_temp_dir(),"cpf2_");
+file_put_contents($file,$txt);
+
+tg("sendDocument",[
+"chat_id"=>$chat,
+"document"=>new CURLFile($file,"text/plain","cpf2_{$cpf}.txt"),
+"caption"=>"🧾 <b>Consulta CPF2 concluída</b>\n\nCréditos: <b>Astro Search</b>",
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+]
+]
+])
+]);
+
+unlink($file);
+
+}
+
 function consultaCPF1($chat,$cpf){
 
 global $STICKER_LOADING;
@@ -2007,7 +2261,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     }
 
     // ===== COMANDOS VIP =====
-$vipCmds = ["/cpf","/fotorj","/fotosp","/cpf1","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
+$vipCmds = ["/cpf","/fotorj","/fotosp","/cpf1","/cpf2","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
     if(in_array($cmd, $vipCmds)){
 
     // ❗ primeiro valida se enviou argumento
@@ -2030,30 +2284,38 @@ $vipCmds = ["/cpf","/fotorj","/fotosp","/cpf1","/vizinhos","/parentes","/nome","
     }
 
     tg("sendMessage",[
-        "chat_id"=>$chat,
-        "text"=>"🔎 <b>Selecione o tipo de consulta</b>\n\nCPF: <code>{$arg}</code>",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"📄 CPF Simples","callback_data"=>"cpf_simples|{$arg}"],
-                    ["text"=>"📑 CPF Full","callback_data"=>"cpf_full|{$arg}"]
-                ],
-                [
-                    ["text"=>"🏠 Vizinhos","callback_data"=>"cpf_vizinhos|{$arg}"],
-                    ["text"=>"👨‍👩‍👧 Parentes","callback_data"=>"cpf_parentes|{$arg}"]
-                ]
+    "chat_id"=>$chat,
+    "text"=>"🔎 <b>Selecione o tipo de consulta</b>\n\nCPF: <code>{$arg}</code>",
+    "parse_mode"=>"HTML",
+    "reply_markup"=>json_encode([
+        "inline_keyboard"=>[
+            [
+                ["text"=>"📄 CPF Simples","callback_data"=>"cpf_simples|{$arg}"],
+                ["text"=>"📑 CPF Full","callback_data"=>"cpf_full|{$arg}"]
+            ],
+            [
+                ["text"=>"🧾 CPF Premium","callback_data"=>"cpf2|{$arg}"]
+            ],
+            [
+                ["text"=>"🏠 Vizinhos","callback_data"=>"cpf_vizinhos|{$arg}"],
+                ["text"=>"👨‍👩‍👧 Parentes","callback_data"=>"cpf_parentes|{$arg}"]
             ]
-        ])
-    ]);
+        ]
+    ])
+]);
 
-    exit;
+exit;
 }
         
         if($cmd === "/cpf1"){
             $arg ? consultaCPF1($chat, $arg) : tutorial($chat, "/cpf");
             exit;
         }
+        
+        if($cmd === "/cpf2"){
+    consultaCPF2($chat, $arg);
+    exit;
+}
         
         if($cmd === "/placa"){
     consultaPlaca($chat, $arg);
