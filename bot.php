@@ -2310,27 +2310,23 @@ $vipCmds = ["/cpf","/fotorj","/fotosp","/cpf1","/cpf2","/vizinhos","/parentes","
     }
 
     tg("sendMessage",[
-    "chat_id"=>$chat,
-    "text"=>"🔎 <b>Selecione o tipo de consulta</b>\n\nCPF: <code>{$arg}</code>",
-    "parse_mode"=>"HTML",
-    "reply_markup"=>json_encode([
-        "inline_keyboard"=>[
-            [
-                ["text"=>"📄 CPF Simples","callback_data"=>"cpf_simples|{$arg}"],
-                ["text"=>"📑 CPF Full","callback_data"=>"cpf_full|{$arg}"]
-            ],
-            [
-                ["text"=>"🧾 CPF Premium","callback_data"=>"cpf2|{$arg}"]
-            ],
-            [
-                ["text"=>"🏠 Vizinhos","callback_data"=>"cpf_vizinhos|{$arg}"],
-                ["text"=>"👨‍👩‍👧 Parentes","callback_data"=>"cpf_parentes|{$arg}"]
+        "chat_id"=>$chat,
+        "text"=>"🔎 <b>Selecione o tipo de consulta</b>\n\nCPF: <code>{$arg}</code>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"📄 CPF Simples","callback_data"=>"cpf_simples|$arg"],
+                    ["text"=>"📊 CPF Completo","callback_data"=>"cpf_full|$arg"]
+                ],
+                [
+                    ["text"=>"📑 CPF2 (VIP+)","callback_data"=>"cpf2|$arg"]
+                ]
             ]
-        ]
-    ])
-]);
+        ])
+    ]);
 
-exit;
+    exit;
 }
         
         if($cmd === "/cpf1"){
