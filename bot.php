@@ -1627,8 +1627,10 @@ tg("sendMessage",[
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
 [
-["text"=>"📄 TXT","callback_data"=>"cpf2_txt|$cpf"],
-["text"=>"📑 PDF","callback_data"=>"cpf2_pdf|$cpf"]
+["text"=>"📄 Enviar como Mensagem","callback_data"=>"cpf2_msg|$cpf"]
+],
+[
+["text"=>"📁 Enviar arquivo TXT","callback_data"=>"cpf2_file|$cpf"]
 ]
 ]
 ])
@@ -2337,6 +2339,10 @@ if($cmd === "/vizinhos"){
 /* ================= CALLBACKS ================= */
 
 if($callback){
+    $data = $callback["data"];
+$chat = $callback["message"]["chat"]["id"];
+$msg  = $callback["message"]["message_id"];
+answer($callback["id"]);
     answer($callback["id"]);
 
     $chat = $callback["message"]["chat"]["id"];
@@ -2355,10 +2361,6 @@ if(str_starts_with($callback["data"],"cpf_")){
     // nome do módulo
     if($tipo == "cpf_simples"){
         $modulo = "CPF Simples";
-    }
-
-    if($tipo == "cpf_full"){
-        $modulo = "CPF Completo";
     }
     
     if($tipo == "cpf2"){
@@ -2437,19 +2439,45 @@ unlink($file);
 exit;
 }
 
-if(str_starts_with($callback["data"],"cpf2_pdf")){
+if(str_starts_with($callback["data"],"cpf2_msg")){
 
 $dados = explode("|",$callback["data"]);
 $cpf = $dados[1];
 
 $file = "cpf2_{$chat}.txt";
 
-tg("sendDocument",[
+if(file_exists($file)){
+
+$txt = file_get_contents($file);
+
+tg("sendMessage",[
 "chat_id"=>$chat,
-"document"=>new CURLFile($file,"application/pdf","cpf2_{$cpf}.pdf"),
-"caption"=>"📑 <b>Consulta VIP realizada</b>",
+"text"=>"<pre>$txt</pre>",
 "parse_mode"=>"HTML"
 ]);
+
+}
+
+exit;
+}
+
+if(str_starts_with($callback["data"],"cpf2_file")){
+
+$dados = explode("|",$callback["data"]);
+$cpf = $dados[1];
+
+$file = "cpf2_{$chat}.txt";
+
+if(file_exists($file)){
+
+tg("sendDocument",[
+"chat_id"=>$chat,
+"document"=>new CURLFile($file,"text/plain","cpf2_{$cpf}.txt"),
+"caption"=>"📁 <b>Consulta CPF Premium</b>",
+"parse_mode"=>"HTML"
+]);
+
+}
 
 unlink($file);
 
