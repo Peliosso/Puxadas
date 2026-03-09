@@ -7,6 +7,7 @@ set_time_limit(0);
 header("Content-Type: application/json");
 http_response_code(200);
 
+/* LER UPDATE UMA VEZ */
 $update = json_decode(file_get_contents("php://input"), true);
 
 echo json_encode(["status"=>"ok"]);
@@ -106,7 +107,6 @@ function isBanned($id){
 
 /* ================= UPDATE ================= */
 
-$update   = json_decode(file_get_contents("php://input"), true);
 $message  = $update["message"] ?? null;
 $callback = $update["callback_query"] ?? null;
 $msgId = $message["message_id"] ?? null;
@@ -2430,7 +2430,7 @@ if(str_starts_with($callback["data"],"cpf_")){
         $modulo = "CPF Completo";
     }
     
-    if($acao == "cpf2"){
+    if($tipo == "cpf2"){
         consultaCPF2($chat,$cpf);
     }
 
