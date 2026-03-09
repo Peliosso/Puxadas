@@ -2352,7 +2352,6 @@ exit;
 }
 
 $txt = file_get_contents($file);
-
 $partes = str_split($txt,4000);
 
 foreach($partes as $index => $parte){
@@ -2378,6 +2377,7 @@ tg("sendMessage",[
 unlink($file);
 
 exit;
+}
 
 if(str_starts_with($callback["data"],"cpf2_file")){
 
@@ -2385,6 +2385,10 @@ $dados = explode("|",$callback["data"]);
 $cpf = $dados[1];
 
 $file = "cache_cpf2_{$cpf}.txt";
+
+if(!file_exists($file)){
+exit;
+}
 
 tg("sendDocument",[
 "chat_id"=>$chat,
