@@ -1698,7 +1698,7 @@ tg("sendMessage",[
 return;
 }
 
-$url = "https://api.blackaut.shop/api/dados-pessoais/cpf?cpf={$cpf}&apikey=yy2MxoPWRcZJgOvuMi";
+$url = "https://api.blackaut.shop/api/dados-pessoais/cpf?cpf={$cpf}&apikey=EbmScZ0ntHf61KJz3H";
 
 $ch = curl_init($url);
 curl_setopt_array($ch,[
