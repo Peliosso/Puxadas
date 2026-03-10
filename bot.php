@@ -121,7 +121,7 @@ function ativarFreeGrupo($chat){
         $data = json_decode(file_get_contents(FREE_DB), true);
     }
 
-    $data[$chat] = time() + (60*60*24*30);
+    $data[$chat] = time() + (60*60*24);
 
     file_put_contents(FREE_DB, json_encode($data));
 }
@@ -2167,7 +2167,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
 
 Todas as consultas VIP foram liberadas neste grupo.
 
-⏳ Validade: <b>30 dias</b>",
+⏳ Validade: <b>24 horas</b>",
         "parse_mode"=>"HTML"
     ]);
 
