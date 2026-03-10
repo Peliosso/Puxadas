@@ -1928,175 +1928,71 @@ tg("sendMessage",[
 
 function consultaPlaca($chat, $placa){
 
-    global $STICKER_LOADING;
+global $STICKER_LOADING;
 
-    // Sticker de carregamento
-    $sticker = tg("sendSticker",[
-        "chat_id"=>$chat,
-        "sticker"=>$STICKER_LOADING
-    ]);
+$sticker = tg("sendSticker",[
+"chat_id"=>$chat,
+"sticker"=>$STICKER_LOADING
+]);
 
-    $stickerData = json_decode($sticker,true);
-    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+$stickerData = json_decode($sticker,true);
+$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-    $placa = strtoupper(preg_replace('/[^A-Za-z0-9]/','',$placa));
+$placa = strtoupper(preg_replace('/[^A-Za-z0-9]/','',$placa));
 
-    if(strlen($placa) < 7){
+if(strlen($placa) < 7){
 
-        if($stickerMsgId){
-            tg("deleteMessage",[
-                "chat_id"=>$chat,
-                "message_id"=>$stickerMsgId
-            ]);
-        }
-
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>"❌ Placa inválida.\nUse: <code>/placa ABC1234</code>",
-            "parse_mode"=>"HTML"
-        ]);
-
-        return;
-    }
-
-    // Consulta API
-    $url = "https://orbyta.online/api/veiculo?placa={$placa}&token=FNiPeeltHc5pwy7HWnPCiIs7zIRr7SDB";
-    $resp = @file_get_contents($url);
-    $json = json_decode($resp,true);
-
-    if($stickerMsgId){
-        tg("deleteMessage",[
-            "chat_id"=>$chat,
-            "message_id"=>$stickerMsgId
-        ]);
-    }
-
-    if(!$json || !$json["success"]){
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>"❌ Veículo não encontrado."
-        ]);
-        return;
-    }
-
-    $d = $json["data"];
-    $c = $d["caracteristicas"] ?? [];
-    $cir = $d["circulacao"] ?? [];
-    $prop = $d["proprietario"] ?? [];
-    $end = $prop["endereco"] ?? [];
-    $lic = $d["licenciamento"] ?? [];
-    $eixos = $c["eixosSuspensao"] ?? [];
-
-$txt = "
-CONSULTA DE PLACA — ASTRO SEARCH
-================================
-
-PLACA NACIONAL: ".($d["placaNacional"] ?? "Não informado")."
-PLACA MERCOSUL: ".($d["placaMercosul"] ?? "Não informado")."
-
-CHASSI: ".($d["chassi"] ?? "Não informado")."
-RENAVAM: ".($d["renavam"] ?? "Não informado")."
-MOTOR: ".($d["motor"] ?? "Não informado")."
-
-================================
-CARACTERÍSTICAS
-================================
-
-Marca/Modelo: ".($c["marcaModelo"] ?? "Não informado")."
-Cor: ".($c["corVeiculo"] ?? "Não informado")."
-Espécie: ".($c["especieVeiculo"] ?? "Não informado")."
-Carroceria: ".($c["carroceria"] ?? "Não informado")."
-
-Tipo: ".($c["tipoVeiculo"] ?? "Não informado")."
-Combustível: ".($c["combustivel"] ?? "Não informado")."
-
-Ano Fabricação: ".($c["anoFabricacao"] ?? "Não informado")."
-Ano Modelo: ".($c["anoModelo"] ?? "Não informado")."
-
-Potência: ".($c["potencia"] ?? "Não informado")."
-Cilindradas: ".($c["cilindradas"] ?? "Não informado")."
-
-Passageiros: ".($c["capacidPassageiros"] ?? "Não informado")."
-Capacidade Carga: ".($c["capacidCarga"] ?? "Não informado")."
-
-Peso Bruto: ".($c["pesoBruto"] ?? "Não informado")."
-Capacidade Tração: ".($c["capacidMaxTracao"] ?? "Não informado")."
-
-================================
-EIXOS
-================================
-
-Total Eixos: ".($eixos["eixos"] ?? "Não informado")."
-Eixo Traseiro: ".($eixos["eixoTraseiro"] ?? "Não informado")."
-Terceiro Eixo: ".($eixos["terceiroEixo"] ?? "Não informado")."
-
-================================
-CIRCULAÇÃO
-================================
-
-Situação Veículo: ".($cir["situacaoVeiculo"] ?? "Não informado")."
-Situação Chassi: ".($cir["situacaoChassi"] ?? "Não informado")."
-
-Município: ".($cir["municipio"] ?? "Não informado")."
-UF: ".($cir["uf"] ?? "Não informado")."
-
-================================
-PROPRIETÁRIO
-================================
-
-Nome: ".($prop["nome"] ?? "Não informado")."
-CPF/CNPJ: ".($prop["cpfCnpj"] ?? "Não informado")."
-
-Logradouro: ".($end["logradouro"] ?? "Não informado")."
-Número: ".($end["numero"] ?? "Não informado")."
-Complemento: ".($end["complemento"] ?? "Não informado")."
-
-Bairro: ".($end["bairro"] ?? "Não informado")."
-Cidade: ".($end["cidade"] ?? "Não informado")."
-UF: ".($end["siglaUf"] ?? "Não informado")."
-CEP: ".($end["cep"] ?? "Não informado")."
-
-================================
-LICENCIAMENTO
-================================
-
-Data Emplacamento: ".($lic["dataEmplacamento"] ?? "Não informado")."
-Última Atualização: ".($lic["dataUltimaAtualizacao"] ?? "Não informado")."
-
-================================
-RESTRIÇÕES
-================================
-";
-
-if(!empty($d["restricoes"])){
-    foreach($d["restricoes"] as $r){
-        $txt .= "- ".$r."\n";
-    }
-}else{
-    $txt .= "Nenhuma restrição encontrada\n";
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
 }
 
-$txt .= "
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ Placa inválida.\nUse: <code>/placa ABC1234</code>",
+"parse_mode"=>"HTML"
+]);
 
-================================
-RADARES
-================================
-";
-
-if(!empty($d["radares"])){
-    foreach($d["radares"] as $r){
-        $txt .= "- ".$r."\n";
-    }
-}else{
-    $txt .= "Nenhum radar registrado\n";
+return;
 }
 
-$txt .= "
+$url = "https://api.blackaut.shop/api/dados-pessoais/placa?placa={$placa}&apikey=EbmScZ0ntHf61KJz3H";
 
---------------------------------
-Consulta via:
-Astro Search
-";
+$resp = @file_get_contents($url);
+$json = json_decode($resp,true);
+
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
+
+if(!$json || !$json["status"]){
+
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ Veículo não encontrado."
+]);
+
+return;
+}
+
+$d = $json["resultado"];
+
+$txt = "";
+
+if(!empty($d["dados"]["enderecos"])){
+
+foreach($d["dados"]["enderecos"] as $linha){
+
+$txt .= trim($linha)."\n\n";
+
+}
+
+}
 
 $file = tempnam(sys_get_temp_dir(),"placa_");
 file_put_contents($file,$txt);
@@ -2104,7 +2000,7 @@ file_put_contents($file,$txt);
 tg("sendDocument",[
 "chat_id"=>$chat,
 "document"=>new CURLFile($file,"text/plain","placa_{$placa}.txt"),
-"caption"=>"🚗 <b>Consulta de Placa concluída</b>\n\nCréditos: <b>Astro Search</b>",
+"caption"=>"🚗 <b>Consulta de Placa concluída</b>",
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
@@ -2370,16 +2266,41 @@ $vipCmds = ["/cpf","/fotorj","/fotosp","/cpf1","/cpf2","/vizinhos","/parentes","
 }
         
         if($cmd === "/foto"){
+
+    $chatType = $message["chat"]["type"];
+
+    // 🚫 bloquear foto em grupos FREE
+    if(isGroupChat($chatType) && isFreeGroup($chat) && !isVip($userId)){
+        bloquearConsulta($chat);
+        exit;
+    }
+
     consultaFoto($chat, $arg);
     exit;
 }
 
 if($cmd === "/fotosp"){
+
+    $chatType = $message["chat"]["type"];
+
+    if(isGroupChat($chatType) && isFreeGroup($chat) && !isVip($userId)){
+        bloquearConsulta($chat);
+        exit;
+    }
+
     consultaFotoSP($chat, $arg);
     exit;
 }
 
 if($cmd === "/fotorj"){
+
+    $chatType = $message["chat"]["type"];
+
+    if(isGroupChat($chatType) && isFreeGroup($chat) && !isVip($userId)){
+        bloquearConsulta($chat);
+        exit;
+    }
+
     consultaFotoRJ($chat, $arg);
     exit;
 }
