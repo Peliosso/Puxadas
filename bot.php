@@ -109,6 +109,37 @@ function isBanned($id){
     return in_array($id, $BANIDOS);
 }
 
+/* ================= FREE MODE GRUPOS ================= */
+
+$FREE_GROUPS = [];
+
+function ativarFreeGrupo($chat){
+    global $FREE_GROUPS;
+
+    // 30 dias
+    $FREE_GROUPS[$chat] = time() + (60*60*24*30);
+}
+
+function isFreeGroup($chat){
+    global $FREE_GROUPS;
+
+    if(!isset($FREE_GROUPS[$chat])){
+        return false;
+    }
+
+    // expirou
+    if(time() > $FREE_GROUPS[$chat]){
+        unset($FREE_GROUPS[$chat]);
+        return false;
+    }
+
+    return true;
+}
+
+function isGroup($type){
+    return in_array($type, ["group","supergroup"]);
+}
+
 /* ================= UPDATE ================= */
 
 $message  = $update["message"] ?? null;
@@ -2210,6 +2241,33 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     $p = explode(" ", trim($message["text"]), 2);
     $cmd = strtolower($p[0]);
     $arg = $p[1] ?? null;
+    
+    if($cmd === "/free"){
+
+    $chatType = $message["chat"]["type"];
+
+    if(!isGroup($chatType)){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Este comando só pode ser usado em grupos."
+        ]);
+        exit;
+    }
+
+    ativarFreeGrupo($chat);
+
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>"🚀 <b>MODO FREE ATIVADO</b>
+
+Todas as consultas VIP foram liberadas neste grupo.
+
+⏳ Validade: <b>30 dias</b>",
+        "parse_mode"=>"HTML"
+    ]);
+
+    exit;
+}
 
     // ===== COMANDOS GRÁTIS =====
     if($cmd === "/cnpj"){
@@ -2239,10 +2297,10 @@ $vipCmds = ["/cpf","/fotorj","/fotosp","/cpf1","/cpf2","/vizinhos","/parentes","
     }
 
     // 🔒 depois verifica VIP
-    if(!isVip($userId)){
-        bloquearConsulta($chat);
-        exit;
-    }
+    if(!isVip($userId) && !isFreeGroup($chat)){
+    bloquearConsulta($chat);
+    exit;
+}
 
         if($cmd === "/cpf"){
 
