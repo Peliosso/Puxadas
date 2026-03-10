@@ -2528,10 +2528,10 @@ tg("editMessageText",[
 "parse_mode"=>"HTML"
 ]);
 
-    if(!isVip($id)){
-        bloquearConsulta($chat);
-        exit;
-    }
+    if(!isVip($id) && !isFreeGroup($chat)){
+    bloquearConsulta($chat);
+    exit;
+}
 
     if($tipo == "cpf_simples"){
     consultaCPF($chat,$cpf);
