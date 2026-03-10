@@ -716,7 +716,7 @@ function consultaEmail($chat, $email){
     }
 
     // 🔎 API
-    $url = "https://sara-api.xyz/api/consultas/email?email={$email}&apikey=bocadas";
+    $url = "https://sara-api.xyz/api/consultas/email?email={$email}&apikey=mouth";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -810,7 +810,7 @@ function consultaVizinhos($chat, $cpf){
     }
 
     // API
-    $url = "https://sara-api.xyz/api/consultas/vizinhos?cpf={$cpf}&apikey=bocadas";
+    $url = "https://sara-api.xyz/api/consultas/vizinhos?cpf={$cpf}&apikey=mouth";
     $resp = @file_get_contents($url);
     $json = json_decode($resp,true);
 
@@ -989,7 +989,7 @@ function consultaFotoSP($chat, $cpf){
         return;
     }
 
-    $url = "https://sara-api.xyz/api/consultas/fotosp?cpf={$cpf}&apikey=bocadas";
+    $url = "https://sara-api.xyz/api/consultas/fotosp?cpf={$cpf}&apikey=mouth";
     $resp = @file_get_contents($url);
     $json = json_decode($resp,true);
 
@@ -1069,7 +1069,7 @@ function consultaFoto($chat, $cpf){
     }
 
     // 🔥 API FOTO
-    $url = "https://sara-api.xyz/api/consultas/fotov2?cpf={$cpf}&apikey=bocadas";
+    $url = "https://sara-api.xyz/api/consultas/fotov2?cpf={$cpf}&apikey=mouth";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -1145,7 +1145,7 @@ function consultaTelefone($chat, $telefone){
     }
 
     // 🔥 API TELEFONE
-    $url = "https://sara-api.xyz/api/consultas/telefone?telefone={$telefone}&apikey=bocadas";
+    $url = "https://sara-api.xyz/api/consultas/telefone?telefone={$telefone}&apikey=mouth";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -1247,7 +1247,7 @@ function consultaNome($chat, $nome){
     $nomeUrl = urlencode($nome);
 
     // 🔥 API SARA
-    $url = "https://sara-api.xyz/api/consultas/nome?nome={$nomeUrl}&apikey=bocadas";
+    $url = "https://sara-api.xyz/api/consultas/nome?nome={$nomeUrl}&apikey=mouth";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -1346,7 +1346,7 @@ function consultaParentes($chat, $cpf){
     }
 
     // 🔥 API SARA PARENTES
-    $url = "https://sara-api.xyz/api/consultas/parentes?cpf={$cpf}&apikey=bocadas";
+    $url = "https://sara-api.xyz/api/consultas/parentes?cpf={$cpf}&apikey=mouth";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -2107,7 +2107,7 @@ function consultaCPF($chat, $cpf){
     }
 
     // 🔥 NOVA API SARA
-    $url = "https://sara-api.xyz/api/consultas/cpf?cpf={$cpf}&apikey=bocadas";
+    $url = "https://sara-api.xyz/api/consultas/cpf?cpf={$cpf}&apikey=mouth";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
