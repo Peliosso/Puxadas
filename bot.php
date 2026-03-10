@@ -30,6 +30,7 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 /* ================= VIP ================= */
 
 $VIP_IDS = [
+    5790846274,
     1712166945,
     8521260864,
     1994291418,
@@ -2254,7 +2255,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
 
     $chatType = $message["chat"]["type"];
 
-    if(!isGroup($chatType)){
+    if(!in_array($chatType, ["group","supergroup"])){
         tg("sendMessage",[
             "chat_id"=>$chat,
             "text"=>"❌ Este comando só pode ser usado em grupos."
