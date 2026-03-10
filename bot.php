@@ -110,33 +110,42 @@ function isBanned($id){
 
 /* ================= FREE MODE GRUPOS ================= */
 
-$FREE_GROUPS = [];
+define("FREE_DB","free_groups.json");
 
 function ativarFreeGrupo($chat){
-    global $FREE_GROUPS;
 
-    // 30 dias
-    $FREE_GROUPS[$chat] = time() + (60*60*24*30);
+    $data = [];
+
+    if(file_exists(FREE_DB)){
+        $data = json_decode(file_get_contents(FREE_DB), true);
+    }
+
+    $data[$chat] = time() + (60*60*24*30);
+
+    file_put_contents(FREE_DB, json_encode($data));
 }
 
 function isFreeGroup($chat){
-    global $FREE_GROUPS;
 
-    if(!isset($FREE_GROUPS[$chat])){
+    if(!file_exists(FREE_DB)){
         return false;
     }
 
-    // expirou
-    if(time() > $FREE_GROUPS[$chat]){
-        unset($FREE_GROUPS[$chat]);
+    $data = json_decode(file_get_contents(FREE_DB), true);
+
+    if(!isset($data[$chat])){
+        return false;
+    }
+
+    if(time() > $data[$chat]){
+
+        unset($data[$chat]);
+        file_put_contents(FREE_DB, json_encode($data));
+
         return false;
     }
 
     return true;
-}
-
-function isGroup($type){
-    return in_array($type, ["group","supergroup"]);
 }
 
 /* ================= UPDATE ================= */
