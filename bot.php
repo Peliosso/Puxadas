@@ -30,6 +30,7 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 /* ================= VIP ================= */
 
 $VIP_IDS = [
+    6930409353,
     5790846274,
     1712166945,
     8521260864,
@@ -384,6 +385,7 @@ tg("editMessageCaption",[
 /foto - 🆕
 /fotorj - 🆕
 /fotosp - 🆕
+/cpf2 - 🆕
 /cpf1 - 🆕
 /cpf
 /nome
@@ -1982,20 +1984,66 @@ return;
 
 $d = $json["resultado"];
 
-$txt = "";
+$texto = "";
 
 if(!empty($d["dados"]["enderecos"])){
 
-foreach($d["dados"]["enderecos"] as $linha){
-
-$txt .= trim($linha)."\n\n";
+$texto = implode("\n",$d["dados"]["enderecos"]);
 
 }
 
-}
+/* LIMPEZA DO TEXTO */
+
+$remove = [
+"Sistema Online MK",
+"UNIX Intelligence",
+"Copiar Texto",
+"Este link expira",
+"©",
+"Todos os direitos reservados"
+];
+
+$texto = str_replace($remove,"",$texto);
+
+/* FORMATAÇÃO */
+
+$texto = str_replace("INFORMAÇÕES BÁSICAS DO VEÍCULO","\n🚗 DADOS DO VEÍCULO\n",$texto);
+$texto = str_replace("PROPRIETÁRIO","\n👤 PROPRIETÁRIO\n",$texto);
+$texto = str_replace("ENDEREÇO","\n📍 ENDEREÇO\n",$texto);
+$texto = str_replace("DÉBITOS","\n💰 DÉBITOS\n",$texto);
+$texto = str_replace("RESTRIÇÕES","\n⚠️ RESTRIÇÕES\n",$texto);
+$texto = str_replace("RESUMO DA SITUAÇÃO","\n📊 SITUAÇÃO\n",$texto);
+
+/* QUEBRAS */
+
+$texto = preg_replace('/([A-ZÇ ]+):/',"\n$1:",$texto);
+
+/* REMOVE LINHAS DUPLICADAS */
+
+$linhas = array_unique(array_filter(array_map("trim",explode("\n",$texto))));
+$texto = implode("\n",$linhas);
+
+/* CABEÇALHO */
+
+$txt =
+"🚗 CONSULTA DE PLACA — ASTRO SEARCH
+================================
+
+Placa Consultada: {$placa}
+
+{$texto}
+
+--------------------------------
+Consulta realizada via:
+ASTRO SEARCH
+";
+
+/* CRIA ARQUIVO */
 
 $file = tempnam(sys_get_temp_dir(),"placa_");
 file_put_contents($file,$txt);
+
+/* ENVIA */
 
 tg("sendDocument",[
 "chat_id"=>$chat,
@@ -2005,7 +2053,8 @@ tg("sendDocument",[
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
 [
-["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
 ]
 ]
 ])
