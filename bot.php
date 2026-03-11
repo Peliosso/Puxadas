@@ -1304,7 +1304,7 @@ $txt,
 function consultaNome($chat, $nome){
     global $STICKER_LOADING;
 
-    // 🎬 Sticker loading
+    // Sticker loading
     $sticker = tg("sendSticker",[
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
@@ -1314,6 +1314,7 @@ function consultaNome($chat, $nome){
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
     if(strlen($nome) < 5){
+
         if($stickerMsgId){
             tg("deleteMessage",[
                 "chat_id"=>$chat,
@@ -1331,10 +1332,19 @@ function consultaNome($chat, $nome){
 
     $nomeUrl = urlencode($nome);
 
-    // 🔥 API SARA
-    $url = "https://sara-api.xyz/api/consultas/nome?nome={$nomeUrl}&apikey=mouth";
-    $resp = @file_get_contents($url);
-    $json = json_decode($resp, true);
+    // NOVA API
+    $url = "https://api.blackaut.shop/api/dados-pessoais/nome?nome={$nomeUrl}&apikey=EbmScZ0ntHf61KJz3H";
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch,[
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 20
+    ]);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $json = json_decode($response, true);
 
     // remove sticker
     if($stickerMsgId){
@@ -1344,7 +1354,8 @@ function consultaNome($chat, $nome){
         ]);
     }
 
-    if(!$json || $json["statusCode"] != 200 || $json["total_results"] == 0){
+    if(!$json || empty($json["resultado"])){
+
         tg("sendMessage",[
             "chat_id"=>$chat,
             "text"=>"❌ Nenhum resultado encontrado."
@@ -1356,34 +1367,36 @@ function consultaNome($chat, $nome){
 "CONSULTA POR NOME — ASTRO SEARCH
 ================================
 
-Nome pesquisado: {$json["query"]}
-Total encontrados: {$json["total_results"]}
+Nome pesquisado: {$nome}
 
 ================================
 ";
 
-    foreach($json["body"] as $pessoa){
+    foreach($json["resultado"] as $pessoa){
 
         $txt .= "
 CPF: {$pessoa["cpf"]}
 Nome: {$pessoa["name"]}
-Nascimento: {$pessoa["birth_date"]}
 Sexo: {$pessoa["gender"]}
-Mãe: ".trim($pessoa["mother_name"])."
-RG: ".($pessoa["rg"] ?: "Não informado")."
+Nascimento: {$pessoa["birth"]}
+Idade: {$pessoa["age"]}
+Signo: {$pessoa["sign"]}
 
 --------------------------------
-Consulta via:
-Astro Search
 ";
     }
 
-resultadoConsulta(
-$chat,
-"Consulta por Nome",
-$txt,
-"nome"
-);
+    $txt .= "
+Consulta via:
+Astro Search
+";
+
+    resultadoConsulta(
+        $chat,
+        "Consulta por Nome",
+        $txt,
+        "nome"
+    );
 }
 
 function consultaParentes($chat, $cpf){
