@@ -1373,25 +1373,12 @@ Astro Search
 ";
     }
 
-    $file = tempnam(sys_get_temp_dir(), "nome_");
-    file_put_contents($file, $txt);
-
-    tg("sendDocument",[
-        "chat_id"=>$chat,
-        "document"=>new CURLFile($file, "text/plain", "nome_resultado.txt"),
-        "caption"=>"👤 <b>Consulta por nome concluída</b>\n\nCréditos: <b>Astro Search</b>",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
-                ]
-            ]
-        ])
-    ]);
-
-    unlink($file);
+resultadoConsulta(
+$chat,
+"Consulta por Nome",
+$txt,
+"nome"
+);
 }
 
 function consultaParentes($chat, $cpf){
