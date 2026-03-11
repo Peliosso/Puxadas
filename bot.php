@@ -442,6 +442,39 @@ tg("editMessageCaption",[
 ]);
 
 }
+
+function resultadoConsulta($chat,$titulo,$conteudo,$prefixo){
+
+$hash = md5($conteudo.time());
+$file = "cache_{$prefixo}_{$hash}.txt";
+
+file_put_contents($file,$conteudo);
+
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"✅ <b>{$titulo} concluída</b>
+
+Escolha o formato do resultado:",
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"📄 Mostrar no Telegram","callback_data"=>"ver|$file"]
+],
+[
+["text"=>"📁 Enviar TXT","callback_data"=>"txt|$file"]
+],
+[
+["text"=>"🗑 Apagar mensagem","callback_data"=>"apagar_msg"]
+],
+[
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+]
+]
+])
+]);
+
+}
  
 
 function consultaCNPJ($chat, $cnpj){
@@ -1254,22 +1287,12 @@ Astro Search
     $file = tempnam(sys_get_temp_dir(), "tel_");
     file_put_contents($file, $txt);
 
-    tg("sendDocument",[
-        "chat_id"=>$chat,
-        "document"=>new CURLFile($file, "text/plain", "telefone_{$telefone}.txt"),
-        "caption"=>"📞 <b>Consulta de Telefone concluída</b>\n\nCréditos: <b>Astro Search</b>",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
-                ]
-            ]
-        ])
-    ]);
-
-    unlink($file);
+    resultadoConsulta(
+$chat,
+"Consulta de Telefone",
+$txt,
+"telefone"
+);
 }
 
 function consultaNome($chat, $nome){
@@ -2390,6 +2413,63 @@ if($callback){
     $msg  = $callback["message"]["message_id"];
     $nome = $callback["from"]["first_name"] ?? "usuário";
     $id   = $callback["from"]["id"];
+    
+    if(str_starts_with($callback["data"],"ver|")){
+
+$file = explode("|",$callback["data"])[1];
+
+if(!file_exists($file)) exit;
+
+$txt = file_get_contents($file);
+$partes = str_split($txt,4000);
+
+foreach($partes as $i=>$p){
+
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"<pre>".$p."</pre>",
+"parse_mode"=>"HTML",
+"reply_markup"=>$i == 0 ? json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+]
+]
+]) : null
+]);
+
+}
+
+unlink($file);
+exit;
+}
+
+
+if(str_starts_with($callback["data"],"txt|")){
+
+$file = explode("|",$callback["data"])[1];
+
+if(!file_exists($file)) exit;
+
+tg("sendDocument",[
+"chat_id"=>$chat,
+"document"=>new CURLFile($file),
+"caption"=>"📄 Resultado da consulta",
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+]
+]
+])
+]);
+
+unlink($file);
+exit;
+}
     
     if(str_starts_with($callback["data"],"cpf2_msg")){
 
