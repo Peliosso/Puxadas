@@ -1963,7 +1963,7 @@ tg("sendMessage",[
 return;
 }
 
-$url = "https://api.blackaut.shop/api/dados-pessoais/placa?placa={$placa}&apikey=EbmScZ0ntHf61KJz3H";
+$url = "https://api.blackaut.shop/api/dados-pessoais/placa?placa={$placa}&apikey=FQDNodt9BRPxQAeYmH";
 
 $resp = @file_get_contents($url);
 $json = json_decode($resp,true);
