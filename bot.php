@@ -130,6 +130,10 @@ function isBanned($id){
     return in_array($id, $BANIDOS);
 }
 
+function isGroupChat($type){
+    return in_array($type, ["group","supergroup"]);
+}
+
 /* ================= FREE MODE GRUPOS ================= */
 
 define("FREE_DB","free_groups.json");
