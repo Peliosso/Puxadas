@@ -1291,7 +1291,7 @@ function consultaTelefone($chat, $telefone){
     }
 
     // 🔥 NOVA API
-    $url = "https://api.blackaut.shop/api/dados-pessoais/telefone?telefone={$telefone}&apikey=FQDNodt9BRPxQAeYmH";
+    $url = "https://api.blackaut.shop/api/dados-pessoais/telefone?telefone={$telefone}&apikey=EbmScZ0ntHf61KJz3H";
 
     $ch = curl_init($url);
     curl_setopt_array($ch,[
@@ -2051,7 +2051,7 @@ tg("sendMessage",[
 return;
 }
 
-$url = "https://api.blackaut.shop/api/dados-pessoais/placa?placa={$placa}&apikey=FQDNodt9BRPxQAeYmH";
+$url = "https://api.blackaut.shop/api/dados-pessoais/placa?placa={$placa}&apikey=EbmScZ0ntHf61KJz3H";
 
 $resp = @file_get_contents($url);
 $json = json_decode($resp,true);
