@@ -30,6 +30,7 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 /* ================= VIP ================= */
 
 $VIP_IDS = [
+    8631733055,
     7073604499,
     1361607036,
     8564990473,
@@ -451,6 +452,53 @@ tg("editMessageCaption",[
 
 }
 
+function naoEncontrado($chat,$tipo,$dado){
+
+$data = date("d/m/Y");
+$hora = date("H:i");
+
+$txt = 
+"CONSULTA REALIZADA — ASTRO SEARCH
+=================================
+
+Tipo de consulta: {$tipo}
+Dado pesquisado: {$dado}
+Data: {$data}
+Hora: {$hora}
+
+---------------------------------
+
+Recadinho do astro:
+
+Acessei alguns sistemas, e não achei movimentações dessa pessoa! 🥲
+
+Isso pode acontecer quando:
+
+• O registro não existe nas bases
+• Dados muito recentes
+• Informações limitadas
+";
+
+$file = tempnam(sys_get_temp_dir(),"astro_");
+file_put_contents($file,$txt);
+
+tg("sendDocument",[
+"chat_id"=>$chat,
+"document"=>new CURLFile($file,"text/plain","resultado.txt"),
+"caption"=>"📄 Resultado da consulta",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+]
+]
+])
+]);
+
+unlink($file);
+
+}
+
 function resultadoConsulta($chat,$titulo,$conteudo,$prefixo){
 
 $hash = md5($conteudo.time());
@@ -797,20 +845,21 @@ function consultaEmail($chat, $email){
     // valida email
     if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
 
-        if($stickerMsgId){
-            tg("deleteMessage",[
-                "chat_id"=>$chat,
-                "message_id"=>$stickerMsgId
-            ]);
-        }
-
-        tg("sendMessage",[
+    if($stickerMsgId){
+        tg("deleteMessage",[
             "chat_id"=>$chat,
-            "text"=>"❌ Email inválido.\nUse: <code>/email exemplo@email.com</code>",
-            "parse_mode"=>"HTML"
+            "message_id"=>$stickerMsgId
         ]);
-        return;
     }
+
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>"❌ Email inválido.\nUse: <code>/email teste@email.com</code>",
+        "parse_mode"=>"HTML"
+    ]);
+
+    return;
+}
 
     // 🔎 API
     $url = "https://sara-api.xyz/api/consultas/email?email={$email}&apikey=mouth";
@@ -826,12 +875,9 @@ function consultaEmail($chat, $email){
     }
 
     if(!$json || !$json["success"]){
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>"❌ Nenhum resultado encontrado."
-        ]);
-        return;
-    }
+    naoEncontrado($chat,"EMAIL",$email);
+    return;
+}
 
     $txt =
 "CONSULTA DE EMAIL — ASTRO SEARCH
@@ -919,12 +965,9 @@ function consultaVizinhos($chat, $cpf){
     }
 
     if(!$json || !$json["success"]){
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>"❌ Nenhum vizinho encontrado."
-        ]);
-        return;
-    }
+    naoEncontrado($chat,"VIZINHOS",$cpf);
+    return;
+}
 
     $nome = $json["pessoa"];
     $total = $json["total"];
@@ -1265,12 +1308,9 @@ function consultaTelefone($chat, $telefone){
 
     if(!$json || empty($json["resultado"]["data"])){
 
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>"❌ Nenhum resultado encontrado para este telefone."
-        ]);
-        return;
-    }
+    naoEncontrado($chat,"TELEFONE",$telefone);
+    return;
+}
 
     $raw = $json["resultado"]["data"];
 
@@ -1368,12 +1408,9 @@ function consultaNome($chat, $nome){
 
     if(!$json || empty($json["resultado"])){
 
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>"❌ Nenhum resultado encontrado."
-        ]);
-        return;
-    }
+    naoEncontrado($chat,"NOME",$nome);
+    return;
+}
 
     $txt =
 "CONSULTA POR NOME — ASTRO SEARCH
@@ -1557,10 +1594,7 @@ tg("deleteMessage",[
 
 if(!$json || $json["execucao"]["status"] != "ENCONTRADO"){
 
-tg("sendMessage",[
-"chat_id"=>$chat,
-"text"=>"❌ CPF não encontrado."
-]);
+naoEncontrado($chat,"CPF",$cpf);
 
 return;
 }
