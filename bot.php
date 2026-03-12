@@ -1240,10 +1240,19 @@ function consultaTelefone($chat, $telefone){
         return;
     }
 
-    // 🔥 API TELEFONE
-    $url = "https://sara-api.xyz/api/consultas/telefone?telefone={$telefone}&apikey=mouth";
-    $resp = @file_get_contents($url);
-    $json = json_decode($resp, true);
+    // 🔥 NOVA API
+    $url = "https://api.blackaut.shop/api/dados-pessoais/telefone?telefone={$telefone}&apikey=FQDNodt9BRPxQAeYmH";
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch,[
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 20
+    ]);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $json = json_decode($response,true);
 
     // remove sticker
     if($stickerMsgId){
@@ -1253,7 +1262,8 @@ function consultaTelefone($chat, $telefone){
         ]);
     }
 
-    if(!$json || $json["statusCode"] != 200 || $json["total_results"] == 0){
+    if(!$json || empty($json["resultado"]["data"])){
+
         tg("sendMessage",[
             "chat_id"=>$chat,
             "text"=>"❌ Nenhum resultado encontrado para este telefone."
@@ -1261,26 +1271,29 @@ function consultaTelefone($chat, $telefone){
         return;
     }
 
+    $raw = $json["resultado"]["data"];
+
+    // extrai CPFs e Nomes
+    preg_match_all('/CPF:\s*([0-9]+)/',$raw,$cpfs);
+    preg_match_all('/NOME:\s*(.*)/',$raw,$nomes);
+
     $txt =
 "CONSULTA TELEFONE — ASTRO SEARCH
 ================================
 
-Telefone pesquisado: {$json["query"]}
-Total encontrados: {$json["total_results"]}
+Telefone pesquisado: {$telefone}
 
 ================================
 ";
 
-    foreach($json["body"] as $pessoa){
+    for($i=0;$i<count($cpfs[1]);$i++){
+
+        $cpf = $cpfs[1][$i] ?? "Não encontrado";
+        $nome = trim($nomes[1][$i] ?? "Não encontrado");
 
         $txt .= "
-CPF: {$pessoa["cpf"]}
-Nome: {$pessoa["name"]}
-Nascimento: {$pessoa["birth_date"]}
-Cidade: {$pessoa["city"]}
-Estado: {$pessoa["state"]}
-Email: {$pessoa["email"]}
-Base: Astro Search
+CPF: {$cpf}
+Nome: {$nome}
 
 --------------------------------
 ";
@@ -1291,15 +1304,12 @@ Consulta via:
 Astro Search
 ";
 
-    $file = tempnam(sys_get_temp_dir(), "tel_");
-    file_put_contents($file, $txt);
-
     resultadoConsulta(
-$chat,
-"Consulta de Telefone",
-$txt,
-"telefone"
-);
+        $chat,
+        "Consulta de Telefone",
+        $txt,
+        "telefone"
+    );
 }
 
 function consultaNome($chat, $nome){
