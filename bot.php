@@ -30,6 +30,7 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 /* ================= VIP ================= */
 
 $VIP_IDS = [
+    5224372137,
     8325121933,
     8631733055,
     7073604499,
@@ -2064,12 +2065,9 @@ tg("deleteMessage",[
 
 if(!$json || !$json["status"]){
 
-tg("sendMessage",[
-"chat_id"=>$chat,
-"text"=>"❌ Veículo não encontrado."
-]);
+    naoEncontrado($chat,"PLACA",$placa);
+    return;
 
-return;
 }
 
 $d = $json["resultado"];
