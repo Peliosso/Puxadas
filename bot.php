@@ -2284,7 +2284,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     $cmd = strtolower($p[0]);
     $arg = $p[1] ?? null;
     
-    if($cmd === "/resgatar"){
+    if($cmd === "/abjdjdjsndn"){
 
     $chatType = $message["chat"]["type"];
 
