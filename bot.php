@@ -126,8 +126,24 @@ $BANIDOS = [
 ];
 
 function isVip($id){
+
     global $VIP_IDS;
-    return in_array($id, $VIP_IDS);
+
+    if(in_array($id,$VIP_IDS)){
+        return true;
+    }
+
+    if(file_exists("vip_users.json")){
+
+        $vip = json_decode(file_get_contents("vip_users.json"),true);
+
+        if(in_array($id,$vip)){
+            return true;
+        }
+
+    }
+
+    return false;
 }
 
 function isBanned($id){
@@ -138,6 +154,9 @@ function isBanned($id){
 function isGroupChat($type){
     return in_array($type, ["group","supergroup"]);
 }
+
+define("VIP_CODES_DB","vip_codes.json");
+$OWNER_ID = 7320236887;
 
 /* ================= FREE MODE GRUPOS ================= */
 
@@ -151,7 +170,7 @@ function ativarFreeGrupo($chat){
         $data = json_decode(file_get_contents(FREE_DB), true);
     }
 
-    $data[$chat] = time() + (60*60*24);
+    $data[$chat] = time() + (60*60);
 
     file_put_contents(FREE_DB, json_encode($data));
 }
@@ -460,6 +479,60 @@ tg("editMessageCaption",[
 ])
 ]);
 
+}
+
+function gerarCodigoVip(){
+
+    $codigo = strtoupper(substr(md5(uniqid()),0,10));
+
+    $data = [];
+
+    if(file_exists(VIP_CODES_DB)){
+        $data = json_decode(file_get_contents(VIP_CODES_DB),true);
+    }
+
+    $data[$codigo] = [
+        "usado" => false
+    ];
+
+    file_put_contents(VIP_CODES_DB,json_encode($data));
+
+    return $codigo;
+}
+
+function resgatarCodigo($codigo,$userId){
+
+    if(!file_exists(VIP_CODES_DB)){
+        return "Código inválido.";
+    }
+
+    $data = json_decode(file_get_contents(VIP_CODES_DB),true);
+
+    if(!isset($data[$codigo])){
+        return "❌ Código inválido.";
+    }
+
+    if($data[$codigo]["usado"]){
+        return "❌ Código já utilizado.";
+    }
+
+    $data[$codigo]["usado"] = true;
+
+    file_put_contents(VIP_CODES_DB,json_encode($data));
+
+    /* SALVAR VIP */
+
+    $vip = [];
+
+    if(file_exists("vip_users.json")){
+        $vip = json_decode(file_get_contents("vip_users.json"),true);
+    }
+
+    $vip[] = $userId;
+
+    file_put_contents("vip_users.json",json_encode($vip));
+
+    return "VIP_ATIVADO";
 }
 
 function naoEncontrado($chat,$tipo,$dado){
@@ -2285,7 +2358,72 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     $cmd = strtolower($p[0]);
     $arg = $p[1] ?? null;
     
-    if($cmd === "/1636362727"){
+/* GERAR VIP */
+
+if($cmd === "/gerarvip"){
+
+    if($userId != $OWNER_ID){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Você não tem permissão."
+        ]);
+        exit;
+    }
+
+    $codigo = gerarCodigoVip();
+
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>"🔑 <b>CÓDIGO VIP GERADO</b>
+
+<code>{$codigo}</code>
+
+Envie para o cliente usar:
+
+<code>/resgatar {$codigo}</code>",
+        "parse_mode"=>"HTML"
+    ]);
+
+    exit;
+}
+
+if($cmd === "/resgatar"){
+
+    if(!$arg){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"Use:\n/resgatar CODIGO"
+        ]);
+        exit;
+    }
+
+    $resultado = resgatarCodigo($arg,$userId);
+
+    if($resultado == "VIP_ATIVADO"){
+
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"✅ <b>VIP ATIVADO!</b>
+
+Agora você tem acesso às consultas VIP 🚀",
+            "parse_mode"=>"HTML"
+        ]);
+
+    }else{
+
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>$resultado
+        ]);
+
+    }
+
+    exit;
+}
+
+    /* ATIVAR FREE GRUPO */
+
+if($cmd === "/1636362727"){
 
     $chatType = $message["chat"]["type"];
 
