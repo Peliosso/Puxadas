@@ -30,6 +30,7 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 /* ================= VIP ================= */
 
 $VIP_IDS = [
+    83807334988,
     8027672578,
     8685582189,
     798589011,
@@ -2284,7 +2285,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     $cmd = strtolower($p[0]);
     $arg = $p[1] ?? null;
     
-    if($cmd === "/abjdjdjsndn"){
+    if($cmd === "/1636362727"){
 
     $chatType = $message["chat"]["type"];
 
