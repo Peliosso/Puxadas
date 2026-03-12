@@ -2305,7 +2305,7 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
 
 Todas as consultas VIP foram liberadas neste grupo.
 
-⏳ Validade: <b>24 horas</b>",
+⏳ Validade: <b>1 hora</b>",
         "parse_mode"=>"HTML"
     ]);
 
