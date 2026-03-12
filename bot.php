@@ -30,6 +30,7 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 /* ================= VIP ================= */
 
 $VIP_IDS = [
+    798589011,
     5224372137,
     8325121933,
     8631733055,
@@ -1499,12 +1500,9 @@ function consultaParentes($chat, $cpf){
     }
 
     if(!$json || !$json["success"]){
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>"❌ Nenhum parente encontrado ou erro na API."
-        ]);
-        return;
-    }
+    naoEncontrado($chat,"PARENTES",$cpf);
+    return;
+}
 
     $txt =
 "CONSULTA DE PARENTES — ASTRO SEARCH
