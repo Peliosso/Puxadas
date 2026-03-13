@@ -30,6 +30,7 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 /* ================= VIP ================= */
 
 $VIP_IDS = [
+    5530503070,
     8524745450,
     5509802326,
     6321358779,
@@ -47,6 +48,7 @@ $VIP_IDS = [
     7255909074,
     712236564,
     7889761800,
+    1200912475,
     7786060568,
     1063818612,
     7867668582,
@@ -130,23 +132,26 @@ $BANIDOS = [
 
 function isVip($id){
 
-    global $VIP_IDS;
+global $VIP_IDS;
 
-    if(in_array($id,$VIP_IDS)){
-        return true;
-    }
+if(in_array($id,$VIP_IDS)){
+return true;
+}
 
-    if(file_exists("vip_users.json")){
+$vipFile = __DIR__."/vip_users.json";
 
-        $vip = json_decode(file_get_contents("vip_users.json"),true);
+if(!file_exists($vipFile)){
+return false;
+}
 
-        if(in_array($id,$vip)){
-            return true;
-        }
+$vip = json_decode(file_get_contents($vipFile),true);
 
-    }
+if(!is_array($vip)){
+return false;
+}
 
-    return false;
+return in_array($id,$vip);
+
 }
 
 function isBanned($id){
@@ -207,6 +212,29 @@ $message  = $update["message"] ?? null;
 $callback = $update["callback_query"] ?? null;
 $msgId = $message["message_id"] ?? null;
 $chat  = $message["chat"]["id"] ?? null;
+$userId = $message["from"]["id"] ?? null;
+$chatType = $message["chat"]["type"] ?? null;
+
+/* APAGAR COMANDOS NO GRUPO (EXCETO DO ADMIN) */
+
+$ADMIN_ID = 7320236887; // seu ID
+
+if($message && isset($message["text"])){
+
+if(
+    ($chatType == "group" || $chatType == "supergroup") &&
+    substr($message["text"],0,1) == "/" &&
+    $userId != $ADMIN_ID
+){
+
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$msgId
+]);
+
+}
+
+}
 
 /* ====== BLOQUEIO GLOBAL ====== */
 
@@ -523,17 +551,25 @@ function resgatarCodigo($codigo,$userId,$username){
     file_put_contents(VIP_CODES_DB,json_encode($data));
 
     // VIP USERS
+/* SALVAR USUÁRIO VIP */
+
+$vipFile = __DIR__."/vip_users.json";
+
+if(!file_exists($vipFile)){
+    file_put_contents($vipFile,"[]");
+}
+
+$vip = json_decode(file_get_contents($vipFile),true);
+
+if(!is_array($vip)){
     $vip = [];
+}
 
-    if(file_exists("vip_users.json")){
-        $vip = json_decode(file_get_contents("vip_users.json"),true);
-    }
+if(!in_array($userId,$vip)){
+    $vip[] = $userId;
+}
 
-    if(!in_array($userId,$vip)){
-        $vip[] = $userId;
-    }
-
-    file_put_contents("vip_users.json",json_encode($vip));
+file_put_contents($vipFile,json_encode($vip,JSON_PRETTY_PRINT));
 
     global $OWNER_ID;
 
@@ -1352,71 +1388,57 @@ function consultaFoto($chat, $cpf){
 }
 
 function consultaTelefone($chat, $telefone){
-    global $STICKER_LOADING;
 
-    // 🎬 Sticker loading
-    $sticker = tg("sendSticker",[
-        "chat_id"=>$chat,
-        "sticker"=>$STICKER_LOADING
-    ]);
+global $STICKER_LOADING;
 
-    $stickerData = json_decode($sticker, true);
-    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+$sticker = tg("sendSticker",[
+"chat_id"=>$chat,
+"sticker"=>$STICKER_LOADING
+]);
 
-    // limpa telefone
-    $telefone = preg_replace('/\D/','',$telefone);
+$stickerData = json_decode($sticker,true);
+$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-    if(strlen($telefone) < 10){
-        if($stickerMsgId){
-            tg("deleteMessage",[
-                "chat_id"=>$chat,
-                "message_id"=>$stickerMsgId
-            ]);
-        }
+$telefone = preg_replace('/\D/','',$telefone);
 
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>"❌ Telefone inválido.\nUse: <code>/telefone 31999999999</code>",
-            "parse_mode"=>"HTML"
-        ]);
-        return;
-    }
+if(strlen($telefone) < 10){
 
-    // 🔥 NOVA API
-    $url = "https://api.blackaut.shop/api/dados-pessoais/telefone?telefone={$telefone}&apikey=EbmScZ0ntHf61KJz3H";
-
-    $ch = curl_init($url);
-    curl_setopt_array($ch,[
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 20
-    ]);
-
-    $response = curl_exec($ch);
-    curl_close($ch);
-
-    $json = json_decode($response,true);
-
-    // remove sticker
-    if($stickerMsgId){
-        tg("deleteMessage",[
-            "chat_id"=>$chat,
-            "message_id"=>$stickerMsgId
-        ]);
-    }
-
-    if(!$json || empty($json["resultado"]["data"])){
-
-    naoEncontrado($chat,"TELEFONE",$telefone);
-    return;
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
 }
 
-    $raw = $json["resultado"]["data"];
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ Telefone inválido.\nUse: <code>/telefone 11999999999</code>",
+"parse_mode"=>"HTML"
+]);
 
-    // extrai CPFs e Nomes
-    preg_match_all('/CPF:\s*([0-9]+)/',$raw,$cpfs);
-    preg_match_all('/NOME:\s*(.*)/',$raw,$nomes);
+return;
+}
 
-    $txt =
+$url = "https://sara-api.xyz/api/consultas/telefone?telefone={$telefone}&apikey=mouth";
+
+$resp = @file_get_contents($url);
+$json = json_decode($resp,true);
+
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
+
+if(!$json || !$json["success"]){
+
+naoEncontrado($chat,"TELEFONE",$telefone);
+return;
+
+}
+
+$txt =
 "CONSULTA TELEFONE — ASTRO SEARCH
 ================================
 
@@ -1425,30 +1447,32 @@ Telefone pesquisado: {$telefone}
 ================================
 ";
 
-    for($i=0;$i<count($cpfs[1]);$i++){
+foreach($json["data"] as $p){
 
-        $cpf = $cpfs[1][$i] ?? "Não encontrado";
-        $nome = trim($nomes[1][$i] ?? "Não encontrado");
-
-        $txt .= "
-CPF: {$cpf}
-Nome: {$nome}
+$txt .= "
+CPF: {$p["cpf"]}
+Nome: {$p["nome"]}
+Endereço: {$p["logradouro"]} {$p["numero"]}
+Bairro: {$p["bairro"]}
+Cidade: {$p["cidade"]}
 
 --------------------------------
 ";
-    }
 
-    $txt .= "
+}
+
+$txt .= "
 Consulta via:
 Astro Search
 ";
 
-    resultadoConsulta(
-        $chat,
-        "Consulta de Telefone",
-        $txt,
-        "telefone"
-    );
+resultadoConsulta(
+$chat,
+"Consulta de Telefone",
+$txt,
+"telefone"
+);
+
 }
 
 function consultaNome($chat, $nome){
