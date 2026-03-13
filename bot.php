@@ -1449,7 +1449,7 @@ foreach($json["body"] as $p){
 
 $txt .= "
 CPF: ".($p["cpf"] ?? "Não encontrado")."
-Nome: ".($p["nome"] ?? "Não encontrado")."
+Nome: ".($p["name"] ?? "Não encontrado")."
 Endereço: ".($p["logradouro"] ?? "")." ".($p["numero"] ?? "")."
 Bairro: ".($p["bairro"] ?? "")."
 Cidade: ".($p["cidade"] ?? "")."
