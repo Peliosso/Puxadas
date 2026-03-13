@@ -1431,7 +1431,7 @@ tg("deleteMessage",[
 ]);
 }
 
-if(!$json || !$json["success"]){
+if(!$json || empty($json["data"])){
 
 naoEncontrado($chat,"TELEFONE",$telefone);
 return;
@@ -1450,11 +1450,11 @@ Telefone pesquisado: {$telefone}
 foreach($json["data"] as $p){
 
 $txt .= "
-CPF: {$p["cpf"]}
-Nome: {$p["nome"]}
-Endereço: {$p["logradouro"]} {$p["numero"]}
-Bairro: {$p["bairro"]}
-Cidade: {$p["cidade"]}
+CPF: ".($p["cpf"] ?? "Não encontrado")."
+Nome: ".($p["nome"] ?? "Não encontrado")."
+Endereço: ".($p["logradouro"] ?? "")." ".($p["numero"] ?? "")."
+Bairro: ".($p["bairro"] ?? "")."
+Cidade: ".($p["cidade"] ?? "")."
 
 --------------------------------
 ";
