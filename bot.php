@@ -319,31 +319,79 @@ Exemplo:
         "parse_mode"=>"HTML"
     ]);
 }
-function function bloquearConsulta($chat){
-global $START_PHOTO;
+function bloquearConsulta($chat){
+    global $START_PHOTO, $STICKER_LOADING, $PIX_CHAVE, $PIX_NOME, $PIX_VALOR;
 
-tg("sendPhoto",[
-"chat_id"=>$chat,
-"photo"=>$START_PHOTO,
-"caption"=>
-"🔒 <b>Acesso restrito</b>
+    // 🎬 Sticker
+    $sticker = tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
 
-Essa consulta está disponível apenas para usuários <b>VIP</b>.
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-Ative o acesso para liberar todas as consultas do bot.",
-"parse_mode"=>"HTML",
-"reply_markup"=>json_encode([
-"inline_keyboard"=>[
-[
-["text"=>"⭐ Adquirir VIP","callback_data"=>"vip_info"]
-],
-[
-["text"=>"🛠 Suporte","url"=>"https://t.me/puxardados5"]
-]
-]
-])
-]);
+    // ⏳ Delay real de 6s com "digitando..."
+    for($i=0;$i<6;$i++){
+        tg("sendChatAction",[
+            "chat_id"=>$chat,
+            "action"=>"typing"
+        ]);
+        sleep(1);
+    }
 
+    // 👥 Prova social
+    $usuarios = rand(200,400);
+
+    // 🚀 Mensagem
+    tg("sendPhoto",[
+        "chat_id"=>$chat,
+        "photo"=>$START_PHOTO,
+        "caption"=>
+"⚡ • <b>RESULTADO ENCONTRADO!</b>
+
+Mas calma…
+
+Seu plano gratuito não tem permissão para ver
+esse tipo de consulta.
+
+⭐ <b>Ative o VIP e tenha acesso imediato.</b>
+
+━━━━━━━━
+👑 <b>{$usuarios} usuários VIP ativos</b>
+
+💎 <b>Vantagens do plano:</b>
+
+✔️ Consultas ilimitadas
+✔️ Sem mensalidade
+✔️ Acesso a todas as bases
+✔️ Liberação instantânea
+✔️ Suporte prioritário
+
+━━━━━━━━
+💰 <b>VALOR VITALÍCIO:</b> R$ {$PIX_VALOR}
+
+🔑 • <b>Chave PIX:</b>
+<code>{$PIX_CHAVE}</code>
+👤 • <b>Nome:</b> {$PIX_NOME}
+
+👇 Copie a chave e realize o pagamento:",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [["text"=>"📋 COPIAR CHAVE PIX","callback_data"=>"copiar_pix"]],
+                [["text"=>"🚀 ATIVAR VIP AGORA","url"=>"https://t.me/puxardados5"]]
+            ]
+        ])
+    ]);
+
+    // 🗑 Apaga o sticker depois
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
 }
 
 
@@ -2924,61 +2972,6 @@ if($tipo == "cpf_parentes"){
                 "message_id"=>$msg
             ]);
         break;
-        
-        case "vip_info":
-
-global $PIX_CHAVE,$PIX_NOME,$PIX_VALOR;
-
-tg("editMessageCaption",[
-"chat_id"=>$chat,
-"message_id"=>$msg,
-"caption"=>
-"⭐ <b>PLANO VIP VITALÍCIO</b>
-
-Acesso completo ao bot.
-
-✔ Consultas ilimitadas  
-✔ Todas as bases liberadas  
-✔ Sem mensalidade  
-✔ Liberação imediata
-
-━━━━━━━━━━
-
-💰 <b>Valor:</b> R$ {$PIX_VALOR}
-
-🔑 <b>Chave PIX</b>
-<code>{$PIX_CHAVE}</code>
-
-👤 <b>Nome:</b> {$PIX_NOME}
-
-Após o pagamento envie o comprovante no suporte.",
-"parse_mode"=>"HTML",
-"reply_markup"=>json_encode([
-"inline_keyboard"=>[
-[
-["text"=>"📋 Copiar chave PIX","callback_data"=>"copiar_pix"]
-],
-[
-["text"=>"🛠 Enviar comprovante","url"=>"https://t.me/puxardados5"]
-],
-[
-["text"=>"⬅ Voltar","callback_data"=>"voltar_menu"]
-]
-]
-])
-]);
-
-break;
-
-case "copiar_pix":
-
-tg("answerCallbackQuery",[
-"callback_query_id"=>$callback["id"],
-"text"=>"Chave PIX copiada 👇\n".$PIX_CHAVE,
-"show_alert"=>true
-]);
-
-break;
 
         case "planos":
 
