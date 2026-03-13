@@ -503,7 +503,7 @@ function gerarCodigoVip(){
     return $codigo;
 }
 
-function resgatarCodigo($codigo,$userId){
+function resgatarCodigo($codigo,$userId,$username){
 
     if(!file_exists(VIP_CODES_DB)){
         return "Código inválido.";
@@ -520,20 +520,32 @@ function resgatarCodigo($codigo,$userId){
     }
 
     $data[$codigo]["usado"] = true;
-
     file_put_contents(VIP_CODES_DB,json_encode($data));
 
-    /* SALVAR VIP */
-
+    // VIP USERS
     $vip = [];
 
     if(file_exists("vip_users.json")){
         $vip = json_decode(file_get_contents("vip_users.json"),true);
     }
 
-    $vip[] = $userId;
+    if(!in_array($userId,$vip)){
+        $vip[] = $userId;
+    }
 
     file_put_contents("vip_users.json",json_encode($vip));
+
+    global $OWNER_ID;
+
+    tg("sendMessage",[
+        "chat_id"=>$OWNER_ID,
+        "text"=>"💎 <b>NOVO VIP ATIVADO</b>
+
+👤 Usuário: @{$username}
+🆔 ID: <code>{$userId}</code>
+🔑 Código: <code>{$codigo}</code>",
+        "parse_mode"=>"HTML"
+    ]);
 
     return "VIP_ATIVADO";
 }
@@ -2229,6 +2241,104 @@ unlink($file);
 
 }
 
+function consultaInstagram($chat,$user){
+
+global $STICKER_LOADING;
+
+if(!$user){
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ Use assim:
+
+/instagram usuario"
+]);
+return;
+}
+
+$sticker = tg("sendSticker",[
+"chat_id"=>$chat,
+"sticker"=>$STICKER_LOADING
+]);
+
+$stickerData = json_decode($sticker,true);
+$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+$user = urlencode($user);
+
+$url = "https://sara-api.xyz/api/stalking/instagram?user={$user}&apikey=mouth";
+
+$resp = @file_get_contents($url);
+$json = json_decode($resp,true);
+
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
+
+if(!$json || !$json["data"]["resultado"]){
+
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ Instagram não encontrado."
+]);
+
+return;
+}
+
+$d = $json["data"]["resultado"];
+
+$nome = htmlspecialchars($d["nome"] ?? "Não informado");
+$username = htmlspecialchars($d["username"] ?? "");
+$id = $d["id"] ?? "Não encontrado";
+$categoria = htmlspecialchars($d["categoria"] ?? "Não informado");
+$bio = !empty($d["bio"]) ? htmlspecialchars($d["bio"]) : "Sem bio";
+$empresa = htmlspecialchars($d["empresa"] ?? "Não informado");
+$conta = htmlspecialchars($d["conta"] ?? "Não informado");
+$verificada = htmlspecialchars($d["verificada"] ?? "Não informado");
+$seguidores = $d["seguidores"] ?? "0";
+$seguindo = $d["seguindo"] ?? "0";
+$postagens = $d["postagens"] ?? "0";
+$foto = $d["imagem"] ?? "https://i.imgur.com/9Xn4K2B.png";
+
+$msg = "📸 <b>CONSULTA INSTAGRAM</b>
+
+👤 <b>Nome:</b> {$nome}
+📛 <b>Usuário:</b> @{$username}
+🆔 <b>ID:</b> <code>{$id}</code>
+
+🏷 <b>Categoria:</b> {$categoria}
+🏢 <b>Empresa:</b> {$empresa}
+🔓 <b>Conta:</b> {$conta}
+✔️ <b>Verificada:</b> {$verificada}
+
+👥 <b>Seguidores:</b> {$seguidores}
+➡️ <b>Seguindo:</b> {$seguindo}
+🖼 <b>Postagens:</b> {$postagens}
+
+📝 <b>Bio:</b>
+{$bio}";
+
+tg("sendPhoto",[
+"chat_id"=>$chat,
+"photo"=>$foto,
+"caption"=>$msg,
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"🌐 Abrir Perfil","url"=>"https://instagram.com/".$username]
+],
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+]
+]
+])
+]);
+
+}
+
 function consultaCPF($chat, $cpf){
     global $STICKER_LOADING;
 
@@ -2400,7 +2510,9 @@ if($cmd === "/resgatar"){
         exit;
     }
 
-    $resultado = resgatarCodigo($arg,$userId);
+$username = $message["from"]["username"] ?? "sem_username";
+
+$resultado = resgatarCodigo($arg,$userId,$username);
 
     if($resultado == "VIP_ATIVADO"){
 
@@ -2426,14 +2538,20 @@ Agora você tem acesso às consultas VIP 🚀",
 
     /* ATIVAR FREE GRUPO */
 
-if($cmd === "/1636362727"){
+if($cmd === "/freevip"){
 
-    $chatType = $message["chat"]["type"];
-
-    if(!in_array($chatType, ["group","supergroup"])){
+    if($userId != $OWNER_ID){
         tg("sendMessage",[
             "chat_id"=>$chat,
-            "text"=>"❌ Este comando só pode ser usado em grupos."
+            "text"=>"❌ Apenas o dono pode usar."
+        ]);
+        exit;
+    }
+
+    if(!isGroupChat($message["chat"]["type"])){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Apenas em grupos."
         ]);
         exit;
     }
@@ -2442,11 +2560,9 @@ if($cmd === "/1636362727"){
 
     tg("sendMessage",[
         "chat_id"=>$chat,
-        "text"=>"🚀 <b>MODO FREE ATIVADO</b>
+        "text"=>"🚀 <b>VIP LIBERADO NO GRUPO</b>
 
-Todas as consultas VIP foram liberadas neste grupo.
-
-⏳ Validade: <b>1 hora</b>",
+Todas consultas VIP liberadas por 1 hora.",
         "parse_mode"=>"HTML"
     ]);
 
@@ -2471,7 +2587,7 @@ Todas as consultas VIP foram liberadas neste grupo.
     }
 
     // ===== COMANDOS VIP =====
-$vipCmds = ["/cpf","/fotorj","/fotosp","/cpf1","/cpf2","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
+$vipCmds = ["/cpf","/fotorj","/fotosp","/instagram","/cpf1","/cpf2","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
     if(in_array($cmd, $vipCmds)){
 
     // ❗ primeiro valida se enviou argumento
@@ -2521,6 +2637,11 @@ $vipCmds = ["/cpf","/fotorj","/fotosp","/cpf1","/cpf2","/vizinhos","/parentes","
         
         if($cmd === "/cpf2"){
     consultaCPF2($chat, $arg);
+    exit;
+}
+
+if($cmd === "/instagram"){
+    consultaInstagram($chat,$arg);
     exit;
 }
         
