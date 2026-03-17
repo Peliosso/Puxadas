@@ -651,35 +651,37 @@ unlink($file);
 
 function resultadoConsulta($chat,$titulo,$conteudo,$prefixo){
 
-$hash = md5($conteudo.time());
-$file = "cache_{$prefixo}_{$hash}.txt";
+    // gera id único
+    $id = md5($conteudo.time());
 
-file_put_contents($file,$conteudo);
+    // salva arquivo no servidor (pasta /resultados)
+    $file = __DIR__."/resultados/{$id}.txt";
 
-tg("sendMessage",[
-"chat_id"=>$chat,
-"text"=>"✅ <b>{$titulo} concluída</b>
+    if(!is_dir(__DIR__."/resultados")){
+        mkdir(__DIR__."/resultados");
+    }
 
-Escolha o formato do resultado:",
-"parse_mode"=>"HTML",
-"reply_markup"=>json_encode([
-"inline_keyboard"=>[
-[
-["text"=>"📄 Mostrar no Telegram","callback_data"=>"ver|$file"]
-],
-[
-["text"=>"📁 Enviar TXT","callback_data"=>"txt|$file"]
-],
-[
-["text"=>"🗑 Apagar mensagem","callback_data"=>"apagar_msg"]
-],
-[
-["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
-]
-]
-])
-]);
+    file_put_contents($file,$conteudo);
 
+    // link do site
+$link = "https://astrooficial.rf.gd/resultado.php?id=".$id;
+
+    // envia botão direto
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>"✅ <b>{$titulo} concluída</b>\n\nClique abaixo para visualizar:",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🔎 Ver Resultado","url"=>$link]
+                ],
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+                ]
+            ]
+        ])
+    ]);
 }
  
 
