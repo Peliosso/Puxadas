@@ -137,6 +137,10 @@ $VIP_IDS = [
     8353617567,
     7524424065,
     940636198, 
+    6024687334,
+    2047110506,
+    7785849676,
+    6952471374,
     8538480916,
     6687664198,
     5805915267,
@@ -1013,7 +1017,7 @@ function consultaEmail($chat, $email){
 }
 
     // 🔎 API
-    $url = "https://sara-api.xyz/api/consultas/email?email={$email}&apikey=mouth";
+    $url = "https://sara-api.xyz/api/consultas/email?email={$email}&apikey=bigmouth";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -1104,7 +1108,7 @@ function consultaVizinhos($chat, $cpf){
     }
 
     // API
-    $url = "https://sara-api.xyz/api/consultas/vizinhos?cpf={$cpf}&apikey=mouth";
+    $url = "https://sara-api.xyz/api/consultas/vizinhos?cpf={$cpf}&apikey=bigmouth";
     $resp = @file_get_contents($url);
     $json = json_decode($resp,true);
 
@@ -1280,7 +1284,7 @@ function consultaFotoSP($chat, $cpf){
         return;
     }
 
-    $url = "https://sara-api.xyz/api/consultas/fotosp?cpf={$cpf}&apikey=mouth";
+    $url = "https://sara-api.xyz/api/consultas/fotosp?cpf={$cpf}&apikey=bigmouth";
     $resp = @file_get_contents($url);
     $json = json_decode($resp,true);
 
@@ -1360,7 +1364,7 @@ function consultaFoto($chat, $cpf){
     }
 
     // 🔥 API FOTO
-    $url = "https://sara-api.xyz/api/consultas/fotov2?cpf={$cpf}&apikey=mouth";
+    $url = "https://sara-api.xyz/api/consultas/fotov2?cpf={$cpf}&apikey=bigmouth";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -1436,7 +1440,7 @@ tg("sendMessage",[
 return;
 }
 
-$url = "https://sara-api.xyz/api/consultas/telefone?telefone={$telefone}&apikey=mouth";
+$url = "https://sara-api.xyz/api/consultas/telefone?telefone={$telefone}&apikey=bigmouth";
 
 $resp = @file_get_contents($url);
 $json = json_decode($resp,true);
@@ -1617,7 +1621,7 @@ function consultaParentes($chat, $cpf){
     }
 
     // 🔥 API SARA PARENTES
-    $url = "https://sara-api.xyz/api/consultas/parentes?cpf={$cpf}&apikey=mouth";
+    $url = "https://sara-api.xyz/api/consultas/parentes?cpf={$cpf}&apikey=bigmouth";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -2304,7 +2308,7 @@ $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
 $user = urlencode($user);
 
-$url = "https://sara-api.xyz/api/stalking/instagram?user={$user}&apikey=mouth";
+$url = "https://sara-api.xyz/api/stalking/instagram?user={$user}&apikey=bigmouth";
 
 $resp = @file_get_contents($url);
 $json = json_decode($resp,true);
