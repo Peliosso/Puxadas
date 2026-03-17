@@ -2508,6 +2508,77 @@ if($message && isset($message["text"]) && str_starts_with($message["text"], "/")
     $p = explode(" ", trim($message["text"]), 2);
     $cmd = strtolower($p[0]);
     $arg = $p[1] ?? null;
+
+    $chatType = $message["chat"]["type"];
+    $chat_id = $message["chat"]["id"];
+    $userId = $message["from"]["id"];
+    $nome = $message["from"]["first_name"] ?? "usuário";
+
+    // 🚨 SE FOR GRUPO
+    if(isGroupChat($chatType)){
+
+        // 📩 tenta puxar pro privado
+        $privateLink = "https://t.me/consultaspanel_bot?start=start";
+
+        $nomeSafe = htmlspecialchars($nome, ENT_QUOTES, 'UTF-8');
+
+tg("sendMessage",[
+    "chat_id"=>$userId,
+    "text"=>"🚀 Olá {$nomeSafe}, inicia aqui pra usar o bot 👇",
+    "parse_mode"=>"HTML",
+    "reply_markup"=>json_encode([
+        "inline_keyboard"=>[
+            [
+                ["text"=>"🚀 INICIAR BOT","url"=>$privateLink]
+            ]
+        ]
+    ])
+]);
+
+        $res = json_decode($test, true);
+
+        // ❌ NÃO iniciou
+        if(!$res["ok"]){
+
+            tg("sendMessage",[
+                "chat_id"=>$chat_id,
+                "text"=>"⚠️ Você precisa iniciar uma conversa no meu chat para me usar!",
+                "reply_markup"=>json_encode([
+                    "inline_keyboard"=>[
+                        [
+                            ["text"=>"🚀 INICIAR AGORA","url"=>$privateLink]
+                        ]
+                    ]
+                ])
+            ]);
+
+            exit;
+        }
+
+        // ✅ JÁ iniciou → agora decide VIP
+if(isVip($userId) || isFreeGroup($chat_id)){
+
+            tg("sendMessage",[
+                "chat_id"=>$chat_id,
+                "text"=>"💎 Consulta VIP enviada no privado de {$nome}."
+            ]);
+
+        }else{
+
+            tg("sendMessage",[
+                "chat_id"=>$chat_id,
+                "text"=>"⚠️ {$nome}, seu plano não permite isso. Te mandei os detalhes no privado."
+            ]);
+
+            bloquearConsulta($userId); // manda oferta no PV
+
+            exit;
+        }
+
+        // 🔥 REDIRECIONA A CONSULTA PRO PV
+        $chat = $userId;
+    }
+}
     
 /* GERAR VIP */
 
