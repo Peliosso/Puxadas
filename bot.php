@@ -30,6 +30,7 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 /* ================= VIP ================= */
 
 $VIP_IDS = [
+    5346865563,
     8556709571,
     8411405940,
     8208712261,
