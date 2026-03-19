@@ -2258,7 +2258,7 @@ Orgão emissor: ".v($d["rg_issuer"])."
 Estado RG: ".v($d["rg_state"])."
 Título eleitor: ".v($d["voter_id"])."
 
-Profissão (CBO): ".v($d["cbo"])."
+CBO: ".v($d["cbo"])."
 Cidade nascimento: ".v($d["birth_city"])."
 
 Renda: R$ ".v($d["income"])."
@@ -2277,22 +2277,16 @@ $txt .= "
 Email principal: ".v($d["email"])."
 ";
 
-if(isset($d["additional_emails"])){
-foreach($d["additional_emails"] as $em){
+foreach(($d["additional_emails"] ?? []) as $em){
 $txt .= "Extra: ".v($em)."\n";
 }
-}
 
-if(isset($d["phones"])){
-foreach($d["phones"] as $ph){
+foreach(($d["phones"] ?? []) as $ph){
 $txt .= "Tel: ".v($ph)."\n";
 }
-}
 
-if(isset($d["datasus_phones"])){
-foreach($d["datasus_phones"] as $ph){
+foreach(($d["datasus_phones"] ?? []) as $ph){
 $txt .= "Datasus: ".v($ph)."\n";
-}
 }
 
 # ENDEREÇO PRINCIPAL
@@ -2316,15 +2310,13 @@ $txt .= "
 ──────────────────────────────
 ";
 
-if(isset($d["all_addresses"])){
-foreach($d["all_addresses"] as $a){
+foreach(($d["all_addresses"] ?? []) as $a){
 $txt .= "
 ".v($a["type"])." ".v($a["street"]).", ".v($a["number"])."
 ".v($a["city"])." - ".v($a["state"])."
 CEP: ".v($a["zip_code"])."
 Fonte: ".v($a["source"])."
 ";
-}
 }
 
 # VEÍCULOS
@@ -2342,10 +2334,8 @@ $txt .= "
 ──────────────────────────────
 ";
 
-if(isset($d["parentes"])){
-foreach($d["parentes"] as $p){
+foreach(($d["parentes"] ?? []) as $p){
 $txt .= v($p["nome"])." - ".v($p["vinculo"])."\n";
-}
 }
 
 # VIZINHOS
@@ -2355,22 +2345,20 @@ $txt .= "
 ──────────────────────────────
 ";
 
-if(isset($d["vizinhos"])){
-foreach($d["vizinhos"] as $v){
+foreach(($d["vizinhos"] ?? []) as $v){
 $txt .= "
 ".v($v["nome"])."
 ".v($v["logradouro"]).", ".v($v["numero"])."
 Bairro: ".v($v["bairro"])."
 ";
 }
-}
 
-# SCORE SERASA
+# SCORE
 $s = $d["serasa_completo"]["score"] ?? [];
 
 $txt .= "
 
-📊 SCORE SERASA
+📊 SCORE
 ──────────────────────────────
 CSB8: ".v($s["CSB8"] ?? null)." (".v($s["CSB8_FAIXA"] ?? null).")
 CSBA: ".v($s["CSBA"] ?? null)." (".v($s["CSBA_FAIXA"] ?? null).")
@@ -2385,6 +2373,19 @@ $txt .= "
 ──────────────────────────────
 ".v($p["PODER_AQUISITIVO"] ?? null)."
 ".v($p["FX_PODER_AQUISITIVO"] ?? null)."
+";
+
+# PERFIL DE ATIVIDADE
+$a = $d["activity_profile"] ?? [];
+
+$txt .= "
+
+📈 PERFIL DE ATIVIDADE
+──────────────────────────────
+Primeira compra: ".v($a["first_order"] ?? null)."
+Última compra: ".v($a["last_order"] ?? null)."
+Período: ".v($a["period_days"] ?? null)." dias
+Ativo: ".(!empty($a["is_active_buyer"]) ? "SIM" : "NÃO")."
 ";
 
 # COBERTURA
@@ -2414,7 +2415,7 @@ file_put_contents($file,$txt);
 
 tg("sendMessage",[
 "chat_id"=>$chat,
-"text"=>"🔥 <b>Consulta ULTRA realizada</b>\n\nEscolha o formato:",
+"text"=>"🔥 <b>Consulta ULTRA realizada</b>\n\nEscolha como quer ver:",
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
