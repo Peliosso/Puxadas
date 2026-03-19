@@ -30,6 +30,8 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 /* ================= VIP ================= */
 
 $VIP_IDS = [
+    2061920799,
+    2061920799,
     7397253532,
     8012569221,
     5172295193,
@@ -497,6 +499,7 @@ tg("editMessageCaption",[
 /foto - 🆕
 /fotorj - 🆕
 /fotosp - 🆕
+/cpf3 - 🆕
 /cpf2 - 🆕
 /cpf1 - 🆕
 /cpf
@@ -2163,6 +2166,291 @@ tg("sendMessage",[
 
 }
 
+function consultaCPF3($chat,$cpf){
+
+global $STICKER_LOADING;
+
+$sticker = tg("sendSticker",[
+"chat_id"=>$chat,
+"sticker"=>$STICKER_LOADING
+]);
+
+$stickerData = json_decode($sticker,true);
+$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+
+$cpf = preg_replace('/\D/','',$cpf);
+
+if(strlen($cpf) != 11){
+
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
+
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ CPF inválido.\nUse: <code>/cpf3 00000000000</code>",
+"parse_mode"=>"HTML"
+]);
+
+return;
+}
+
+$url = "https://sara-api.xyz/api/consultas/cpf?cpf={$cpf}&apikey=bigmouth";
+
+$ch = curl_init($url);
+curl_setopt_array($ch,[
+CURLOPT_RETURNTRANSFER => true,
+CURLOPT_TIMEOUT => 25
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$data = json_decode($response,true);
+
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
+
+if(!$data || empty($data["body"])){
+
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ CPF não encontrado ou API instável."
+]);
+
+return;
+}
+
+$d = $data["body"];
+
+$txt = "
+╔══════════════════════════════╗
+   CONSULTA CPF ULTRA — ASTRO SEARCH
+╚══════════════════════════════╝
+
+🧠 DADOS PRINCIPAIS
+──────────────────────────────
+CPF: {$d["cpf_masked"]}
+Nome: {$d["name"]}
+Nascimento: {$d["birth_date"]}
+Sexo: {$d["gender"]}
+Situação: {$d["federal_status"]}
+
+Mãe: {$d["mother_name"]}
+Pai: {$d["father_name"]}
+
+Renda: R$ {$d["income"]}
+Faixa renda: {$d["income_bracket"]}
+Classe social: {$d["social_class"]["social_class"]}
+
+Óbito: ".($d["death_flag"] == "1" ? "SIM" : "NÃO")."
+";
+
+# CONTATO
+$txt .= "
+
+📡 CONTATO
+──────────────────────────────
+Email principal: {$d["email"]}
+";
+
+if(!empty($d["additional_emails"])){
+foreach($d["additional_emails"] as $em){
+$txt .= "Extra: $em\n";
+}
+}
+
+if(!empty($d["phones"])){
+foreach($d["phones"] as $ph){
+$txt .= "Tel: $ph\n";
+}
+}
+
+# ENDEREÇO PRINCIPAL
+if(!empty($d["address"])){
+
+$a = $d["address"];
+
+$txt .= "
+
+📍 ENDEREÇO PRINCIPAL
+──────────────────────────────
+{$a["type"]} {$a["street"]}, {$a["number"]}
+Bairro: {$a["neighborhood"]}
+Cidade: {$a["city"]} - {$a["state"]}
+CEP: {$a["zip_code"]}
+";
+}
+
+# TODOS ENDEREÇOS
+if(!empty($d["all_addresses"])){
+
+$txt .= "
+
+🏠 HISTÓRICO DE ENDEREÇOS
+──────────────────────────────
+";
+
+foreach($d["all_addresses"] as $a){
+$txt .= "
+{$a["type"]} {$a["street"]}, {$a["number"]}
+{$a["city"]} - {$a["state"]}
+Fonte: {$a["source"]}
+";
+}
+}
+
+# ECOMMERCE (OURO PURO)
+if(!empty($d["paycom_orders"]["latest_orders"])){
+
+$txt .= "
+
+🛒 ATIVIDADE DE COMPRA
+──────────────────────────────
+Pedidos: ".$d["paycom_orders"]["total_orders"]."
+";
+
+foreach($d["paycom_orders"]["latest_orders"] as $o){
+$txt .= "
+Pedido: {$o["order_id"]}
+Email: {$o["email"]}
+Data: {$o["created_at"]}
+";
+}
+}
+
+# PARENTES
+if(!empty($d["parentes"])){
+
+$txt .= "
+
+👨‍👩‍👧 PARENTES
+──────────────────────────────
+";
+
+foreach($d["parentes"] as $p){
+$txt .= "{$p["nome"]} - {$p["vinculo"]}\n";
+}
+}
+
+# VIZINHOS (ABSURDO)
+if(!empty($d["vizinhos"])){
+
+$txt .= "
+
+🏘 VIZINHOS
+──────────────────────────────
+";
+
+foreach(array_slice($d["vizinhos"],0,10) as $v){
+$txt .= "
+{$v["nome"]}
+{$v["logradouro"]}, {$v["numero"]}
+";
+}
+}
+
+# SCORE
+if(!empty($d["serasa_completo"]["score"])){
+
+$s = $d["serasa_completo"]["score"];
+
+$txt .= "
+
+📊 SCORE
+──────────────────────────────
+CSB8: {$s["CSB8"]} ({$s["CSB8_FAIXA"]})
+CSBA: {$s["CSBA"]} ({$s["CSBA_FAIXA"]})
+";
+}
+
+# PODER AQUISITIVO
+if(!empty($d["poder_aquisitivo"])){
+
+$p = $d["poder_aquisitivo"];
+
+$txt .= "
+
+💰 PODER AQUISITIVO
+──────────────────────────────
+{$p["PODER_AQUISITIVO"]}
+{$p["FX_PODER_AQUISITIVO"]}
+";
+}
+
+# PERFIL DE ATIVIDADE
+if(!empty($d["activity_profile"])){
+
+$a = $d["activity_profile"];
+
+$txt .= "
+
+📈 PERFIL DE ATIVIDADE
+──────────────────────────────
+Primeira compra: {$a["first_order"]}
+Última compra: {$a["last_order"]}
+Período: {$a["period_days"]} dias
+Ativo: ".($a["is_active_buyer"] ? "SIM" : "NÃO")."
+";
+}
+
+# RESUMO DE DADOS
+if(!empty($d["data_coverage"])){
+
+$c = $d["data_coverage"]["completeness"];
+
+$txt .= "
+
+🧬 COBERTURA DE DADOS
+──────────────────────────────
+Pessoal: ".($c["has_personal_data"] ? "✔" : "✘")."
+Contato: ".($c["has_contact"] ? "✔" : "✘")."
+Financeiro: ".($c["has_financial"] ? "✔" : "✘")."
+E-commerce: ".($c["has_ecommerce"] ? "✔" : "✘")."
+";
+}
+
+$txt .= "
+
+──────────────────────────────
+Consulta realizada via:
+ASTRO SEARCH ULTRA
+";
+
+$file = "cache_cpf3_{$cpf}.txt";
+file_put_contents($file,$txt);
+
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"🔥 <b>Consulta ULTRA realizada</b>\n\nEscolha como quer ver essa pedrada:",
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"📄 Mostrar no Telegram","callback_data"=>"cpf3_msg|$cpf"]
+],
+[
+["text"=>"📁 Enviar TXT","callback_data"=>"cpf3_file|$cpf"]
+],
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+],
+[
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+]
+]
+])
+]);
+
+}
+
 function consultaPlaca($chat, $placa){
 
 global $STICKER_LOADING;
@@ -2642,7 +2930,7 @@ Todas consultas VIP liberadas por 1 hora.",
     }
 
     // ===== COMANDOS VIP =====
-$vipCmds = ["/cpf","/fotorj","/fotosp","/instagram","/cpf1","/cpf2","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
+$vipCmds = ["/cpf","/fotorj","/fotosp","/instagram","/cpf1","/cpf2","/cpf3","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
     if(in_array($cmd, $vipCmds)){
 
     // ❗ primeiro valida se enviou argumento
@@ -2692,6 +2980,11 @@ $vipCmds = ["/cpf","/fotorj","/fotosp","/instagram","/cpf1","/cpf2","/vizinhos",
         
         if($cmd === "/cpf2"){
     consultaCPF2($chat, $arg);
+    exit;
+}
+
+if($cmd === "/cpf3"){
+    consultaCPF3($chat, $arg);
     exit;
 }
 
