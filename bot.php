@@ -2429,7 +2429,7 @@ file_put_contents($file,$txt);
 
 tg("sendMessage",[
 "chat_id"=>$chat,
-"text"=>"🔥 <b>Consulta ULTRA realizada</b>\n\nEscolha como quer ver essa pedrada:",
+"text"=>"🔥 <b>Consulta ULTRA realizada</b>\n\nEscolha como quer ver essa bomba:",
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
@@ -3208,6 +3208,80 @@ unlink($file);
 
 exit;
 }
+
+# CPF3 MOSTRAR NO TELEGRAM
+if(str_starts_with($callback["data"],"cpf3_msg")){
+
+$dados = explode("|",$callback["data"]);
+$cpf = $dados[1];
+
+$file = "cache_cpf3_{$cpf}.txt";
+
+if(!file_exists($file)){
+exit;
+}
+
+$txt = file_get_contents($file);
+$partes = str_split($txt,4000);
+
+foreach($partes as $index => $parte){
+
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"<pre>".$parte."</pre>",
+"parse_mode"=>"HTML",
+"reply_markup"=>$index == 0 ? json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+],
+[
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+]
+]
+]) : null
+]);
+
+}
+
+unlink($file);
+
+exit;
+}
+
+# CPF3 ENVIAR TXT
+if(str_starts_with($callback["data"],"cpf3_file")){
+
+$dados = explode("|",$callback["data"]);
+$cpf = $dados[1];
+
+$file = "cache_cpf3_{$cpf}.txt";
+
+if(!file_exists($file)){
+exit;
+}
+
+tg("sendDocument",[
+"chat_id"=>$chat,
+"document"=>new CURLFile($file,"text/plain","cpf3_{$cpf}.txt"),
+"caption"=>"📑 <b>Consulta CPF ULTRA</b>",
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+],
+[
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+]
+]
+])
+]);
+
+unlink($file);
+
+exit;
+}
     
     
     // ===== CALLBACK CPF BOTÕES =====
@@ -3229,6 +3303,10 @@ if(str_starts_with($callback["data"],"cpf_")){
     
     if($tipo == "cpf2"){
         consultaCPF2($chat,$cpf);
+    }
+    
+    if($tipo == "cpf3"){
+        consultaCPF3($chat,$cpf);
     }
 
     if($tipo == "cpf_vizinhos"){
