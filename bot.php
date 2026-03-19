@@ -3159,6 +3159,33 @@ unlink($file);
 exit;
 }
 
+if(str_starts_with($callback["data"],"delpack")){
+
+$dados = explode("|",$callback["data"]);
+$cpf = $dados[1];
+
+$file = "cache_ids_{$cpf}.json";
+
+if(!file_exists($file)){
+exit;
+}
+
+$ids = json_decode(file_get_contents($file),true);
+
+foreach($ids as $msg_id){
+
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$msg_id
+]);
+
+}
+
+unlink($file);
+
+exit;
+}
+
 if(str_starts_with($callback["data"],"cpf2_file")){
 
 $dados = explode("|",$callback["data"]);
@@ -3233,7 +3260,7 @@ exit;
 }
 
 # CPF3 ENVIAR TXT
-if(str_starts_with($callback["data"],"cpf3_file")){
+if(str_starts_with($callback["data"],"cpf3_msg")){
 
 $dados = explode("|",$callback["data"]);
 $cpf = $dados[1];
@@ -3244,22 +3271,39 @@ if(!file_exists($file)){
 exit;
 }
 
-tg("sendDocument",[
+$txt = file_get_contents($file);
+$partes = str_split($txt,4000);
+
+$msg_ids = [];
+
+foreach($partes as $index => $parte){
+
+$send = tg("sendMessage",[
 "chat_id"=>$chat,
-"document"=>new CURLFile($file,"text/plain","cpf3_{$cpf}.txt"),
-"caption"=>"📑 <b>Consulta CPF ULTRA</b>",
+"text"=>"<pre>".$parte."</pre>",
 "parse_mode"=>"HTML",
-"reply_markup"=>json_encode([
+"reply_markup"=>$index == count($partes)-1 ? json_encode([
 "inline_keyboard"=>[
 [
-["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+["text"=>"🗑 Apagar tudo","callback_data"=>"delpack|$cpf"]
 ],
 [
 ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
 ]
 ]
-])
+]) : null
 ]);
+
+$res = json_decode($send,true);
+
+if(isset($res["result"]["message_id"])){
+$msg_ids[] = $res["result"]["message_id"];
+}
+
+}
+
+# salva os ids pra apagar depois
+file_put_contents("cache_ids_{$cpf}.json",json_encode($msg_ids));
 
 unlink($file);
 
