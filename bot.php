@@ -2171,6 +2171,10 @@ function consultaCPF3($chat,$cpf){
 
 global $STICKER_LOADING;
 
+function v($v){
+return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
+}
+
 $sticker = tg("sendSticker",[
 "chat_id"=>$chat,
 "sticker"=>$STICKER_LOADING
@@ -2238,20 +2242,31 @@ $txt = "
 
 🧠 DADOS PRINCIPAIS
 ──────────────────────────────
-CPF: {$d["cpf_masked"]}
-Nome: {$d["name"]}
-Nascimento: {$d["birth_date"]}
-Sexo: {$d["gender"]}
-Situação: {$d["federal_status"]}
+CPF: ".v($d["cpf_masked"])."
+Nome: ".v($d["name"])."
+Primeiro nome: ".v($d["first_name"])."
+Sobrenome: ".v($d["last_name"])."
+Nascimento: ".v($d["birth_date"])."
+Sexo: ".v($d["gender"])."
+Situação: ".v($d["federal_status"])."
 
-Mãe: {$d["mother_name"]}
-Pai: {$d["father_name"]}
+Mãe: ".v($d["mother_name"])."
+Pai: ".v($d["father_name"])."
 
-Renda: R$ {$d["income"]}
-Faixa renda: {$d["income_bracket"]}
-Classe social: {$d["social_class"]["social_class"]}
+RG: ".v($d["rg"])."
+Orgão emissor: ".v($d["rg_issuer"])."
+Estado RG: ".v($d["rg_state"])."
+Título eleitor: ".v($d["voter_id"])."
+
+Profissão (CBO): ".v($d["cbo"])."
+Cidade nascimento: ".v($d["birth_city"])."
+
+Renda: R$ ".v($d["income"])."
+Faixa renda: ".v($d["income_bracket"])."
+Classe social: ".v($d["social_class"]["social_class"] ?? null)."
 
 Óbito: ".($d["death_flag"] == "1" ? "SIM" : "NÃO")."
+Data óbito: ".v($d["death_date"])."
 ";
 
 # CONTATO
@@ -2259,164 +2274,133 @@ $txt .= "
 
 📡 CONTATO
 ──────────────────────────────
-Email principal: {$d["email"]}
+Email principal: ".v($d["email"])."
 ";
 
-if(!empty($d["additional_emails"])){
+if(isset($d["additional_emails"])){
 foreach($d["additional_emails"] as $em){
-$txt .= "Extra: $em\n";
+$txt .= "Extra: ".v($em)."\n";
 }
 }
 
-if(!empty($d["phones"])){
+if(isset($d["phones"])){
 foreach($d["phones"] as $ph){
-$txt .= "Tel: $ph\n";
+$txt .= "Tel: ".v($ph)."\n";
+}
+}
+
+if(isset($d["datasus_phones"])){
+foreach($d["datasus_phones"] as $ph){
+$txt .= "Datasus: ".v($ph)."\n";
 }
 }
 
 # ENDEREÇO PRINCIPAL
-if(!empty($d["address"])){
-
-$a = $d["address"];
+$a = $d["address"] ?? [];
 
 $txt .= "
 
 📍 ENDEREÇO PRINCIPAL
 ──────────────────────────────
-{$a["type"]} {$a["street"]}, {$a["number"]}
-Bairro: {$a["neighborhood"]}
-Cidade: {$a["city"]} - {$a["state"]}
-CEP: {$a["zip_code"]}
+".v($a["type"] ?? null)." ".v($a["street"] ?? null).", ".v($a["number"] ?? null)."
+Bairro: ".v($a["neighborhood"] ?? null)."
+Cidade: ".v($a["city"] ?? null)." - ".v($a["state"] ?? null)."
+CEP: ".v($a["zip_code"] ?? null)."
+Complemento: ".v($a["complement"] ?? null)."
 ";
-}
 
-# TODOS ENDEREÇOS
-if(!empty($d["all_addresses"])){
-
+# HISTÓRICO ENDEREÇOS
 $txt .= "
 
 🏠 HISTÓRICO DE ENDEREÇOS
 ──────────────────────────────
 ";
 
+if(isset($d["all_addresses"])){
 foreach($d["all_addresses"] as $a){
 $txt .= "
-{$a["type"]} {$a["street"]}, {$a["number"]}
-{$a["city"]} - {$a["state"]}
-Fonte: {$a["source"]}
+".v($a["type"])." ".v($a["street"]).", ".v($a["number"])."
+".v($a["city"])." - ".v($a["state"])."
+CEP: ".v($a["zip_code"])."
+Fonte: ".v($a["source"])."
 ";
 }
 }
 
-# ECOMMERCE (OURO PURO)
-if(!empty($d["paycom_orders"]["latest_orders"])){
-
+# VEÍCULOS
 $txt .= "
 
-🛒 ATIVIDADE DE COMPRA
+🚗 VEÍCULOS
 ──────────────────────────────
-Pedidos: ".$d["paycom_orders"]["total_orders"]."
+Total: ".v($d["vehicles"]["count"] ?? null)."
 ";
-
-foreach($d["paycom_orders"]["latest_orders"] as $o){
-$txt .= "
-Pedido: {$o["order_id"]}
-Email: {$o["email"]}
-Data: {$o["created_at"]}
-";
-}
-}
 
 # PARENTES
-if(!empty($d["parentes"])){
-
 $txt .= "
 
 👨‍👩‍👧 PARENTES
 ──────────────────────────────
 ";
 
+if(isset($d["parentes"])){
 foreach($d["parentes"] as $p){
-$txt .= "{$p["nome"]} - {$p["vinculo"]}\n";
+$txt .= v($p["nome"])." - ".v($p["vinculo"])."\n";
 }
 }
 
-# VIZINHOS (ABSURDO)
-if(!empty($d["vizinhos"])){
-
+# VIZINHOS
 $txt .= "
 
 🏘 VIZINHOS
 ──────────────────────────────
 ";
 
-foreach(array_slice($d["vizinhos"],0,10) as $v){
+if(isset($d["vizinhos"])){
+foreach($d["vizinhos"] as $v){
 $txt .= "
-{$v["nome"]}
-{$v["logradouro"]}, {$v["numero"]}
+".v($v["nome"])."
+".v($v["logradouro"]).", ".v($v["numero"])."
+Bairro: ".v($v["bairro"])."
 ";
 }
 }
 
-# SCORE
-if(!empty($d["serasa_completo"]["score"])){
-
-$s = $d["serasa_completo"]["score"];
+# SCORE SERASA
+$s = $d["serasa_completo"]["score"] ?? [];
 
 $txt .= "
 
-📊 SCORE
+📊 SCORE SERASA
 ──────────────────────────────
-CSB8: {$s["CSB8"]} ({$s["CSB8_FAIXA"]})
-CSBA: {$s["CSBA"]} ({$s["CSBA_FAIXA"]})
+CSB8: ".v($s["CSB8"] ?? null)." (".v($s["CSB8_FAIXA"] ?? null).")
+CSBA: ".v($s["CSBA"] ?? null)." (".v($s["CSBA_FAIXA"] ?? null).")
 ";
-}
 
 # PODER AQUISITIVO
-if(!empty($d["poder_aquisitivo"])){
-
-$p = $d["poder_aquisitivo"];
+$p = $d["poder_aquisitivo"] ?? [];
 
 $txt .= "
 
 💰 PODER AQUISITIVO
 ──────────────────────────────
-{$p["PODER_AQUISITIVO"]}
-{$p["FX_PODER_AQUISITIVO"]}
+".v($p["PODER_AQUISITIVO"] ?? null)."
+".v($p["FX_PODER_AQUISITIVO"] ?? null)."
 ";
-}
 
-# PERFIL DE ATIVIDADE
-if(!empty($d["activity_profile"])){
-
-$a = $d["activity_profile"];
-
-$txt .= "
-
-📈 PERFIL DE ATIVIDADE
-──────────────────────────────
-Primeira compra: {$a["first_order"]}
-Última compra: {$a["last_order"]}
-Período: {$a["period_days"]} dias
-Ativo: ".($a["is_active_buyer"] ? "SIM" : "NÃO")."
-";
-}
-
-# RESUMO DE DADOS
-if(!empty($d["data_coverage"])){
-
-$c = $d["data_coverage"]["completeness"];
+# COBERTURA
+$c = $d["data_coverage"]["completeness"] ?? [];
 
 $txt .= "
 
 🧬 COBERTURA DE DADOS
 ──────────────────────────────
-Pessoal: ".($c["has_personal_data"] ? "✔" : "✘")."
-Contato: ".($c["has_contact"] ? "✔" : "✘")."
-Financeiro: ".($c["has_financial"] ? "✔" : "✘")."
-E-commerce: ".($c["has_ecommerce"] ? "✔" : "✘")."
+Pessoal: ".(!empty($c["has_personal_data"]) ? "✔" : "✘")."
+Contato: ".(!empty($c["has_contact"]) ? "✔" : "✘")."
+Endereço: ".(!empty($c["has_address"]) ? "✔" : "✘")."
+Financeiro: ".(!empty($c["has_financial"]) ? "✔" : "✘")."
+Veículos: ".(!empty($c["has_vehicles"]) ? "✔" : "✘")."
+E-commerce: ".(!empty($c["has_ecommerce"]) ? "✔" : "✘")."
 ";
-}
 
 $txt .= "
 
@@ -2430,7 +2414,7 @@ file_put_contents($file,$txt);
 
 tg("sendMessage",[
 "chat_id"=>$chat,
-"text"=>"🔥 <b>Consulta ULTRA realizada</b>\n\nEscolha como quer ver essa bomba:",
+"text"=>"🔥 <b>Consulta ULTRA realizada</b>\n\nEscolha o formato:",
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
@@ -2442,9 +2426,6 @@ tg("sendMessage",[
 ],
 [
 ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
-],
-[
-["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
 ]
 ]
 ])
