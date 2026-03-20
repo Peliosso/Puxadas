@@ -1764,7 +1764,7 @@ return;
 
 $p = $json["resultado"];
 
-$txt = "CONSULTA CPF — BLACKAUT
+$txt = "CONSULTA CPF — FULL
 =================================
 
 CPF: {$p["cpf"]}
@@ -1852,7 +1852,7 @@ $txt .= "Faixa: {$p["score"]["csba_range"]}\n";
 
 $txt .= "\n--------------------------------
 Consulta via:
-Blackaut API
+Astro Search
 ";
 
 $file = tempnam(sys_get_temp_dir(),"cpf_");
@@ -1861,7 +1861,7 @@ file_put_contents($file,$txt);
 tg("sendDocument",[
 "chat_id"=>$chat,
 "document"=>new CURLFile($file,"text/plain","cpf_{$cpf}.txt"),
-"caption"=>"🧾 <b>Consulta de CPF concluída</b>\n\n⚡ API: <b>Blackaut</b>",
+"caption"=>"🧾 <b>Consulta de CPF concluída</b>\n\n⚡ API: <b>Astro</b>",
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
     "inline_keyboard"=>[
