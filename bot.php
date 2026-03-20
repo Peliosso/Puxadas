@@ -30,6 +30,7 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 /* ================= VIP ================= */
 
 $VIP_IDS = [
+    7558946881,
     8743506469,
     6014131536,
     5410252210,
@@ -1742,7 +1743,9 @@ tg("sendMessage",[
 return;
 }
 
-$url = "https://orbyta.online/api/apifullcpf?cpf={$cpf}&token=FNiPeeltHc5pwy7HWnPCiIs7zIRr7SDB";
+// NOVA API
+$url = "https://api.blackaut.shop/api/dados-pessoais/cpf?cpf={$cpf}&apikey=EbmScZ0ntHf61KJz3H";
+
 $resp = @file_get_contents($url);
 $json = json_decode($resp,true);
 
@@ -1753,185 +1756,103 @@ tg("deleteMessage",[
 ]);
 }
 
-if(!$json || $json["execucao"]["status"] != "ENCONTRADO"){
-
+// VALIDAÇÃO
+if(!$json || !$json["status"]){
 naoEncontrado($chat,"CPF",$cpf);
-
 return;
 }
 
-$p = $json["dados_pessoais"];
+$p = $json["resultado"];
 
-$txt = "CONSULTA CPF FULL — ASTRO SEARCH
+$txt = "CONSULTA CPF — BLACKAUT
 =================================
 
 CPF: {$p["cpf"]}
-Nome: {$p["nome"]}
-Nascimento: {$p["data_nascimento"]}
-Sexo: {$p["sexo"]}
+Nome: {$p["name"]}
+Nascimento: {$p["birth"]}
+Idade: {$p["age"]}
+Sexo: {$p["gender"]}
 
-Mãe: {$p["nome_mae"]}
-Estado Civil: ".($p["estado_civil"] ?? "Não informado")."
-Nacionalidade: ".($p["nacionalidade"] ?? "Não informado")."
+Mãe: {$p["mother_name"]}
+Pai: ".($p["father_name"] ?: "Não informado")."
 
-RG: ".($p["rg"] ?? "Não informado")."
-Orgão Emissor: ".($p["orgao_emissor"] ?? "Não informado")."
-Data Emissão RG: ".($p["data_emissao_rg"] ?? "Não informado")."
+Signo: {$p["sign"]}
+Estado Civil: ".($p["marital_status"] ?: "Não informado")."
 
-Naturalidade: ".($p["naturalidade"] ?? "Não informado")."
-CNS: ".($p["cns"] ?? "Não informado")."
-
-Status Receita: {$p["status_receita"]}
+CBO: {$p["cbo"]}
+Situação Receita: {$p["cd_sit_cad"]}
+Data Situação: {$p["dt_sit_cad"]}
 
 --------------------------------
 ";
 
-if(isset($json["familia"])){
-
-$txt .= "\nFAMILIARES
---------------------------------\n";
-
-foreach($json["familia"] as $f){
-
-$txt .= "{$f["vinculo"]}: {$f["nome"]} - CPF {$f["cpf_parente"]}\n";
-
-}
-
-}
-
-if(isset($json["contatos"]["telefones"])){
-
-$txt .= "\nTELEFONES
---------------------------------\n";
-
-foreach($json["contatos"]["telefones"] as $t){
-
-$txt .= "({$t["ddd"]}) {$t["numero"]} - {$t["tipo"]}\n";
-
-}
-
-}
-
-if(isset($json["contatos"]["emails"])){
-
-$txt .= "\nEMAILS
---------------------------------\n";
-
-foreach($json["contatos"]["emails"] as $e){
-
-$txt .= "{$e}\n";
-
-}
-
-}
-
-if(isset($json["enderecos"])){
+// ENDEREÇOS
+if(!empty($p["addresses"])){
 
 $txt .= "\nENDEREÇOS
 --------------------------------\n";
 
-foreach($json["enderecos"] as $e){
+foreach($p["addresses"] as $e){
 
-$txt .= "{$e["logradouro"]}, {$e["numero"]}\n";
-$txt .= "{$e["bairro"]} - {$e["cidade"]}/{$e["uf"]}\n";
-$txt .= "CEP {$e["cep"]}\n\n";
-
-}
+$txt .= "{$e["logr_type"]} {$e["logr_name"]}, {$e["logr_number"]}\n";
+$txt .= "{$e["neighborhood"]} - {$e["city"]}/{$e["state"]}\n";
+$txt .= "CEP {$e["zip_code"]}\n\n";
 
 }
 
-if(isset($json["veiculos"])){
+}
 
-$txt .= "\nVEÍCULOS
+// TELEFONES
+if(!empty($p["telephones"])){
+
+$txt .= "\nTELEFONES
 --------------------------------\n";
 
-foreach($json["veiculos"] as $v){
+foreach($p["telephones"] as $t){
 
-$txt .= "{$v["modelo"]} - Ano {$v["ano"]}\n";
-
-}
+$txt .= "({$t["ddd"]}) {$t["phone_number"]}\n";
 
 }
 
-if(isset($json["financeiro"])){
+}
 
-$f = $json["financeiro"];
+// EMAILS
+if(!empty($p["emails"])){
 
-$txt .= "\nFINANCEIRO
+$txt .= "\nEMAILS
 --------------------------------\n";
 
-$txt .= "PIS: {$f["pis"]}\n";
-$txt .= "Renda Estimada: {$f["renda_estimada"]}\n";
+foreach($p["emails"] as $e){
 
-if(isset($f["score"])){
-
-$txt .= "Score CSB8: {$f["score"]["csb8"]}\n";
-$txt .= "Score CSBA: {$f["score"]["csba"]}\n";
+$txt .= "{$e["email"]}\n";
 
 }
 
 }
 
-if(isset($json["dados_bancarios"])){
+// PIS
+if(!empty($p["pis"]["pis_number"])){
 
-$txt .= "\nDADOS BANCÁRIOS
+$txt .= "\nPIS
+--------------------------------\n";
+$txt .= "{$p["pis"]["pis_number"]}\n";
+
+}
+
+// SCORE
+if(!empty($p["score"])){
+
+$txt .= "\nSCORE
 --------------------------------\n";
 
-foreach($json["dados_bancarios"] as $b){
-
-$txt .= "{$b["instituicao"]} - Agência {$b["agencia"]}\n";
-
-}
-
-}
-
-if(isset($json["trabalho"])){
-
-$t = $json["trabalho"];
-
-$txt .= "\nTRABALHO
---------------------------------\n";
-
-$txt .= "CBO: ".($t["cbo"] ?? "Não informado")."\n";
-
-}
-
-if(isset($json["servidor_publico"])){
-
-$s = $json["servidor_publico"];
-
-$txt .= "\nSERVIDOR PÚBLICO
---------------------------------\n";
-
-$txt .= "Funcionário Público: ".($s["is_funcionario_publico"] ? "SIM" : "NÃO")."\n";
-
-}
-
-if(isset($json["titulo_eleitor"])){
-
-$txt .= "\nTÍTULO DE ELEITOR
---------------------------------\n";
-
-$txt .= $json["titulo_eleitor"]."\n";
-
-}
-
-if(isset($json["perfil_consumo"])){
-
-$txt .= "\nPERFIL DE CONSUMO
---------------------------------\n";
-
-foreach($json["perfil_consumo"] as $k=>$v){
-
-$txt .= strtoupper($k).": ".$v."\n";
-
-}
+$txt .= "CSBA: {$p["score"]["csba"]}\n";
+$txt .= "Faixa: {$p["score"]["csba_range"]}\n";
 
 }
 
 $txt .= "\n--------------------------------
 Consulta via:
-Astro Search
+Blackaut API
 ";
 
 $file = tempnam(sys_get_temp_dir(),"cpf_");
@@ -1939,8 +1860,8 @@ file_put_contents($file,$txt);
 
 tg("sendDocument",[
 "chat_id"=>$chat,
-"document"=>new CURLFile($file,"text/plain","cpf_full_{$cpf}.txt"),
-"caption"=>"🧾 <b>Consulta de CPF FULL concluída</b>\n\nCréditos: <b>Astro Search</b>",
+"document"=>new CURLFile($file,"text/plain","cpf_{$cpf}.txt"),
+"caption"=>"🧾 <b>Consulta de CPF concluída</b>\n\n⚡ API: <b>Blackaut</b>",
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
     "inline_keyboard"=>[
