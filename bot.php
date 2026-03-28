@@ -1530,16 +1530,16 @@ $txt,
 function consultaNome($chat, $nome){
     global $STICKER_LOADING;
 
-    // Sticker loading
+    // sticker carregando
     $sticker = tg("sendSticker",[
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
     ]);
 
-    $stickerData = json_decode($sticker, true);
+    $stickerData = json_decode($sticker,true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-    if(strlen($nome) < 5){
+    if(strlen($nome) < 3){
 
         if($stickerMsgId){
             tg("deleteMessage",[
@@ -1553,26 +1553,18 @@ function consultaNome($chat, $nome){
             "text"=>"❌ Nome inválido.\nUse: <code>/nome João Silva</code>",
             "parse_mode"=>"HTML"
         ]);
+
         return;
     }
 
-    $nomeUrl = urlencode($nome);
+    $nomeQuery = urlencode($nome);
 
-    // NOVA API
-    $url = "https://api.blackaut.shop/api/dados-pessoais/nome?nome={$nomeUrl}&apikey=EbmScZ0ntHf61KJz3H";
+    // 🔎 API NOVA
+    $url = "https://sara-api.xyz/api/consulta/nome-v1?nome={$nomeQuery}&apikey=bigmouth";
 
-    $ch = curl_init($url);
-    curl_setopt_array($ch,[
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 20
-    ]);
+    $resp = @file_get_contents($url);
+    $json = json_decode($resp,true);
 
-    $response = curl_exec($ch);
-    curl_close($ch);
-
-    $json = json_decode($response, true);
-
-    // remove sticker
     if($stickerMsgId){
         tg("deleteMessage",[
             "chat_id"=>$chat,
@@ -1580,46 +1572,55 @@ function consultaNome($chat, $nome){
         ]);
     }
 
-    if(!$json || empty($json["resultado"])){
+    if(!$json || !$json["status"] || empty($json["resultados"])){
+        naoEncontrado($chat,"NOME",$nome);
+        return;
+    }
 
-    naoEncontrado($chat,"NOME",$nome);
-    return;
-}
+    $total = $json["total_encontrados"];
 
     $txt =
-"CONSULTA POR NOME — ASTRO SEARCH
-================================
+"CONSULTA DE NOME — ASTRO SEARCH
+=================================
 
-Nome pesquisado: {$nome}
+NOME PESQUISADO: {$nome}
 
-================================
+TOTAL ENCONTRADO: {$total}
+
+---------------------------------
+
 ";
 
-    foreach($json["resultado"] as $pessoa){
+    foreach($json["resultados"] as $p){
 
-        $txt .= "
-CPF: {$pessoa["cpf"]}
-Nome: {$pessoa["name"]}
-Sexo: {$pessoa["gender"]}
-Nascimento: {$pessoa["birth"]}
-Idade: {$pessoa["age"]}
-Signo: {$pessoa["sign"]}
+        $txt .=
+"Nome: {$p["nome"]}
+CPF: {$p["cpf"]}
+Sexo: {$p["sexo"]}
+Nascimento: {$p["nascimento"]}
 
---------------------------------
+---------------------------------
 ";
     }
 
-    $txt .= "
-Consulta via:
-Astro Search
-";
+    $file = tempnam(sys_get_temp_dir(),"nome_");
+    file_put_contents($file,$txt);
 
-    resultadoConsulta(
-        $chat,
-        "Consulta por Nome",
-        $txt,
-        "nome"
-    );
+    tg("sendDocument",[
+        "chat_id"=>$chat,
+        "document"=>new CURLFile($file,"text/plain","nome_resultado.txt"),
+        "caption"=>"👤 <b>Consulta de nome concluída</b>\n\nCréditos: <b>Astro Search</b>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+                ]
+            ]
+        ])
+    ]);
+
+    unlink($file);
 }
 
 function consultaParentes($chat, $cpf){
