@@ -1481,7 +1481,7 @@ tg("sendMessage",[
 return;
 }
 
-$url = "https://astro.stherlionato.workers.dev/telefone?token=IFNastro&telefone={$telefone}";
+$url = "https://sara-api.xyz/consulta/telefone-full?phone={$telefone}";
 
 $ch = curl_init();
 curl_setopt_array($ch,[
@@ -1503,14 +1503,14 @@ tg("deleteMessage",[
 ]);
 }
 
-if(!$data || empty($data["dados"])){
+if(!$data || empty($data["resultado"]["data"])){
 
 naoEncontrado($chat,"TELEFONE",$telefone);
 return;
 
 }
 
-$total = $data["total_resultados"];
+$res = $data["resultado"];
 
 $txt =
 "╔══════════════════════════════╗
@@ -1520,138 +1520,32 @@ $txt =
 📞 Telefone pesquisado
 {$telefone}
 
-📊 Resultados encontrados
-{$total}
+📊 Registros encontrados
+".$res["count"]."
 
-══════════════════════════════
+🌐 Fontes consultadas
+".$res["sources"]."
+
+──────────────────────────────
 ";
 
-foreach($data["dados"] as $p){
-
-$id = $p["identificacao"];
-$fili = $p["filiacao"];
-$cont = $p["contato"];
-$end = $p["enderecos"]["principal"];
+foreach($res["data"] as $p){
 
 $txt .= "
+👤 Nome: ".v($p["nome"])."
+CPF: ".v($p["cpf"])."
+Cidade: ".v($p["cidade"])."
+UF: ".v($p["uf"])."
+Fonte: ".v($p["fonte"])."
 
-👤 IDENTIFICAÇÃO
-Nome: ".v($id["nome"])."
-CPF: ".v($id["cpf_formatado"])."
-Sexo: ".v($id["sexo"])."
-Nascimento: ".v($id["nascimento"])."
-
-👨‍👩‍👦 FILIAÇÃO
-Mãe: ".v($fili["mae"])."
-Pai: ".v($fili["pai"])."
-
-📍 ENDEREÇO PRINCIPAL
-".v($end["type"])." ".v($end["street"]).", ".v($end["number"])."
-Bairro: ".v($end["neighborhood"])."
-Cidade: ".v($end["city"])."
-Estado: ".v($end["state"])."
-CEP: ".v($end["zip_code"])."
-
-📞 TELEFONES VINCULADOS
-";
-
-if(!empty($cont["telefones"])){
-foreach($cont["telefones"] as $tel){
-$txt .= "• {$tel}\n";
-}else{
-$txt .= "NÃO ENCONTRADO\n";
-}
-
-$txt .= "
-
-📧 EMAILS
-";
-
-if(!empty($cont["emails"])){
-foreach($cont["emails"] as $email){
-$txt .= "• {$email}\n";
-}
-}else{
-$txt .= "NÃO ENCONTRADO\n";
-}
-
-/* HISTORICO ENDEREÇOS */
-
-$txt .= "
-
-📍 HISTÓRICO DE ENDEREÇOS
-";
-
-if(!empty($p["enderecos"]["historico"])){
-
-foreach($p["enderecos"]["historico"] as $h){
-
-$txt .= "
-
-".v($h["type"])." ".v($h["street"]).", ".v($h["number"])."
-Bairro: ".v($h["neighborhood"])."
-Cidade: ".v($h["city"])."
-Estado: ".v($h["state"])."
-CEP: ".v($h["zip_code"])."
-Fonte: ".v($h["source"])."
-";
-
-}
-
-}else{
-
-$txt .= "NÃO ENCONTRADO\n";
-
-}
-
-/* PARENTES */
-
-$txt .= "
-
-👨‍👩‍👧‍👦 PARENTES
-";
-
-if(!empty($p["familia"]["parentes"])){
-
-foreach($p["familia"]["parentes"] as $par){
-$txt .= "• {$par}\n";
-}
-
-}else{
-
-$txt .= "NÃO ENCONTRADO\n";
-
-}
-
-/* VEICULOS */
-
-$txt .= "
-
-🚗 VEÍCULOS
-";
-
-if(!empty($p["veiculos"])){
-
-foreach($p["veiculos"] as $v){
-$txt .= "• ".json_encode($v)."\n";
-}
-
-}else{
-
-$txt .= "NÃO ENCONTRADO\n";
-
-}
-
-$txt .= "
-
-══════════════════════════════
+──────────────────────────────
 ";
 
 }
 
 $txt .= "
 
-Consulta realizada via
+Consulta realizada via:
 ASTRO SEARCH
 ";
 
@@ -1662,6 +1556,133 @@ $txt,
 "telefone"
 );
 
+}
+
+https://astro.stherlionato.workers.dev/telefone?token=IFNastro&telefone=3799808-5305
+
+{
+  "status": true,
+  "meta": {
+    "sistema": "Astro Search",
+    "empresa": "Astro Company",
+    "criador": "@puxardados5",
+    "endpoint": "telefone",
+    "timestamp": "2026-03-29T17:25:19.475Z"
+  },
+  "consulta": "37998085305",
+  "total_resultados": 1,
+  "dados": [
+    {
+      "telefone_consultado": "37998085305",
+      "identificacao": {
+        "cpf": "48149055649",
+        "cpf_formatado": "481.490.556-49",
+        "nome": "CLAUDIONOR BAETA DE MELO",
+        "sexo": "M",
+        "nascimento": "18/09/1963"
+      },
+      "localizacao": {
+        "cidade": null,
+        "estado": null
+      },
+      "contato": {
+        "email": null,
+        "emails": [],
+        "telefones": [
+          "37999753875",
+          "37998085305"
+        ]
+      },
+      "filiacao": {
+        "mae": "FRANCISCA CAROLINA DAS DORES",
+        "pai": "JOAO ELIAS DE MELO"
+      },
+      "enderecos": {
+        "principal": {
+          "type": "RUA",
+          "street": "FRANCISCO ISRAEL FILHO",
+          "number": "0",
+          "complement": null,
+          "neighborhood": "CENTRO",
+          "city": "ARAUJOS",
+          "state": "MINAS GERAIS",
+          "zip_code": "35603000"
+        },
+        "historico": [
+          {
+            "type": "RUA",
+            "street": "FRANCISCO ISRAEL FILHO",
+            "number": "0",
+            "complement": null,
+            "neighborhood": "CENTRO",
+            "city": "ARAUJOS",
+            "state": "MINAS GERAIS",
+            "zip_code": "35603000",
+            "source": "PRINCIPAL"
+          },
+          {
+            "street": "FAUSTO P DA FONSECA",
+            "type": "R",
+            "number": "325",
+            "complement": null,
+            "neighborhood": "CENTRO",
+            "city": "NOVA SERRANA",
+            "state": "MG",
+            "zip_code": "35519000",
+            "source": "SERASA"
+          },
+          {
+            "street": "FRANCISCO ISRAEL FILHO",
+            "type": "R",
+            "number": "1363",
+            "complement": null,
+            "neighborhood": "CENTRO",
+            "city": "ARAUJOS",
+            "state": "MG",
+            "zip_code": "35603000",
+            "source": "SERASA"
+          },
+          {
+            "street": "LIBERIO",
+            "type": "CH",
+            "number": "523",
+            "complement": "CH",
+            "neighborhood": "AREA RURAL",
+            "city": "ARAUJOS",
+            "state": "MG",
+            "zip_code": "35603000",
+            "source": "SERASA"
+          },
+          {
+            "street": "BOM DESPACHO",
+            "type": "R",
+            "number": "610",
+            "complement": null,
+            "neighborhood": "CENTRO",
+            "city": "ARAUJOS",
+            "state": "MG",
+            "zip_code": "35603000",
+            "source": "SERASA"
+          },
+          {
+            "street": "FRANCISCO ISRAEL FILHO",
+            "type": "NULL",
+            "number": "363",
+            "complement": null,
+            "neighborhood": "NULL",
+            "city": "ARAUJOS",
+            "state": "MG",
+            "zip_code": "35603000",
+            "source": "SERASA"
+          }
+        ]
+      },
+      "familia": {
+        "parentes": []
+      },
+      "veiculos": []
+    }
+  ]
 }
 
 function consultaNome($chat,$nome){
@@ -2533,13 +2554,9 @@ tg("sendMessage",[
 
 }
 
-function consultaPlaca($chat,$placa){
+function consultaPlaca($chat, $placa){
 
 global $STICKER_LOADING;
-
-function v($v){
-return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
-}
 
 $sticker = tg("sendSticker",[
 "chat_id"=>$chat,
@@ -2569,20 +2586,10 @@ tg("sendMessage",[
 return;
 }
 
-$url = "https://astro.stherlionato.workers.dev/placa?token=IFNastro&placa={$placa}";
+$url = "https://api.blackaut.shop/api/dados-pessoais/placa?placa={$placa}&apikey=EbmScZ0ntHf61KJz3H";
 
-$ch = curl_init();
-curl_setopt_array($ch,[
-CURLOPT_URL => $url,
-CURLOPT_RETURNTRANSFER => true,
-CURLOPT_TIMEOUT => 20,
-CURLOPT_SSL_VERIFYPEER => false
-]);
-
-$response = curl_exec($ch);
-curl_close($ch);
-
-$data = json_decode($response,true);
+$resp = @file_get_contents($url);
+$json = json_decode($resp,true);
 
 if($stickerMsgId){
 tg("deleteMessage",[
@@ -2591,137 +2598,75 @@ tg("deleteMessage",[
 ]);
 }
 
-if(!$data || empty($data["dados"])){
+if(!$json || !$json["status"]){
 
-naoEncontrado($chat,"PLACA",$placa);
-return;
+    naoEncontrado($chat,"PLACA",$placa);
+    return;
 
 }
 
-$v = $data["dados"]["veiculo"];
-$p = $data["dados"]["proprietario"];
-$end = $p["enderecos"]["principal"];
+$d = $json["resultado"];
+
+$texto = "";
+
+if(!empty($d["dados"]["enderecos"])){
+
+$texto = implode("\n",$d["dados"]["enderecos"]);
+
+}
+
+/* LIMPEZA DO TEXTO */
+
+$remove = [
+"Sistema Online MK",
+"UNIX Intelligence",
+"Copiar Texto",
+"Este link expira",
+"©",
+"Todos os direitos reservados"
+];
+
+$texto = str_replace($remove,"",$texto);
+
+/* FORMATAÇÃO */
+
+$texto = str_replace("INFORMAÇÕES BÁSICAS DO VEÍCULO","\n🚗 DADOS DO VEÍCULO\n",$texto);
+$texto = str_replace("PROPRIETÁRIO","\n👤 PROPRIETÁRIO\n",$texto);
+$texto = str_replace("ENDEREÇO","\n📍 ENDEREÇO\n",$texto);
+$texto = str_replace("DÉBITOS","\n💰 DÉBITOS\n",$texto);
+$texto = str_replace("RESTRIÇÕES","\n⚠️ RESTRIÇÕES\n",$texto);
+$texto = str_replace("RESUMO DA SITUAÇÃO","\n📊 SITUAÇÃO\n",$texto);
+
+/* QUEBRAS */
+
+$texto = preg_replace('/([A-ZÇ ]+):/',"\n$1:",$texto);
+
+/* REMOVE LINHAS DUPLICADAS */
+
+$linhas = array_unique(array_filter(array_map("trim",explode("\n",$texto))));
+$texto = implode("\n",$linhas);
+
+/* CABEÇALHO */
 
 $txt =
 "🚗 CONSULTA DE PLACA — ASTRO SEARCH
-══════════════════════════════
+================================
 
-🔎 PLACA CONSULTADA
-{$placa}
+Placa Consultada: {$placa}
 
-🚗 DADOS DO VEÍCULO
-Placa: ".v($v["placa"])."
-Situação: ".v($v["situacao"])."
-Marca/Modelo: ".v($v["marca_modelo"])."
-Cor: ".v($v["cor"])."
-Ano Fabricação: ".v($v["ano_fabricacao"])."
-Ano Modelo: ".v($v["ano_modelo"])."
-Combustível: ".v($v["combustivel"])."
-Potência: ".v($v["potencia"])."
-Tipo: ".v($v["tipo_veiculo"])."
-Espécie: ".v($v["especie"])."
-Passageiros: ".v($v["passageiros"])."
+{$texto}
 
-📍 REGISTRO
-Cidade: ".v($v["municipio"])."
-Estado: ".v($v["estado"])."
-
-🔐 IDENTIFICAÇÃO
-Chassi: ".v($v["chassi"])."
-Renavam: ".v($v["renavam"])."
-
-══════════════════════════════
-
-👤 PROPRIETÁRIO
-Nome: ".v($p["nome"])."
-CPF: ".v($p["cpf_formatado"])."
-Sexo: ".v($p["sexo"])."
-Nascimento: ".v($p["nascimento"])."
-
-👨‍👩‍👦 FILIAÇÃO
-Mãe: ".v($p["filiacao"]["mae"])."
-Pai: ".v($p["filiacao"]["pai"])."
-
-══════════════════════════════
-
-📍 ENDEREÇO PRINCIPAL
-".v($end["type"])." ".v($end["street"]).", ".v($end["number"])."
-Bairro: ".v($end["neighborhood"])."
-Cidade: ".v($end["city"])."
-Estado: ".v($end["state"])."
-CEP: ".v($end["zip_code"])."
-
-══════════════════════════════
-
-📞 TELEFONES
-";
-
-if(!empty($p["contato"]["telefones"])){
-
-foreach($p["contato"]["telefones"] as $tel){
-$txt .= "• {$tel}\n";
-}
-
-}else{
-
-$txt .= "NÃO ENCONTRADO\n";
-
-}
-
-$txt .= "\n📧 EMAILS\n";
-
-if(!empty($p["contato"]["emails"])){
-
-foreach($p["contato"]["emails"] as $email){
-
-$txt .= "• ".$email["EMAIL"]."\n";
-
-}
-
-}else{
-
-$txt .= "NÃO ENCONTRADO\n";
-
-}
-
-$txt .= "\n══════════════════════════════\n";
-$txt .= "📍 HISTÓRICO DE ENDEREÇOS\n";
-
-if(!empty($p["enderecos"]["historico"])){
-
-foreach($p["enderecos"]["historico"] as $h){
-
-$txt .= "
-".v($h["type"])." ".v($h["street"]).", ".v($h["number"])."
-Bairro: ".v($h["neighborhood"])."
-Cidade: ".v($h["city"])."
-Estado: ".v($h["state"])."
-CEP: ".v($h["zip_code"])."
-Fonte: ".v($h["source"])."
-
-";
-
-}
-
-}else{
-
-$txt .= "NÃO ENCONTRADO\n";
-
-}
-
-$txt .= "
-
-══════════════════════════════
+--------------------------------
 Consulta realizada via:
 ASTRO SEARCH
 ";
 
-/* GERAR TXT */
+/* CRIA ARQUIVO */
 
 $file = tempnam(sys_get_temp_dir(),"placa_");
 file_put_contents($file,$txt);
 
-/* ENVIAR */
+/* ENVIA */
 
 tg("sendDocument",[
 "chat_id"=>$chat,
@@ -2740,6 +2685,147 @@ tg("sendDocument",[
 
 unlink($file);
 
+}
+
+https://astro.stherlionato.workers.dev/placa?token=IFNastro&placa=gun3708
+
+{
+  "status": true,
+  "meta": {
+    "sistema": "Astro Search",
+    "empresa": "Astro Company",
+    "criador": "@puxardados5",
+    "endpoint": "placa",
+    "timestamp": "2026-03-29T17:48:38.884Z"
+  },
+  "consulta": "GUN3708",
+  "dados": {
+    "veiculo": {
+      "placa": "GUN3708",
+      "situacao": "EM_CIRCULACAO",
+      "marca_modelo": "FIAT/PALIO ED",
+      "cor": "BRANCA",
+      "ano_fabricacao": "1997",
+      "ano_modelo": "1997",
+      "municipio": "UBERABA",
+      "estado": "MG",
+      "chassi": "9BD178216V0321559",
+      "renavam": "00678538425",
+      "combustivel": "GASOLINA",
+      "potencia": "61",
+      "tipo_veiculo": "AUTOMOVEL",
+      "especie": "PASSAGEIRO",
+      "passageiros": "5"
+    },
+    "proprietario": {
+      "cpf": "24866601604",
+      "cpf_formatado": "248.666.016-04",
+      "nome": "TANIA APARECIDA MILITAO MADALENA",
+      "sexo": "F",
+      "nascimento": "12/05/1961",
+      "filiacao": {
+        "mae": "FRANCISCA ALDINA SILVA MILITAO",
+        "pai": "EVANDRO MILITAO"
+      },
+      "contato": {
+        "emails": [
+          {
+            "CONTATOS_ID": 31711818,
+            "EMAIL": "febarcelos@hotmail.com",
+            "PRIORIDADE": 1,
+            "EMAIL_SCORE": "BOM",
+            "EMAIL_PESSOAL": "N",
+            "EMAIL_DUPLICADO": "S",
+            "BLACKLIST": "N",
+            "ESTRUTURA": "VALIDA",
+            "STATUS_VT": "CONFIRMADO",
+            "DOMINIO": "PUBLICO",
+            "MAPAS": 3,
+            "PESO": 11,
+            "CADASTRO_ID": 3852,
+            "DT_INCLUSAO": "2014-07-24 13:48:00"
+          }
+        ],
+        "telefones": [
+          "34984434175",
+          "3433118663",
+          "34988045564",
+          "34349987970",
+          "34999540962"
+        ]
+      },
+      "enderecos": {
+        "principal": {
+          "type": "RUA",
+          "street": "ARTUR MACHADO",
+          "number": null,
+          "complement": null,
+          "neighborhood": "CENTRO",
+          "city": "UBERABA",
+          "state": "MINAS GERAIS",
+          "zip_code": "38010020"
+        },
+        "historico": [
+          {
+            "type": "RUA",
+            "street": "ARTUR MACHADO",
+            "number": null,
+            "complement": null,
+            "neighborhood": "CENTRO",
+            "city": "UBERABA",
+            "state": "MINAS GERAIS",
+            "zip_code": "38010020",
+            "source": "PRINCIPAL"
+          },
+          {
+            "street": "LUIZ MARIA DE SANTANA",
+            "type": "AV",
+            "number": "141",
+            "complement": null,
+            "neighborhood": "MERCES",
+            "city": "UBERABA",
+            "state": "MG",
+            "zip_code": "38061080",
+            "source": "SERASA"
+          },
+          {
+            "street": "RONAN FERREIRA MALUF",
+            "type": "R",
+            "number": "346",
+            "complement": null,
+            "neighborhood": "BEIJA FLOR II",
+            "city": "UBERABA",
+            "state": "MG",
+            "zip_code": "38051407",
+            "source": "SERASA"
+          },
+          {
+            "street": "JOSE FIDELIS DA SILVA",
+            "type": "R",
+            "number": "848",
+            "complement": "C",
+            "neighborhood": "CJ MARGARIDA ROSA DE AZEVEDO",
+            "city": "UBERABA",
+            "state": "MG",
+            "zip_code": "38045570",
+            "source": "SERASA"
+          },
+          {
+            "street": "RUI BARBOSA",
+            "type": "PC",
+            "number": "356",
+            "complement": "FUNDACAO",
+            "neighborhood": "CENTRO",
+            "city": "UBERABA",
+            "state": "MG",
+            "zip_code": "38010240",
+            "source": "SERASA"
+          }
+        ]
+      },
+      "veiculos": []
+    }
+  }
 }
 
 function consultaInstagram($chat,$user){
