@@ -1442,9 +1442,13 @@ function consultaFoto($chat, $cpf){
     unlink($file);
 }
 
-function consultaTelefone($chat, $telefone){
+function consultaTelefone($chat,$telefone){
 
 global $STICKER_LOADING;
+
+function v($v){
+return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
+}
 
 $sticker = tg("sendSticker",[
 "chat_id"=>$chat,
@@ -1467,17 +1471,27 @@ tg("deleteMessage",[
 
 tg("sendMessage",[
 "chat_id"=>$chat,
-"text"=>"❌ Telefone inválido.\nUse: <code>/telefone 11999999999</code>",
+"text"=>"❌ Telefone inválido.\nUse: <code>/telefone 31999999999</code>",
 "parse_mode"=>"HTML"
 ]);
 
 return;
 }
 
-$url = "https://sara-api.xyz/api/consultas/telefone?telefone={$telefone}&apikey=bigmouth";
+$url = "https://sara-api.xyz/consulta/telefone-full?phone={$telefone}";
 
-$resp = @file_get_contents($url);
-$json = json_decode($resp,true);
+$ch = curl_init();
+curl_setopt_array($ch,[
+CURLOPT_URL => $url,
+CURLOPT_RETURNTRANSFER => true,
+CURLOPT_TIMEOUT => 20,
+CURLOPT_SSL_VERIFYPEER => false
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$data = json_decode($response,true);
 
 if($stickerMsgId){
 tg("deleteMessage",[
@@ -1486,37 +1500,50 @@ tg("deleteMessage",[
 ]);
 }
 
-if(!$json || empty($json["body"])){
-    naoEncontrado($chat,"TELEFONE",$telefone);
-    return;
+if(!$data || empty($data["resultado"]["data"])){
+
+naoEncontrado($chat,"TELEFONE",$telefone);
+return;
+
 }
+
+$res = $data["resultado"];
 
 $txt =
-"CONSULTA TELEFONE — ASTRO SEARCH
-================================
+"╔══════════════════════════════╗
+   CONSULTA TELEFONE — ASTRO SEARCH
+╚══════════════════════════════╝
 
-Telefone pesquisado: {$telefone}
+📞 Telefone pesquisado
+{$telefone}
 
-================================
+📊 Registros encontrados
+".$res["count"]."
+
+🌐 Fontes consultadas
+".$res["sources"]."
+
+──────────────────────────────
 ";
 
-foreach($json["body"] as $p){
+foreach($res["data"] as $p){
 
 $txt .= "
-CPF: ".($p["cpf"] ?? "Não encontrado")."
-Nome: ".($p["name"] ?? "Não encontrado")."
-Endereço: ".($p["logradouro"] ?? "")." ".($p["numero"] ?? "")."
-Bairro: ".($p["bairro"] ?? "")."
-Cidade: ".($p["cidade"] ?? "")."
+👤 Nome: ".v($p["nome"])."
+CPF: ".v($p["cpf"])."
+Cidade: ".v($p["cidade"])."
+UF: ".v($p["uf"])."
+Fonte: ".v($p["fonte"])."
 
---------------------------------
+──────────────────────────────
 ";
 
 }
 
 $txt .= "
-Consulta via:
-Astro Search
+
+Consulta realizada via:
+ASTRO SEARCH
 ";
 
 resultadoConsulta(
@@ -1528,100 +1555,131 @@ $txt,
 
 }
 
-function consultaNome($chat, $nome){
-    global $STICKER_LOADING;
+function consultaNome($chat,$nome){
 
-    // sticker carregando
-    $sticker = tg("sendSticker",[
-        "chat_id"=>$chat,
-        "sticker"=>$STICKER_LOADING
-    ]);
+global $STICKER_LOADING;
 
-    $stickerData = json_decode($sticker,true);
-    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+function v($v){
+return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : trim($v);
+}
 
-    if(strlen($nome) < 3){
+$sticker = tg("sendSticker",[
+"chat_id"=>$chat,
+"sticker"=>$STICKER_LOADING
+]);
 
-        if($stickerMsgId){
-            tg("deleteMessage",[
-                "chat_id"=>$chat,
-                "message_id"=>$stickerMsgId
-            ]);
-        }
+$stickerData = json_decode($sticker,true);
+$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>"❌ Nome inválido.\nUse: <code>/nome João Silva</code>",
-            "parse_mode"=>"HTML"
-        ]);
+if(strlen($nome) < 3){
 
-        return;
-    }
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
 
-    $nomeQuery = urlencode($nome);
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ Nome inválido.\nUse: <code>/nome João Silva</code>",
+"parse_mode"=>"HTML"
+]);
 
-    // 🔎 API NOVA
-    $url = "https://sara-api.xyz/api/consulta/nome-v1?nome={$nomeQuery}&apikey=bigmouth";
+return;
+}
 
-    $resp = @file_get_contents($url);
-    $json = json_decode($resp,true);
+$nomeQuery = urlencode($nome);
 
-    if($stickerMsgId){
-        tg("deleteMessage",[
-            "chat_id"=>$chat,
-            "message_id"=>$stickerMsgId
-        ]);
-    }
+$url = "https://sara-api.xyz/consulta/nome?nome={$nomeQuery}";
 
-    if(!$json || !$json["status"] || empty($json["resultados"])){
-        naoEncontrado($chat,"NOME",$nome);
-        return;
-    }
+$ch = curl_init();
+curl_setopt_array($ch,[
+CURLOPT_URL => $url,
+CURLOPT_RETURNTRANSFER => true,
+CURLOPT_TIMEOUT => 20,
+CURLOPT_SSL_VERIFYPEER => false
+]);
 
-    $total = $json["total_encontrados"];
+$response = curl_exec($ch);
+curl_close($ch);
 
-    $txt =
-"CONSULTA DE NOME — ASTRO SEARCH
-=================================
+$data = json_decode($response,true);
 
-NOME PESQUISADO: {$nome}
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
 
-TOTAL ENCONTRADO: {$total}
+if(!$data || empty($data["resultado"]["body"])){
 
----------------------------------
+naoEncontrado($chat,"NOME",$nome);
+return;
 
+}
+
+$res = $data["resultado"];
+$total = $res["total_results"] ?? 0;
+
+$txt =
+"╔══════════════════════════════╗
+   CONSULTA NOME — ASTRO SEARCH
+╚══════════════════════════════╝
+
+🔎 Nome pesquisado
+{$res["query"]}
+
+📊 Resultados encontrados
+{$total}
+
+──────────────────────────────
 ";
 
-    foreach($json["resultados"] as $p){
+foreach($res["body"] as $p){
 
-        $txt .=
-"Nome: {$p["nome"]}
-CPF: {$p["cpf"]}
-Sexo: {$p["sexo"]}
-Nascimento: {$p["nascimento"]}
+$sexo = v($p["gender"]);
+if($sexo == "M") $sexo = "Masculino";
+if($sexo == "F") $sexo = "Feminino";
 
----------------------------------
+$txt .=
+"
+👤 Nome: ".v($p["name"])."
+CPF: ".v($p["cpf"])."
+Nascimento: ".v(substr($p["birth_date"],0,10))."
+Sexo: ".$sexo."
+Mãe: ".v($p["mother_name"])."
+RG: ".v($p["rg"])."
+
+──────────────────────────────
 ";
-    }
 
-    $file = tempnam(sys_get_temp_dir(),"nome_");
-    file_put_contents($file,$txt);
+}
 
-    tg("sendDocument",[
-        "chat_id"=>$chat,
-        "document"=>new CURLFile($file,"text/plain","nome_resultado.txt"),
-        "caption"=>"👤 <b>Consulta de nome concluída</b>\n\nCréditos: <b>Astro Search</b>",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
-                ]
-            ]
-        ])
-    ]);
+$txt .= "
 
-    unlink($file);
+Consulta realizada via:
+ASTRO SEARCH
+";
+
+$file = "cache_nome_".md5($nome).".txt";
+file_put_contents($file,$txt);
+
+tg("sendDocument",[
+"chat_id"=>$chat,
+"document"=>new CURLFile($file,"text/plain","consulta_nome.txt"),
+"caption"=>"👤 <b>Consulta de nome concluída</b>",
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+]
+]
+])
+]);
+
 }
 
 function consultaParentes($chat, $cpf){
@@ -2142,12 +2200,14 @@ tg("sendMessage",[
 return;
 }
 
-$url = "https://sara-api.xyz/api/consultas/cpf?cpf={$cpf}&apikey=bigmouth";
+$url = "https://sara-api.xyz/consulta/cpf?cpf={$cpf}";
 
-$ch = curl_init($url);
+$ch = curl_init();
 curl_setopt_array($ch,[
+CURLOPT_URL => $url,
 CURLOPT_RETURNTRANSFER => true,
-CURLOPT_TIMEOUT => 25
+CURLOPT_TIMEOUT => 20,
+CURLOPT_SSL_VERIFYPEER => false
 ]);
 
 $response = curl_exec($ch);
@@ -2162,7 +2222,7 @@ tg("deleteMessage",[
 ]);
 }
 
-if(!$data || empty($data["body"])){
+if(!$data || empty($data["resultado"]["body"])){
 
 tg("sendMessage",[
 "chat_id"=>$chat,
@@ -2172,7 +2232,7 @@ tg("sendMessage",[
 return;
 }
 
-$d = $data["body"];
+$d = $data["resultado"]["body"];
 
 $txt = "
 ╔══════════════════════════════╗
@@ -2198,7 +2258,6 @@ Estado RG: ".v($d["rg_state"])."
 Título eleitor: ".v($d["voter_id"])."
 
 CBO: ".v($d["cbo"])."
-Cidade nascimento: ".v($d["birth_city"])."
 
 Renda: R$ ".v($d["income"])."
 Faixa renda: ".v($d["income_bracket"])."
@@ -2209,6 +2268,7 @@ Data óbito: ".v($d["death_date"])."
 ";
 
 # CONTATO
+
 $txt .= "
 
 📡 CONTATO
@@ -2217,18 +2277,15 @@ Email principal: ".v($d["email"])."
 ";
 
 foreach(($d["additional_emails"] ?? []) as $em){
-$txt .= "Extra: ".v($em)."\n";
+$txt .= "Email extra: ".v($em)."\n";
 }
 
 foreach(($d["phones"] ?? []) as $ph){
-$txt .= "Tel: ".v($ph)."\n";
-}
-
-foreach(($d["datasus_phones"] ?? []) as $ph){
-$txt .= "Datasus: ".v($ph)."\n";
+$txt .= "Telefone: ".v($ph)."\n";
 }
 
 # ENDEREÇO PRINCIPAL
+
 $a = $d["address"] ?? [];
 
 $txt .= "
@@ -2242,7 +2299,8 @@ CEP: ".v($a["zip_code"] ?? null)."
 Complemento: ".v($a["complement"] ?? null)."
 ";
 
-# HISTÓRICO ENDEREÇOS
+# HISTÓRICO
+
 $txt .= "
 
 🏠 HISTÓRICO DE ENDEREÇOS
@@ -2250,6 +2308,7 @@ $txt .= "
 ";
 
 foreach(($d["all_addresses"] ?? []) as $a){
+
 $txt .= "
 ".v($a["type"])." ".v($a["street"]).", ".v($a["number"])."
 ".v($a["city"])." - ".v($a["state"])."
@@ -2259,6 +2318,7 @@ Fonte: ".v($a["source"])."
 }
 
 # VEÍCULOS
+
 $txt .= "
 
 🚗 VEÍCULOS
@@ -2267,6 +2327,7 @@ Total: ".v($d["vehicles"]["count"] ?? null)."
 ";
 
 # PARENTES
+
 $txt .= "
 
 👨‍👩‍👧 PARENTES
@@ -2278,6 +2339,7 @@ $txt .= v($p["nome"])." - ".v($p["vinculo"])."\n";
 }
 
 # VIZINHOS
+
 $txt .= "
 
 🏘 VIZINHOS
@@ -2285,6 +2347,7 @@ $txt .= "
 ";
 
 foreach(($d["vizinhos"] ?? []) as $v){
+
 $txt .= "
 ".v($v["nome"])."
 ".v($v["logradouro"]).", ".v($v["numero"])."
@@ -2292,7 +2355,8 @@ Bairro: ".v($v["bairro"])."
 ";
 }
 
-# SCORE
+# SCORE SERASA
+
 $s = $d["serasa_completo"]["score"] ?? [];
 
 $txt .= "
@@ -2304,6 +2368,7 @@ CSBA: ".v($s["CSBA"] ?? null)." (".v($s["CSBA_FAIXA"] ?? null).")
 ";
 
 # PODER AQUISITIVO
+
 $p = $d["poder_aquisitivo"] ?? [];
 
 $txt .= "
@@ -2314,32 +2379,18 @@ $txt .= "
 ".v($p["FX_PODER_AQUISITIVO"] ?? null)."
 ";
 
-# PERFIL DE ATIVIDADE
+# PERFIL DE COMPRA
+
 $a = $d["activity_profile"] ?? [];
 
 $txt .= "
 
-📈 PERFIL DE ATIVIDADE
+🛒 PERFIL DE COMPRA
 ──────────────────────────────
 Primeira compra: ".v($a["first_order"] ?? null)."
 Última compra: ".v($a["last_order"] ?? null)."
 Período: ".v($a["period_days"] ?? null)." dias
 Ativo: ".(!empty($a["is_active_buyer"]) ? "SIM" : "NÃO")."
-";
-
-# COBERTURA
-$c = $d["data_coverage"]["completeness"] ?? [];
-
-$txt .= "
-
-🧬 COBERTURA DE DADOS
-──────────────────────────────
-Pessoal: ".(!empty($c["has_personal_data"]) ? "✔" : "✘")."
-Contato: ".(!empty($c["has_contact"]) ? "✔" : "✘")."
-Endereço: ".(!empty($c["has_address"]) ? "✔" : "✘")."
-Financeiro: ".(!empty($c["has_financial"]) ? "✔" : "✘")."
-Veículos: ".(!empty($c["has_vehicles"]) ? "✔" : "✘")."
-E-commerce: ".(!empty($c["has_ecommerce"]) ? "✔" : "✘")."
 ";
 
 $txt .= "
