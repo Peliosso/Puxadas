@@ -30,6 +30,14 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 /* ================= VIP ================= */
 
 $VIP_IDS = [
+    1509624396,
+    7620468855,
+    1352809660,
+    8597093726,
+    6930966079,
+    5270143316,
+    225552877,
+    6930966079,
     7620468855,
     171169888,
     7792311413,
@@ -1478,7 +1486,7 @@ tg("sendMessage",[
 return;
 }
 
-$url = "https://sara-api.xyz/consulta/telefone-full?phone={$telefone}";
+$url = "https://astro.stherlionato.workers.dev/telefone?token=IFNastro&telefone={$telefone}";
 
 $ch = curl_init();
 curl_setopt_array($ch,[
@@ -1500,14 +1508,14 @@ tg("deleteMessage",[
 ]);
 }
 
-if(!$data || empty($data["resultado"]["data"])){
+if(!$data || empty($data["dados"])){
 
 naoEncontrado($chat,"TELEFONE",$telefone);
 return;
 
 }
 
-$res = $data["resultado"];
+$total = $data["total_resultados"];
 
 $txt =
 "╔══════════════════════════════╗
@@ -1517,32 +1525,138 @@ $txt =
 📞 Telefone pesquisado
 {$telefone}
 
-📊 Registros encontrados
-".$res["count"]."
+📊 Resultados encontrados
+{$total}
 
-🌐 Fontes consultadas
-".$res["sources"]."
-
-──────────────────────────────
+══════════════════════════════
 ";
 
-foreach($res["data"] as $p){
+foreach($data["dados"] as $p){
+
+$id = $p["identificacao"];
+$fili = $p["filiacao"];
+$cont = $p["contato"];
+$end = $p["enderecos"]["principal"];
 
 $txt .= "
-👤 Nome: ".v($p["nome"])."
-CPF: ".v($p["cpf"])."
-Cidade: ".v($p["cidade"])."
-UF: ".v($p["uf"])."
-Fonte: ".v($p["fonte"])."
 
-──────────────────────────────
+👤 IDENTIFICAÇÃO
+Nome: ".v($id["nome"])."
+CPF: ".v($id["cpf_formatado"])."
+Sexo: ".v($id["sexo"])."
+Nascimento: ".v($id["nascimento"])."
+
+👨‍👩‍👦 FILIAÇÃO
+Mãe: ".v($fili["mae"])."
+Pai: ".v($fili["pai"])."
+
+📍 ENDEREÇO PRINCIPAL
+".v($end["type"])." ".v($end["street"]).", ".v($end["number"])."
+Bairro: ".v($end["neighborhood"])."
+Cidade: ".v($end["city"])."
+Estado: ".v($end["state"])."
+CEP: ".v($end["zip_code"])."
+
+📞 TELEFONES VINCULADOS
+";
+
+if(!empty($cont["telefones"])){
+foreach($cont["telefones"] as $tel){
+$txt .= "• {$tel}\n";
+}else{
+$txt .= "NÃO ENCONTRADO\n";
+}
+
+$txt .= "
+
+📧 EMAILS
+";
+
+if(!empty($cont["emails"])){
+foreach($cont["emails"] as $email){
+$txt .= "• {$email}\n";
+}
+}else{
+$txt .= "NÃO ENCONTRADO\n";
+}
+
+/* HISTORICO ENDEREÇOS */
+
+$txt .= "
+
+📍 HISTÓRICO DE ENDEREÇOS
+";
+
+if(!empty($p["enderecos"]["historico"])){
+
+foreach($p["enderecos"]["historico"] as $h){
+
+$txt .= "
+
+".v($h["type"])." ".v($h["street"]).", ".v($h["number"])."
+Bairro: ".v($h["neighborhood"])."
+Cidade: ".v($h["city"])."
+Estado: ".v($h["state"])."
+CEP: ".v($h["zip_code"])."
+Fonte: ".v($h["source"])."
+";
+
+}
+
+}else{
+
+$txt .= "NÃO ENCONTRADO\n";
+
+}
+
+/* PARENTES */
+
+$txt .= "
+
+👨‍👩‍👧‍👦 PARENTES
+";
+
+if(!empty($p["familia"]["parentes"])){
+
+foreach($p["familia"]["parentes"] as $par){
+$txt .= "• {$par}\n";
+}
+
+}else{
+
+$txt .= "NÃO ENCONTRADO\n";
+
+}
+
+/* VEICULOS */
+
+$txt .= "
+
+🚗 VEÍCULOS
+";
+
+if(!empty($p["veiculos"])){
+
+foreach($p["veiculos"] as $v){
+$txt .= "• ".json_encode($v)."\n";
+}
+
+}else{
+
+$txt .= "NÃO ENCONTRADO\n";
+
+}
+
+$txt .= "
+
+══════════════════════════════
 ";
 
 }
 
 $txt .= "
 
-Consulta realizada via:
+Consulta realizada via
 ASTRO SEARCH
 ";
 
@@ -2424,9 +2538,13 @@ tg("sendMessage",[
 
 }
 
-function consultaPlaca($chat, $placa){
+function consultaPlaca($chat,$placa){
 
 global $STICKER_LOADING;
+
+function v($v){
+return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
+}
 
 $sticker = tg("sendSticker",[
 "chat_id"=>$chat,
@@ -2456,10 +2574,20 @@ tg("sendMessage",[
 return;
 }
 
-$url = "https://api.blackaut.shop/api/dados-pessoais/placa?placa={$placa}&apikey=EbmScZ0ntHf61KJz3H";
+$url = "https://astro.stherlionato.workers.dev/placa?token=IFNastro&placa={$placa}";
 
-$resp = @file_get_contents($url);
-$json = json_decode($resp,true);
+$ch = curl_init();
+curl_setopt_array($ch,[
+CURLOPT_URL => $url,
+CURLOPT_RETURNTRANSFER => true,
+CURLOPT_TIMEOUT => 20,
+CURLOPT_SSL_VERIFYPEER => false
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$data = json_decode($response,true);
 
 if($stickerMsgId){
 tg("deleteMessage",[
@@ -2468,75 +2596,137 @@ tg("deleteMessage",[
 ]);
 }
 
-if(!$json || !$json["status"]){
+if(!$data || empty($data["dados"])){
 
-    naoEncontrado($chat,"PLACA",$placa);
-    return;
-
-}
-
-$d = $json["resultado"];
-
-$texto = "";
-
-if(!empty($d["dados"]["enderecos"])){
-
-$texto = implode("\n",$d["dados"]["enderecos"]);
+naoEncontrado($chat,"PLACA",$placa);
+return;
 
 }
 
-/* LIMPEZA DO TEXTO */
-
-$remove = [
-"Sistema Online MK",
-"UNIX Intelligence",
-"Copiar Texto",
-"Este link expira",
-"©",
-"Todos os direitos reservados"
-];
-
-$texto = str_replace($remove,"",$texto);
-
-/* FORMATAÇÃO */
-
-$texto = str_replace("INFORMAÇÕES BÁSICAS DO VEÍCULO","\n🚗 DADOS DO VEÍCULO\n",$texto);
-$texto = str_replace("PROPRIETÁRIO","\n👤 PROPRIETÁRIO\n",$texto);
-$texto = str_replace("ENDEREÇO","\n📍 ENDEREÇO\n",$texto);
-$texto = str_replace("DÉBITOS","\n💰 DÉBITOS\n",$texto);
-$texto = str_replace("RESTRIÇÕES","\n⚠️ RESTRIÇÕES\n",$texto);
-$texto = str_replace("RESUMO DA SITUAÇÃO","\n📊 SITUAÇÃO\n",$texto);
-
-/* QUEBRAS */
-
-$texto = preg_replace('/([A-ZÇ ]+):/',"\n$1:",$texto);
-
-/* REMOVE LINHAS DUPLICADAS */
-
-$linhas = array_unique(array_filter(array_map("trim",explode("\n",$texto))));
-$texto = implode("\n",$linhas);
-
-/* CABEÇALHO */
+$v = $data["dados"]["veiculo"];
+$p = $data["dados"]["proprietario"];
+$end = $p["enderecos"]["principal"];
 
 $txt =
 "🚗 CONSULTA DE PLACA — ASTRO SEARCH
-================================
+══════════════════════════════
 
-Placa Consultada: {$placa}
+🔎 PLACA CONSULTADA
+{$placa}
 
-{$texto}
+🚗 DADOS DO VEÍCULO
+Placa: ".v($v["placa"])."
+Situação: ".v($v["situacao"])."
+Marca/Modelo: ".v($v["marca_modelo"])."
+Cor: ".v($v["cor"])."
+Ano Fabricação: ".v($v["ano_fabricacao"])."
+Ano Modelo: ".v($v["ano_modelo"])."
+Combustível: ".v($v["combustivel"])."
+Potência: ".v($v["potencia"])."
+Tipo: ".v($v["tipo_veiculo"])."
+Espécie: ".v($v["especie"])."
+Passageiros: ".v($v["passageiros"])."
 
---------------------------------
+📍 REGISTRO
+Cidade: ".v($v["municipio"])."
+Estado: ".v($v["estado"])."
+
+🔐 IDENTIFICAÇÃO
+Chassi: ".v($v["chassi"])."
+Renavam: ".v($v["renavam"])."
+
+══════════════════════════════
+
+👤 PROPRIETÁRIO
+Nome: ".v($p["nome"])."
+CPF: ".v($p["cpf_formatado"])."
+Sexo: ".v($p["sexo"])."
+Nascimento: ".v($p["nascimento"])."
+
+👨‍👩‍👦 FILIAÇÃO
+Mãe: ".v($p["filiacao"]["mae"])."
+Pai: ".v($p["filiacao"]["pai"])."
+
+══════════════════════════════
+
+📍 ENDEREÇO PRINCIPAL
+".v($end["type"])." ".v($end["street"]).", ".v($end["number"])."
+Bairro: ".v($end["neighborhood"])."
+Cidade: ".v($end["city"])."
+Estado: ".v($end["state"])."
+CEP: ".v($end["zip_code"])."
+
+══════════════════════════════
+
+📞 TELEFONES
+";
+
+if(!empty($p["contato"]["telefones"])){
+
+foreach($p["contato"]["telefones"] as $tel){
+$txt .= "• {$tel}\n";
+}
+
+}else{
+
+$txt .= "NÃO ENCONTRADO\n";
+
+}
+
+$txt .= "\n📧 EMAILS\n";
+
+if(!empty($p["contato"]["emails"])){
+
+foreach($p["contato"]["emails"] as $email){
+
+$txt .= "• ".$email["EMAIL"]."\n";
+
+}
+
+}else{
+
+$txt .= "NÃO ENCONTRADO\n";
+
+}
+
+$txt .= "\n══════════════════════════════\n";
+$txt .= "📍 HISTÓRICO DE ENDEREÇOS\n";
+
+if(!empty($p["enderecos"]["historico"])){
+
+foreach($p["enderecos"]["historico"] as $h){
+
+$txt .= "
+".v($h["type"])." ".v($h["street"]).", ".v($h["number"])."
+Bairro: ".v($h["neighborhood"])."
+Cidade: ".v($h["city"])."
+Estado: ".v($h["state"])."
+CEP: ".v($h["zip_code"])."
+Fonte: ".v($h["source"])."
+
+";
+
+}
+
+}else{
+
+$txt .= "NÃO ENCONTRADO\n";
+
+}
+
+$txt .= "
+
+══════════════════════════════
 Consulta realizada via:
 ASTRO SEARCH
 ";
 
-/* CRIA ARQUIVO */
+/* GERAR TXT */
 
 $file = tempnam(sys_get_temp_dir(),"placa_");
 file_put_contents($file,$txt);
 
-/* ENVIA */
+/* ENVIAR */
 
 tg("sendDocument",[
 "chat_id"=>$chat,
