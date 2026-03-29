@@ -5,13 +5,9 @@ ignore_user_abort(true);
 set_time_limit(0);
 
 header("Content-Type: application/json");
-http_response_code(200);
 
 /* LER UPDATE UMA VEZ */
 $update = json_decode(file_get_contents("php://input"), true);
-
-echo json_encode(["status"=>"ok"]);
-flush();
 
 /* ================= CONFIG ================= */
 
