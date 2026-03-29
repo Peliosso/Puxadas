@@ -133,6 +133,7 @@ $VIP_IDS = [
     7518850652,
     6050403465,
     6217042464,
+    6930966079,
     853186865,
     5993467951,
     7383802170,
@@ -1441,9 +1442,13 @@ function consultaFoto($chat, $cpf){
     unlink($file);
 }
 
-function consultaTelefone($chat, $telefone){
+function consultaTelefone($chat,$telefone){
 
 global $STICKER_LOADING;
+
+function v($v){
+return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
+}
 
 $sticker = tg("sendSticker",[
 "chat_id"=>$chat,
@@ -1466,17 +1471,27 @@ tg("deleteMessage",[
 
 tg("sendMessage",[
 "chat_id"=>$chat,
-"text"=>"❌ Telefone inválido.\nUse: <code>/telefone 11999999999</code>",
+"text"=>"❌ Telefone inválido.\nUse: <code>/telefone 31999999999</code>",
 "parse_mode"=>"HTML"
 ]);
 
 return;
 }
 
-$url = "https://sara-api.xyz/api/consultas/telefone?telefone={$telefone}&apikey=bigmouth";
+$url = "https://astro.stherlionato.workers.dev/telefone?token=IFNastro&telefone={$telefone}";
 
-$resp = @file_get_contents($url);
-$json = json_decode($resp,true);
+$ch = curl_init();
+curl_setopt_array($ch,[
+CURLOPT_URL=>$url,
+CURLOPT_RETURNTRANSFER=>true,
+CURLOPT_TIMEOUT=>20,
+CURLOPT_SSL_VERIFYPEER=>false
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$data = json_decode($response,true);
 
 if($stickerMsgId){
 tg("deleteMessage",[
@@ -1485,37 +1500,164 @@ tg("deleteMessage",[
 ]);
 }
 
-if(!$json || empty($json["body"])){
-    naoEncontrado($chat,"TELEFONE",$telefone);
-    return;
+if(!$data || empty($data["dados"])){
+
+naoEncontrado($chat,"TELEFONE",$telefone);
+return;
+
 }
 
 $txt =
-"CONSULTA TELEFONE — ASTRO SEARCH
-================================
+"╔══════════════════════╗
+📞 CONSULTA TELEFONE
+╚══════════════════════╝
 
-Telefone pesquisado: {$telefone}
+📱 Telefone
+<code>{$telefone}</code>
 
-================================
+📊 Resultados
+".$data["total_resultados"]."
+
+────────────────────
 ";
 
-foreach($json["body"] as $p){
+foreach($data["dados"] as $p){
+
+$id = $p["identificacao"];
+$f = $p["filiacao"];
+$end = $p["enderecos"]["principal"];
+$contato = $p["contato"];
+$parentes = $p["familia"]["parentes"];
+$veiculos = $p["veiculos"];
 
 $txt .= "
-CPF: ".($p["cpf"] ?? "Não encontrado")."
-Nome: ".($p["name"] ?? "Não encontrado")."
-Endereço: ".($p["logradouro"] ?? "")." ".($p["numero"] ?? "")."
-Bairro: ".($p["bairro"] ?? "")."
-Cidade: ".($p["cidade"] ?? "")."
 
---------------------------------
+👤 <b>DADOS PESSOAIS</b>
+
+Nome: <b>".v($id["nome"])."</b>
+CPF: <code>".v($id["cpf_formatado"])."</code>
+Sexo: ".v($id["sexo"])."
+Nascimento: ".v($id["nascimento"])."
+
+────────────────────
+👨‍👩‍👧 <b>FILIAÇÃO</b>
+
+Mãe: ".v($f["mae"])."
+Pai: ".v($f["pai"])."
+
+────────────────────
+📍 <b>ENDEREÇO PRINCIPAL</b>
+
+".v($end["type"])." ".v($end["street"]).", ".v($end["number"])."
+Bairro: ".v($end["neighborhood"])."
+Cidade: ".v($end["city"])."
+Estado: ".v($end["state"])."
+CEP: ".v($end["zip_code"])."
+
+";
+
+if(!empty($contato["email"]) || !empty($contato["emails"])){
+
+$txt .= "
+────────────────────
+📧 <b>EMAILS</b>
+";
+
+if($contato["email"])
+$txt .= $contato["email"]."\n";
+
+if(!empty($contato["emails"])){
+
+foreach($contato["emails"] as $email){
+$txt .= "• ".$email."\n";
+}
+
+}
+
+}
+
+if(!empty($contato["telefones"])){
+
+$txt .= "
+────────────────────
+📞 <b>TELEFONES VINCULADOS</b>
+";
+
+foreach($contato["telefones"] as $tel){
+$txt .= "• ".$tel."\n";
+}
+
+}
+
+if(!empty($p["enderecos"]["historico"])){
+
+$txt .= "
+────────────────────
+🏠 <b>HISTÓRICO DE ENDEREÇOS</b>
+";
+
+foreach($p["enderecos"]["historico"] as $h){
+
+$txt .= "
+".v($h["type"])." ".v($h["street"]).", ".v($h["number"])."
+Bairro: ".v($h["neighborhood"])."
+Cidade: ".v($h["city"])." - ".v($h["state"])."
+CEP: ".v($h["zip_code"])."
+Fonte: ".v($h["source"])."
+
+";
+
+}
+
+}
+
+if(!empty($parentes)){
+
+$txt .= "
+────────────────────
+👪 <b>PARENTES</b>
+";
+
+foreach($parentes as $par){
+
+$txt .= "
+Nome: ".v($par["nome"])."
+CPF: ".v($par["cpf"])."
+
+";
+
+}
+
+}
+
+if(!empty($veiculos)){
+
+$txt .= "
+────────────────────
+🚗 <b>VEÍCULOS</b>
+";
+
+foreach($veiculos as $v){
+
+$txt .= "
+Placa: ".v($v["placa"])."
+Modelo: ".v($v["modelo"])."
+";
+
+}
+
+}
+
+$txt .= "
+────────────────────
 ";
 
 }
 
 $txt .= "
-Consulta via:
-Astro Search
+
+🔎 Consulta realizada via
+<b>ASTRO SEARCH</b>
 ";
 
 resultadoConsulta(
