@@ -2298,89 +2298,71 @@ tg("sendMessage",[
 
 }
 
-function consultaCPF3($chat,$cpf){
+function consultaCPF($chat,$cpf){
 
-global $STICKER_LOADING;
+$cpf=preg_replace('/\D/','',$cpf);
 
-function v($v){
-return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
-}
+if(strlen($cpf)!=11){
 
-$sticker = tg("sendSticker",[
+bot("sendMessage",[
 "chat_id"=>$chat,
-"sticker"=>$STICKER_LOADING
-]);
-
-$stickerData = json_decode($sticker,true);
-$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
-
-$cpf = preg_replace('/\D/','',$cpf);
-
-if(strlen($cpf) != 11){
-
-if($stickerMsgId){
-tg("deleteMessage",[
-"chat_id"=>$chat,
-"message_id"=>$stickerMsgId
-]);
-}
-
-tg("sendMessage",[
-"chat_id"=>$chat,
-"text"=>"❌ CPF inválido.\nUse: <code>/cpf3 00000000000</code>",
+"text"=>"❌ CPF inválido.\nUse: <code>/cpf 00000000000</code>",
 "parse_mode"=>"HTML"
 ]);
 
 return;
 }
 
-$url = "https://sara-api.xyz/consulta/cpf?cpf={$cpf}";
-
-$ch = curl_init($url);
-curl_setopt_array($ch,[
-CURLOPT_RETURNTRANSFER => true,
-CURLOPT_TIMEOUT => 25
+$msg=bot("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"🧠 <b>Red Nose Engine</b>\n<i>Consultando bases nacionais...</i>",
+"parse_mode"=>"HTML"
 ]);
 
-$response = curl_exec($ch);
-curl_close($ch);
+$r=api("https://sara-api.xyz/consulta/cpf?cpf=$cpf");
 
-$data = json_decode($response,true);
-
-if($stickerMsgId){
-tg("deleteMessage",[
+bot("deleteMessage",[
 "chat_id"=>$chat,
-"message_id"=>$stickerMsgId
+"message_id"=>$msg["result"]["message_id"]
 ]);
-}
 
-if(!$data || empty($data["resultado"]["body"])){
+if(!$r || empty($r["resultado"]["body"])){
 
-tg("sendMessage",[
+bot("sendMessage",[
 "chat_id"=>$chat,
-"text"=>"❌ CPF não encontrado ou API instável."
+"text"=>"❌ CPF não encontrado."
 ]);
 
 return;
 }
 
-$d = $data["resultado"]["body"];
+$d=$r["resultado"]["body"];
 
-# TEXTO COMPLETO
-$txt = "
+#################################################
+# GERAR RELATÓRIO TXT COMPLETO
+#################################################
+
+function v($v){
+return ($v===null || $v=="" || $v=="NULL") ? "NÃO ENCONTRADO" : $v;
+}
+
+$txt="
 ╔══════════════════════════════╗
-   CONSULTA CPF ULTRA — ASTRO SEARCH
+     RED NOSE INTELLIGENCE
 ╚══════════════════════════════╝
 
 🧠 DADOS PRINCIPAIS
 ──────────────────────────────
+
 CPF: ".v($d["cpf_masked"])."
 Nome: ".v($d["name"])."
 Primeiro nome: ".v($d["first_name"])."
 Sobrenome: ".v($d["last_name"])."
+
 Nascimento: ".v($d["birth_date"])."
 Sexo: ".v($d["gender"])."
-Situação: ".v($d["federal_status"])."
+
+Situação Receita: ".v($d["federal_status"])."
 
 Mãe: ".v($d["mother_name"])."
 Pai: ".v($d["father_name"])."
@@ -2388,45 +2370,60 @@ Pai: ".v($d["father_name"])."
 RG: ".v($d["rg"])."
 Orgão emissor: ".v($d["rg_issuer"])."
 Estado RG: ".v($d["rg_state"])."
+
 Título eleitor: ".v($d["voter_id"])."
 
 CBO: ".v($d["cbo"])."
 
-Renda: R$ ".v($d["income"])."
+Renda estimada: R$ ".v($d["income"])."
 Faixa renda: ".v($d["income_bracket"])."
 Classe social: ".v($d["social_class"]["social_class"] ?? null)."
 
-Óbito: ".($d["death_flag"] == "1" ? "SIM" : "NÃO")."
+Óbito: ".($d["death_flag"]=="1"?"SIM":"NÃO")."
 Data óbito: ".v($d["death_date"])."
 ";
 
-# CONTATO
-$txt .= "
+#################################################
+# CONTATOS
+#################################################
 
-📡 CONTATO
+$txt.="
+
+📡 CONTATOS
 ──────────────────────────────
+
 Email principal: ".v($d["email"])."
 ";
 
-foreach(($d["additional_emails"] ?? []) as $em){
-$txt .= "Extra: ".v($em)."\n";
+foreach(($d["additional_emails"] ?? []) as $e){
+
+$txt.="Email adicional: ".v($e)."\n";
+
 }
 
-foreach(($d["phones"] ?? []) as $ph){
-$txt .= "Tel: ".v($ph)."\n";
+foreach(($d["phones"] ?? []) as $p){
+
+$txt.="Telefone: ".v($p)."\n";
+
 }
 
-foreach(($d["telefones_assecc"] ?? []) as $ph){
-$txt .= "Tel extra: ".v($ph["telefone"])."\n";
+foreach(($d["telefones_assecc"] ?? []) as $p){
+
+$txt.="Telefone extra: ".v($p["telefone"])."\n";
+
 }
 
+#################################################
 # ENDEREÇO
-$a = $d["address"] ?? [];
+#################################################
 
-$txt .= "
+$a=$d["address"] ?? [];
+
+$txt.="
 
 📍 ENDEREÇO PRINCIPAL
 ──────────────────────────────
+
 ".v($a["type"] ?? null)." ".v($a["street"] ?? null).", ".v($a["number"] ?? null)."
 Bairro: ".v($a["neighborhood"] ?? null)."
 Cidade: ".v($a["city"] ?? null)." - ".v($a["state"] ?? null)."
@@ -2434,119 +2431,104 @@ CEP: ".v($a["zip_code"] ?? null)."
 Complemento: ".v($a["complement"] ?? null)."
 ";
 
-# HISTÓRICO
-$txt .= "
+#################################################
+# HISTÓRICO DE ENDEREÇOS
+#################################################
+
+$txt.="
 
 🏠 HISTÓRICO DE ENDEREÇOS
 ──────────────────────────────
 ";
 
 foreach(($d["all_addresses"] ?? []) as $a){
-$txt .= "
+
+$txt.="
 ".v($a["type"])." ".v($a["street"]).", ".v($a["number"])."
 ".v($a["city"])." - ".v($a["state"])."
 CEP: ".v($a["zip_code"])."
 Fonte: ".v($a["source"])."
 ";
+
 }
 
+#################################################
 # VEÍCULOS
-$txt .= "
+#################################################
+
+$txt.="
 
 🚗 VEÍCULOS
 ──────────────────────────────
-Total: ".v($d["vehicles"]["count"] ?? null)."
+
+Total encontrados: ".v($d["vehicles"]["count"] ?? null)."
 ";
 
+#################################################
 # PARENTES
-$txt .= "
+#################################################
+
+$txt.="
 
 👨‍👩‍👧 PARENTES
 ──────────────────────────────
 ";
 
 foreach(($d["parentes"] ?? []) as $p){
-$txt .= v($p["nome"])." - ".v($p["vinculo"])."\n";
+
+$txt.=v($p["nome"])." - ".v($p["vinculo"])."\n";
+
 }
 
+#################################################
 # VIZINHOS
-$txt .= "
+#################################################
+
+$txt.="
 
 🏘 VIZINHOS
 ──────────────────────────────
 ";
 
 foreach(($d["vizinhos"] ?? []) as $v){
-$txt .= "
+
+$txt.="
 ".v($v["nome"])."
 ".v($v["logradouro"]).", ".v($v["numero"])."
 Bairro: ".v($v["bairro"])."
 ";
+
 }
 
+#################################################
 # SCORE
-$s = $d["score"] ?? [];
+#################################################
 
-$txt .= "
+$s=$d["score"] ?? [];
+
+$txt.="
 
 📊 SCORE
 ──────────────────────────────
+
 Valor: ".v($s["value"] ?? null)."
 Faixa: ".v($s["range"] ?? null)."
 ";
 
-# PODER AQUISITIVO
-$p = $d["poder_aquisitivo"] ?? [];
+#################################################
+# GERAR TXT
+#################################################
 
-$txt .= "
+$file="cpf_".time().".txt";
 
-💰 PODER AQUISITIVO
-──────────────────────────────
-".v($p["PODER_AQUISITIVO"] ?? null)."
-".v($p["FX_PODER_AQUISITIVO"] ?? null)."
-";
-
-# PERFIL
-$a = $d["activity_profile"] ?? [];
-
-$txt .= "
-
-📈 PERFIL DE ATIVIDADE
-──────────────────────────────
-Primeira compra: ".v($a["first_order"] ?? null)."
-Última compra: ".v($a["last_order"] ?? null)."
-Período: ".v($a["period_days"] ?? null)." dias
-Ativo: ".(!empty($a["is_active_buyer"]) ? "SIM" : "NÃO")."
-";
-
-# COBERTURA
-$c = $d["data_coverage"]["completeness"] ?? [];
-
-$txt .= "
-
-🧬 COBERTURA DE DADOS
-──────────────────────────────
-Pessoal: ".(!empty($c["has_personal_data"]) ? "✔" : "✘")."
-Contato: ".(!empty($c["has_contact"]) ? "✔" : "✘")."
-Endereço: ".(!empty($c["has_address"]) ? "✔" : "✘")."
-Financeiro: ".(!empty($c["has_financial"]) ? "✔" : "✘")."
-Veículos: ".(!empty($c["has_vehicles"]) ? "✔" : "✘")."
-E-commerce: ".(!empty($c["has_ecommerce"]) ? "✔" : "✘")."
-";
-
-$txt .= "
-
-──────────────────────────────
-Consulta realizada via:
-ASTRO SEARCH ULTRA
-";
-
-$file = tempnam(sys_get_temp_dir(),"cpf3_");
 file_put_contents($file,$txt);
 
-# PRÉVIA
-$preview = "
-💎 <b>Consulta VIP Realizada</b>
+#################################################
+# PREVIEW VIP
+#################################################
+
+$preview="
+🔴 <b>RED NOSE INTELLIGENCE</b>
 
 <blockquote>
 👤 ".v($d["name"])."
@@ -2556,23 +2538,20 @@ $preview = "
 📍 ".v($d["address"]["city"] ?? null)." - ".v($d["address"]["state"] ?? null)."
 </blockquote>
 
-📄 Um relatório detalhado foi gerado para esta consulta.
+📄 Um relatório completo foi gerado para esta consulta.
 
-🔓 <i>O dossiê completo está disponível no arquivo TXT.</i>
+<i>Dossiê completo disponível no arquivo TXT.</i>
 ";
 
-tg("sendDocument",[
+bot("sendDocument",[
 "chat_id"=>$chat,
-"document"=>new CURLFile($file,"text/plain","cpf3_{$cpf}.txt"),
+"document"=>new CURLFile($file),
 "caption"=>$preview,
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
 [
-["text"=>"💎 • Adquirir Consultas VIP","url"=>"https://t.me/puxardados5"]
-],
-[
-["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
+["text"=>"🗑 Apagar","callback_data"=>"delmsg"]
 ]
 ]
 ])
