@@ -2498,26 +2498,34 @@ ASTRO SEARCH ULTRA
 $file = "cache_cpf3_{$cpf}.txt";
 file_put_contents($file,$txt);
 
+/* MENSAGEM DESTACADA */
 tg("sendMessage",[
 "chat_id"=>$chat,
-"text"=>"🔥 <b>Consulta ULTRA realizada</b>\n\nEscolha como quer ver:",
+"text"=>"🔥 <b>CONSULTA VIP EXCLUSIVA REALIZADA</b>
+
+👤 CPF consultado: <code>{$cpf}</code>
+
+📁 O resultado completo está no arquivo abaixo.",
+"parse_mode"=>"HTML"
+]);
+
+/* ENVIA O ARQUIVO TXT */
+tg("sendDocument",[
+"chat_id"=>$chat,
+"document"=>new CURLFile($file),
+"caption"=>"📄 <b>Resultado da consulta CPF</b>",
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
 [
-["text"=>"📄 Mostrar no Telegram","callback_data"=>"cpf3_msg|$cpf"]
-],
-[
-["text"=>"📁 Enviar TXT","callback_data"=>"cpf3_file|$cpf"]
-],
-[
 ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+],
+[
+["text"=>"🤖 Adquirir o bot","url"=>"https://t.me/SEU_LINK_AQUI"]
 ]
 ]
 ])
 ]);
-
-}
 
 function consultaPlaca($chat, $placa){
 
