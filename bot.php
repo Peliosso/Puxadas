@@ -2013,28 +2013,39 @@ Consulta via:
 Astro Search
 ";
 
-$file = tempnam(sys_get_temp_dir(),"cpf_");
+$file = tempnam(sys_get_temp_dir(),"cpf3_");
 file_put_contents($file,$txt);
 
+/* MENSAGEM DESTACADA */
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"🔥 <b>CONSULTA VIP EXCLUSIVA REALIZADA</b>
+
+👤 CPF consultado: <code>{$cpf}</code>
+
+📁 O resultado completo está no arquivo abaixo.",
+"parse_mode"=>"HTML"
+]);
+
+/* ENVIA TXT */
 tg("sendDocument",[
 "chat_id"=>$chat,
 "document"=>new CURLFile($file,"text/plain","cpf_{$cpf}.txt"),
-"caption"=>"🧾 <b>Consulta de CPF concluída</b>\n\n⚡ API: <b>Astro</b>",
+"caption"=>"🧾 <b>Consulta de CPF concluída</b>
+
+⚡ API: <b>Astro Search Ultra</b>",
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
-    "inline_keyboard"=>[
-        [
-            ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-            ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
-        ]
-    ]
+"inline_keyboard"=>[
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+]
+]
 ])
 ]);
 
 unlink($file);
-
-}
-
 function consultaCPF2($chat,$cpf){
 
 global $STICKER_LOADING;
