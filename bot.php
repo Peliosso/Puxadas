@@ -1701,7 +1701,7 @@ function consultaNome($chat, $nome){
     $nomeUrl = urlencode($nome);
 
     // NOVA API
-    $url = "https://api.blackaut.shop/api/dados-pessoais/nome?nome={$nomeUrl}&apikey=EbmScZ0ntHf61KJz3H";
+    $url = "https://sara-api.xyz/consulta/nome?nome={$nomeUrl}";
 
     $ch = curl_init($url);
     curl_setopt_array($ch,[
@@ -1722,11 +1722,10 @@ function consultaNome($chat, $nome){
         ]);
     }
 
-    if(!$json || empty($json["resultado"])){
-
-    naoEncontrado($chat,"NOME",$nome);
-    return;
-}
+    if(!$json || empty($json["resultado"]["body"])){
+        naoEncontrado($chat,"NOME",$nome);
+        return;
+    }
 
     $txt =
 "CONSULTA POR NOME — ASTRO SEARCH
@@ -1737,15 +1736,22 @@ Nome pesquisado: {$nome}
 ================================
 ";
 
-    foreach($json["resultado"] as $pessoa){
+    foreach($json["resultado"]["body"] as $pessoa){
+
+        $cpf = trim($pessoa["cpf"] ?? "NÃO ENCONTRADO");
+        $nomep = trim($pessoa["name"] ?? "NÃO ENCONTRADO");
+        $nasc = trim($pessoa["birth_date"] ?? "NÃO ENCONTRADO");
+        $mae = trim($pessoa["mother_name"] ?? "NÃO ENCONTRADO");
+        $sexo = trim($pessoa["gender"] ?? "NÃO ENCONTRADO");
+        $rg = trim($pessoa["rg"] ?? "NÃO ENCONTRADO");
 
         $txt .= "
-CPF: {$pessoa["cpf"]}
-Nome: {$pessoa["name"]}
-Sexo: {$pessoa["gender"]}
-Nascimento: {$pessoa["birth"]}
-Idade: {$pessoa["age"]}
-Signo: {$pessoa["sign"]}
+CPF: {$cpf}
+Nome: {$nomep}
+Sexo: {$sexo}
+Nascimento: {$nasc}
+Mãe: {$mae}
+RG: {$rg}
 
 --------------------------------
 ";
@@ -2282,7 +2288,7 @@ tg("sendMessage",[
 return;
 }
 
-$url = "https://sara-api.xyz/api/consultas/cpf?cpf={$cpf}&apikey=bigmouth";
+$url = "https://sara-api.xyz/consulta/cpf?cpf={$cpf}";
 
 $ch = curl_init($url);
 curl_setopt_array($ch,[
@@ -2302,7 +2308,7 @@ tg("deleteMessage",[
 ]);
 }
 
-if(!$data || empty($data["body"])){
+if(!$data || empty($data["resultado"]["body"])){
 
 tg("sendMessage",[
 "chat_id"=>$chat,
@@ -2312,7 +2318,7 @@ tg("sendMessage",[
 return;
 }
 
-$d = $data["body"];
+$d = $data["resultado"]["body"];
 
 $txt = "
 ╔══════════════════════════════╗
@@ -2338,7 +2344,6 @@ Estado RG: ".v($d["rg_state"])."
 Título eleitor: ".v($d["voter_id"])."
 
 CBO: ".v($d["cbo"])."
-Cidade nascimento: ".v($d["birth_city"])."
 
 Renda: R$ ".v($d["income"])."
 Faixa renda: ".v($d["income_bracket"])."
@@ -2364,8 +2369,8 @@ foreach(($d["phones"] ?? []) as $ph){
 $txt .= "Tel: ".v($ph)."\n";
 }
 
-foreach(($d["datasus_phones"] ?? []) as $ph){
-$txt .= "Datasus: ".v($ph)."\n";
+foreach(($d["telefones_assecc"] ?? []) as $ph){
+$txt .= "Tel extra: ".v($ph["telefone"])."\n";
 }
 
 # ENDEREÇO PRINCIPAL
@@ -2433,14 +2438,14 @@ Bairro: ".v($v["bairro"])."
 }
 
 # SCORE
-$s = $d["serasa_completo"]["score"] ?? [];
+$s = $d["score"] ?? [];
 
 $txt .= "
 
 📊 SCORE
 ──────────────────────────────
-CSB8: ".v($s["CSB8"] ?? null)." (".v($s["CSB8_FAIXA"] ?? null).")
-CSBA: ".v($s["CSBA"] ?? null)." (".v($s["CSBA_FAIXA"] ?? null).")
+Valor: ".v($s["value"] ?? null)."
+Faixa: ".v($s["range"] ?? null)."
 ";
 
 # PODER AQUISITIVO
