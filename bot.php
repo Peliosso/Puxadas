@@ -2294,8 +2294,16 @@ return;
 
 $url = "https://sara-api.xyz/consulta/cpf?cpf={$cpf}";
 
-$resp = @file_get_contents($url);
-$data = json_decode($resp,true);
+$ch = curl_init($url);
+curl_setopt_array($ch,[
+CURLOPT_RETURNTRANSFER => true,
+CURLOPT_TIMEOUT => 25
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$data = json_decode($response,true);
 
 if($stickerMsgId){
 tg("deleteMessage",[
@@ -2305,42 +2313,69 @@ tg("deleteMessage",[
 }
 
 if(!$data || empty($data["resultado"]["body"])){
+
 tg("sendMessage",[
 "chat_id"=>$chat,
 "text"=>"❌ CPF não encontrado ou API instável."
 ]);
+
 return;
 }
 
 $d = $data["resultado"]["body"];
 
+# TEXTO COMPLETO
 $txt = "
 ╔══════════════════════════════╗
-   CONSULTA CPF VIP — ASTRO SEARCH
+   CONSULTA CPF ULTRA — ASTRO SEARCH
 ╚══════════════════════════════╝
 
+🧠 DADOS PRINCIPAIS
+──────────────────────────────
 CPF: ".v($d["cpf_masked"])."
 Nome: ".v($d["name"])."
+Primeiro nome: ".v($d["first_name"])."
+Sobrenome: ".v($d["last_name"])."
 Nascimento: ".v($d["birth_date"])."
 Sexo: ".v($d["gender"])."
+Situação: ".v($d["federal_status"])."
 
 Mãe: ".v($d["mother_name"])."
 Pai: ".v($d["father_name"])."
 
-Renda: R$ ".v($d["income"])."
-Classe Social: ".v($d["social_class"]["social_class"] ?? null)."
+RG: ".v($d["rg"])."
+Orgão emissor: ".v($d["rg_issuer"])."
+Estado RG: ".v($d["rg_state"])."
+Título eleitor: ".v($d["voter_id"])."
 
-──────────────────────────────
+CBO: ".v($d["cbo"])."
+
+Renda: R$ ".v($d["income"])."
+Faixa renda: ".v($d["income_bracket"])."
+Classe social: ".v($d["social_class"]["social_class"] ?? null)."
+
+Óbito: ".($d["death_flag"] == "1" ? "SIM" : "NÃO")."
+Data óbito: ".v($d["death_date"])."
 ";
 
-# TELEFONES
-foreach(($d["phones"] ?? []) as $ph){
-$txt .= "Telefone: ".v($ph)."\n";
+# CONTATO
+$txt .= "
+
+📡 CONTATO
+──────────────────────────────
+Email principal: ".v($d["email"])."
+";
+
+foreach(($d["additional_emails"] ?? []) as $em){
+$txt .= "Extra: ".v($em)."\n";
 }
 
-# EMAILS
-foreach(($d["additional_emails"] ?? []) as $em){
-$txt .= "Email: ".v($em)."\n";
+foreach(($d["phones"] ?? []) as $ph){
+$txt .= "Tel: ".v($ph)."\n";
+}
+
+foreach(($d["telefones_assecc"] ?? []) as $ph){
+$txt .= "Tel extra: ".v($ph["telefone"])."\n";
 }
 
 # ENDEREÇO
@@ -2348,18 +2383,43 @@ $a = $d["address"] ?? [];
 
 $txt .= "
 
-ENDEREÇO PRINCIPAL
+📍 ENDEREÇO PRINCIPAL
 ──────────────────────────────
 ".v($a["type"] ?? null)." ".v($a["street"] ?? null).", ".v($a["number"] ?? null)."
-".v($a["neighborhood"] ?? null)."
-".v($a["city"] ?? null)." - ".v($a["state"] ?? null)."
+Bairro: ".v($a["neighborhood"] ?? null)."
+Cidade: ".v($a["city"] ?? null)." - ".v($a["state"] ?? null)."
 CEP: ".v($a["zip_code"] ?? null)."
+Complemento: ".v($a["complement"] ?? null)."
+";
+
+# HISTÓRICO
+$txt .= "
+
+🏠 HISTÓRICO DE ENDEREÇOS
+──────────────────────────────
+";
+
+foreach(($d["all_addresses"] ?? []) as $a){
+$txt .= "
+".v($a["type"])." ".v($a["street"]).", ".v($a["number"])."
+".v($a["city"])." - ".v($a["state"])."
+CEP: ".v($a["zip_code"])."
+Fonte: ".v($a["source"])."
+";
+}
+
+# VEÍCULOS
+$txt .= "
+
+🚗 VEÍCULOS
+──────────────────────────────
+Total: ".v($d["vehicles"]["count"] ?? null)."
 ";
 
 # PARENTES
 $txt .= "
 
-PARENTES
+👨‍👩‍👧 PARENTES
 ──────────────────────────────
 ";
 
@@ -2367,39 +2427,94 @@ foreach(($d["parentes"] ?? []) as $p){
 $txt .= v($p["nome"])." - ".v($p["vinculo"])."\n";
 }
 
+# VIZINHOS
+$txt .= "
+
+🏘 VIZINHOS
+──────────────────────────────
+";
+
+foreach(($d["vizinhos"] ?? []) as $v){
+$txt .= "
+".v($v["nome"])."
+".v($v["logradouro"]).", ".v($v["numero"])."
+Bairro: ".v($v["bairro"])."
+";
+}
+
 # SCORE
 $s = $d["score"] ?? [];
 
 $txt .= "
 
-SCORE
+📊 SCORE
 ──────────────────────────────
 Valor: ".v($s["value"] ?? null)."
 Faixa: ".v($s["range"] ?? null)."
+";
+
+# PODER AQUISITIVO
+$p = $d["poder_aquisitivo"] ?? [];
+
+$txt .= "
+
+💰 PODER AQUISITIVO
+──────────────────────────────
+".v($p["PODER_AQUISITIVO"] ?? null)."
+".v($p["FX_PODER_AQUISITIVO"] ?? null)."
+";
+
+# PERFIL
+$a = $d["activity_profile"] ?? [];
+
+$txt .= "
+
+📈 PERFIL DE ATIVIDADE
+──────────────────────────────
+Primeira compra: ".v($a["first_order"] ?? null)."
+Última compra: ".v($a["last_order"] ?? null)."
+Período: ".v($a["period_days"] ?? null)." dias
+Ativo: ".(!empty($a["is_active_buyer"]) ? "SIM" : "NÃO")."
+";
+
+# COBERTURA
+$c = $d["data_coverage"]["completeness"] ?? [];
+
+$txt .= "
+
+🧬 COBERTURA DE DADOS
+──────────────────────────────
+Pessoal: ".(!empty($c["has_personal_data"]) ? "✔" : "✘")."
+Contato: ".(!empty($c["has_contact"]) ? "✔" : "✘")."
+Endereço: ".(!empty($c["has_address"]) ? "✔" : "✘")."
+Financeiro: ".(!empty($c["has_financial"]) ? "✔" : "✘")."
+Veículos: ".(!empty($c["has_vehicles"]) ? "✔" : "✘")."
+E-commerce: ".(!empty($c["has_ecommerce"]) ? "✔" : "✘")."
+";
+
+$txt .= "
 
 ──────────────────────────────
 Consulta realizada via:
-ASTRO SEARCH VIP
+ASTRO SEARCH ULTRA
 ";
 
 $file = tempnam(sys_get_temp_dir(),"cpf3_");
 file_put_contents($file,$txt);
 
-# PRÉVIA PREMIUM
+# PRÉVIA
 $preview = "
-💎 <b>CONSULTA VIP REALIZADA</b>
+📖 <b>Prévia da Consulta</b>
 
-👤 <b>Nome:</b> ".v($d["name"])."
-🪪 <b>CPF:</b> ".v($d["cpf_masked"])."
-🎂 <b>Nascimento:</b> ".v($d["birth_date"])."
-⚧ <b>Sexo:</b> ".v($d["gender"])."
+<blockquote>
+👤 ".v($d["name"])."
+CPF: ".v($d["cpf_masked"])."
+Nascimento: ".v($d["birth_date"])."
+Mãe: ".v($d["mother_name"])."
+📍 ".v($d["address"]["city"] ?? null)." - ".v($d["address"]["state"] ?? null)."
+</blockquote>
 
-👩 <b>Mãe:</b> ".v($d["mother_name"])."
-
-📊 <b>Score:</b> ".v($s["value"] ?? null)."
-💰 <b>Renda:</b> R$ ".v($d["income"])."
-
-📁 <i>Relatório completo no arquivo TXT.</i>
+<i>Relatório completo no arquivo TXT.</i>
 ";
 
 tg("sendDocument",[
@@ -2410,7 +2525,10 @@ tg("sendDocument",[
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
 [
-["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+["text"=>"💎 • Adquirir Consultas VIP","url"=>"https://t.me/seu_suporte"]
+],
+[
+["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
 ]
 ]
 ])
@@ -2419,7 +2537,6 @@ tg("sendDocument",[
 unlink($file);
 
 }
-
 function consultaPlaca($chat, $placa){
 
 global $STICKER_LOADING;
