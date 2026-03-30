@@ -3147,7 +3147,50 @@ if($callback){
     $nome = $callback["from"]["first_name"] ?? "usuário";
     $id   = $callback["from"]["id"];
     
-    if(str_starts_with($callback["data"],"ver|")){
+if(str_starts_with($callback["data"],"ver|")){
+
+$file = explode("|",$callback["data"])[1];
+
+if(!file_exists($file)) exit;
+
+$txt = file_get_contents($file);
+$partes = str_split($txt,4000);
+
+$pack = md5($file.time());
+$msg_ids = [];
+
+foreach($partes as $i=>$p){
+
+$send = tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"<pre>".$p."</pre>",
+"parse_mode"=>"HTML",
+"reply_markup"=>$i == count($partes)-1 ? json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"🗑 Apagar","callback_data"=>"delpack|$pack"]
+],
+[
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+]
+]
+]) : null
+]);
+
+$res = json_decode($send,true);
+
+if(isset($res["result"]["message_id"])){
+$msg_ids[] = $res["result"]["message_id"];
+}
+
+}
+
+file_put_contents("cache_ids_{$pack}.json",json_encode($msg_ids));
+
+unlink($file);
+
+exit;
+}
 
 $file = explode("|",$callback["data"])[1];
 
@@ -3244,6 +3287,30 @@ exit;
 }
 
 if(str_starts_with($callback["data"],"delpack")){
+
+$pack = explode("|",$callback["data"])[1];
+
+$file = "cache_ids_{$pack}.json";
+
+if(!file_exists($file)){
+exit;
+}
+
+$ids = json_decode(file_get_contents($file),true);
+
+foreach($ids as $msg_id){
+
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$msg_id
+]);
+
+}
+
+unlink($file);
+
+exit;
+}
 
 $dados = explode("|",$callback["data"]);
 $cpf = $dados[1];
