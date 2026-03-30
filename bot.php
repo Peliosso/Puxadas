@@ -2506,7 +2506,7 @@ Consulta realizada via:
 ASTRO SEARCH ULTRA
 ";
 
-$file = "cache_cpf3_{$cpf}.txt";
+$file = tempnam(sys_get_temp_dir(),"cpf3_");
 file_put_contents($file,$txt);
 
 /* MENSAGEM DESTACADA */
@@ -2520,22 +2520,25 @@ tg("sendMessage",[
 "parse_mode"=>"HTML"
 ]);
 
+/* ENVIA TXT */
 tg("sendDocument",[
 "chat_id"=>$chat,
-"document"=>"@$file",
-"caption"=>"📄 <b>Resultado da consulta CPF</b>",
+"document"=>new CURLFile($file,"text/plain","cpf_{$cpf}.txt"),
+"caption"=>"🧾 <b>Consulta de CPF concluída</b>
+
+⚡ API: <b>Astro Search Ultra</b>",
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
 [
-["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
-],
-[
-["text"=>"🤖 Adquirir o bot","url"=>"https://t.me/SEU_LINK_AQUI"]
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
+["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
 ]
 ]
 ])
 ]);
+
+unlink($file);
 
 function consultaPlaca($chat, $placa){
 
