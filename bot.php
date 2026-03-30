@@ -2509,10 +2509,9 @@ tg("sendMessage",[
 "parse_mode"=>"HTML"
 ]);
 
-/* ENVIA O ARQUIVO TXT */
 tg("sendDocument",[
 "chat_id"=>$chat,
-"document"=>new CURLFile($file),
+"document"=>"@$file",
 "caption"=>"📄 <b>Resultado da consulta CPF</b>",
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
