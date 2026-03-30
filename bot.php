@@ -2539,6 +2539,7 @@ tg("sendDocument",[
 ]);
 
 unlink($file);
+}
 
 function consultaPlaca($chat, $placa){
 
