@@ -120,6 +120,10 @@ $VIP_IDS = [
     1712166945,
     8521260864,
     1994291418,
+    6254661844,
+    8750636531,
+    8658282196,
+    5157554321,
     1235007779,
     7186704287,
     8603729320,
@@ -1715,107 +1719,148 @@ unlink($file);
 
 }
 
-function consultaNome($chat, $nome){
-    global $STICKER_LOADING;
+function consultaNome($chat,$nome){
 
-    // Sticker loading
-    $sticker = tg("sendSticker",[
-        "chat_id"=>$chat,
-        "sticker"=>$STICKER_LOADING
-    ]);
+global $STICKER_LOADING;
 
-    $stickerData = json_decode($sticker, true);
-    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+function v($v){
+return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
+}
 
-    if(strlen($nome) < 5){
+$sticker = tg("sendSticker",[
+"chat_id"=>$chat,
+"sticker"=>$STICKER_LOADING
+]);
 
-        if($stickerMsgId){
-            tg("deleteMessage",[
-                "chat_id"=>$chat,
-                "message_id"=>$stickerMsgId
-            ]);
-        }
+$stickerData = json_decode($sticker,true);
+$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>"❌ Nome inválido.\nUse: <code>/nome João Silva</code>",
-            "parse_mode"=>"HTML"
-        ]);
-        return;
-    }
+if(strlen($nome) < 5){
 
-    $nomeUrl = urlencode($nome);
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
 
-    // NOVA API
-    $url = "https://sara-api.xyz/consulta/nome?nome={$nomeUrl}";
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ Nome inválido.\nUse: <code>/nome João Silva</code>",
+"parse_mode"=>"HTML"
+]);
 
-    $ch = curl_init($url);
-    curl_setopt_array($ch,[
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 20
-    ]);
+return;
+}
 
-    $response = curl_exec($ch);
-    curl_close($ch);
+$nomeUrl = urlencode($nome);
 
-    $json = json_decode($response, true);
+$url = "https://sara-api.xyz/consulta/nome?nome={$nomeUrl}";
 
-    // remove sticker
-    if($stickerMsgId){
-        tg("deleteMessage",[
-            "chat_id"=>$chat,
-            "message_id"=>$stickerMsgId
-        ]);
-    }
+$ch = curl_init($url);
+curl_setopt_array($ch,[
+CURLOPT_RETURNTRANSFER=>true,
+CURLOPT_TIMEOUT=>20
+]);
 
-    if(!$json || empty($json["resultado"]["body"])){
-        naoEncontrado($chat,"NOME",$nome);
-        return;
-    }
+$response = curl_exec($ch);
+curl_close($ch);
 
-    $txt =
-"CONSULTA POR NOME — ASTRO SEARCH
-================================
+$json = json_decode($response,true);
 
-Nome pesquisado: {$nome}
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
 
-================================
+if(!$json || empty($json["resultado"]["body"])){
+naoEncontrado($chat,"NOME",$nome);
+return;
+}
+
+$txt = "
+╔══════════════════════════════╗
+   CONSULTA POR NOME — ASTRO SEARCH
+╚══════════════════════════════╝
+
+🔎 NOME PESQUISADO
+──────────────────────────────
+{$nome}
 ";
 
-    foreach($json["resultado"]["body"] as $pessoa){
+foreach($json["resultado"]["body"] as $pessoa){
 
-        $cpf = trim($pessoa["cpf"] ?? "NÃO ENCONTRADO");
-        $nomep = trim($pessoa["name"] ?? "NÃO ENCONTRADO");
-        $nasc = trim($pessoa["birth_date"] ?? "NÃO ENCONTRADO");
-        $mae = trim($pessoa["mother_name"] ?? "NÃO ENCONTRADO");
-        $sexo = trim($pessoa["gender"] ?? "NÃO ENCONTRADO");
-        $rg = trim($pessoa["rg"] ?? "NÃO ENCONTRADO");
+$cpf = v($pessoa["cpf"] ?? null);
+$nomep = v($pessoa["name"] ?? null);
+$nasc = v($pessoa["birth_date"] ?? null);
+$mae = v($pessoa["mother_name"] ?? null);
+$sexo = v($pessoa["gender"] ?? null);
+$rg = v($pessoa["rg"] ?? null);
 
-        $txt .= "
-CPF: {$cpf}
+$txt .= "
+
+👤 DADOS ENCONTRADOS
+──────────────────────────────
 Nome: {$nomep}
+CPF: {$cpf}
 Sexo: {$sexo}
 Nascimento: {$nasc}
 Mãe: {$mae}
 RG: {$rg}
 
---------------------------------
-";
-    }
-
-    $txt .= "
-Consulta via:
-Astro Search
+──────────────────────────────
 ";
 
-    resultadoConsulta(
-        $chat,
-        "Consulta por Nome",
-        $txt,
-        "nome"
-    );
 }
 
+$txt .= "
+
+Consulta realizada via:
+ASTRO SEARCH
+";
+
+$file = tempnam(sys_get_temp_dir(),"nome_");
+file_put_contents($file,$txt);
+
+$pessoa = $json["resultado"]["body"][0] ?? [];
+
+$preview = "
+💎 <b>Consulta VIP Realizada</b>
+
+<blockquote>
+👤 ".v($pessoa["name"] ?? null)."
+🪪 CPF: ".v($pessoa["cpf"] ?? null)."
+🎂 ".v($pessoa["birth_date"] ?? null)."
+👩 ".v($pessoa["mother_name"] ?? null)."
+</blockquote>
+
+📄 Um relatório detalhado foi gerado para esta consulta.
+
+🔓 <i>O dossiê completo está disponível no arquivo TXT.</i>
+";
+
+tg("sendDocument",[
+"chat_id"=>$chat,
+"document"=>new CURLFile($file,"text/plain","nome.txt"),
+"caption"=>$preview,
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"💎 • Adquirir Consultas VIP","url"=>"https://t.me/puxardados5"]
+],
+[
+["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
+]
+]
+])
+]);
+
+unlink($file);
+
+}
 function consultaParentes($chat, $cpf){
     global $STICKER_LOADING;
 
