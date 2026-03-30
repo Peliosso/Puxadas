@@ -2525,7 +2525,7 @@ tg("sendDocument",[
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
 [
-["text"=>"💎 • Adquirir Consultas VIP","url"=>"https://t.me/seu_suporte"]
+["text"=>"💎 • Adquirir Consultas VIP","url"=>"https://t.me/puxardados5"]
 ],
 [
 ["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
