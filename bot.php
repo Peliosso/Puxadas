@@ -2268,10 +2268,6 @@ function consultaCPF3($chat,$cpf){
 
 global $STICKER_LOADING;
 
-function v($v){
-return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
-}
-
 $sticker = tg("sendSticker",[
 "chat_id"=>$chat,
 "sticker"=>$STICKER_LOADING
@@ -2365,7 +2361,6 @@ Classe social: ".v($d["social_class"]["social_class"] ?? null)."
 Data óbito: ".v($d["death_date"])."
 ";
 
-# CONTATO
 $txt .= "
 
 📡 CONTATO
@@ -2385,7 +2380,6 @@ foreach(($d["telefones_assecc"] ?? []) as $ph){
 $txt .= "Tel extra: ".v($ph["telefone"])."\n";
 }
 
-# ENDEREÇO PRINCIPAL
 $a = $d["address"] ?? [];
 
 $txt .= "
@@ -2399,7 +2393,6 @@ CEP: ".v($a["zip_code"] ?? null)."
 Complemento: ".v($a["complement"] ?? null)."
 ";
 
-# HISTÓRICO ENDEREÇOS
 $txt .= "
 
 🏠 HISTÓRICO DE ENDEREÇOS
@@ -2407,15 +2400,16 @@ $txt .= "
 ";
 
 foreach(($d["all_addresses"] ?? []) as $a){
+
 $txt .= "
 ".v($a["type"])." ".v($a["street"]).", ".v($a["number"])."
 ".v($a["city"])." - ".v($a["state"])."
 CEP: ".v($a["zip_code"])."
 Fonte: ".v($a["source"])."
 ";
+
 }
 
-# VEÍCULOS
 $txt .= "
 
 🚗 VEÍCULOS
@@ -2423,7 +2417,6 @@ $txt .= "
 Total: ".v($d["vehicles"]["count"] ?? null)."
 ";
 
-# PARENTES
 $txt .= "
 
 👨‍👩‍👧 PARENTES
@@ -2434,7 +2427,6 @@ foreach(($d["parentes"] ?? []) as $p){
 $txt .= v($p["nome"])." - ".v($p["vinculo"])."\n";
 }
 
-# VIZINHOS
 $txt .= "
 
 🏘 VIZINHOS
@@ -2442,14 +2434,15 @@ $txt .= "
 ";
 
 foreach(($d["vizinhos"] ?? []) as $v){
+
 $txt .= "
 ".v($v["nome"])."
 ".v($v["logradouro"]).", ".v($v["numero"])."
 Bairro: ".v($v["bairro"])."
 ";
+
 }
 
-# SCORE
 $s = $d["score"] ?? [];
 
 $txt .= "
@@ -2460,7 +2453,6 @@ Valor: ".v($s["value"] ?? null)."
 Faixa: ".v($s["range"] ?? null)."
 ";
 
-# PODER AQUISITIVO
 $p = $d["poder_aquisitivo"] ?? [];
 
 $txt .= "
@@ -2471,7 +2463,6 @@ $txt .= "
 ".v($p["FX_PODER_AQUISITIVO"] ?? null)."
 ";
 
-# PERFIL DE ATIVIDADE
 $a = $d["activity_profile"] ?? [];
 
 $txt .= "
@@ -2484,7 +2475,6 @@ Período: ".v($a["period_days"] ?? null)." dias
 Ativo: ".(!empty($a["is_active_buyer"]) ? "SIM" : "NÃO")."
 ";
 
-# COBERTURA
 $c = $d["data_coverage"]["completeness"] ?? [];
 
 $txt .= "
@@ -2509,7 +2499,6 @@ ASTRO SEARCH ULTRA
 $file = tempnam(sys_get_temp_dir(),"cpf3_");
 file_put_contents($file,$txt);
 
-/* MENSAGEM DESTACADA */
 tg("sendMessage",[
 "chat_id"=>$chat,
 "text"=>"🔥 <b>CONSULTA VIP EXCLUSIVA REALIZADA</b>
@@ -2520,7 +2509,6 @@ tg("sendMessage",[
 "parse_mode"=>"HTML"
 ]);
 
-/* ENVIA TXT */
 tg("sendDocument",[
 "chat_id"=>$chat,
 "document"=>new CURLFile($file,"text/plain","cpf_{$cpf}.txt"),
@@ -2539,6 +2527,7 @@ tg("sendDocument",[
 ]);
 
 unlink($file);
+
 }
 
 function consultaPlaca($chat, $placa){
