@@ -2540,7 +2540,6 @@ tg("sendDocument",[
 ["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
 ]
 ]
-]
 ])
 ]);
 
