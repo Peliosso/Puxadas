@@ -2530,7 +2530,7 @@ tg("sendDocument",[
 "chat_id"=>$chat,
 "document"=>new CURLFile($file,"text/plain","cpf3_{$cpf}.txt"),
 "caption"=>$preview,
-"parse_mode"=>"HTML"
+"parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
 [
