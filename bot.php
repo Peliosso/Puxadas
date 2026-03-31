@@ -230,6 +230,23 @@ function isGroupChat($type){
     return in_array($type, ["group","supergroup"]);
 }
 
+define("VIP_GROUPS_DB","vip_groups.json");
+
+function isVipGroup($chat){
+
+    if(!file_exists(VIP_GROUPS_DB)){
+        return false;
+    }
+
+    $data = json_decode(file_get_contents(VIP_GROUPS_DB), true);
+
+    if(!is_array($data)){
+        return false;
+    }
+
+    return in_array($chat,$data);
+}
+
 define("VIP_CODES_DB","vip_codes.json");
 $OWNER_ID = 7320236887;
 
@@ -844,6 +861,48 @@ Créditos: Astro Search
     ]);
 
     unlink($file);
+}
+
+if(isset($message["text"])){
+
+$text = $message["text"];
+
+if(strpos($text,"/vipgrupo") === 0 && $userId == $OWNER_ID){
+
+    $args = explode(" ",$text);
+
+    if(!isset($args[1])){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"Use:\n<code>/vipgrupo ID_DO_GRUPO</code>",
+            "parse_mode"=>"HTML"
+        ]);
+        exit;
+    }
+
+    $grupo = $args[1];
+
+    $data = [];
+
+    if(file_exists(VIP_GROUPS_DB)){
+        $data = json_decode(file_get_contents(VIP_GROUPS_DB), true);
+    }
+
+    if(!in_array($grupo,$data)){
+        $data[] = $grupo;
+    }
+
+    file_put_contents(VIP_GROUPS_DB,json_encode($data));
+
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>"✅ Grupo VIP adicionado\n\nID: <code>{$grupo}</code>",
+        "parse_mode"=>"HTML"
+    ]);
+
+    exit;
+}
+
 }
 
 function consultaIP($chat, $ip){
@@ -3116,7 +3175,7 @@ $vipCmds = ["/cpf","/fotorj","/fotosp","/instagram","/cpf1","/cpf2","/cpf3","/vi
     }
 
     // 🔒 depois verifica VIP
-    if(!isVip($userId) && !isFreeGroup($chat)){
+if(!isVip($userId) && !isVipGroup($chat))
     bloquearConsulta($chat);
     exit;
 }
