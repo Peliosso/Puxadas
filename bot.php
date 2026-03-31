@@ -580,6 +580,68 @@ tg("editMessageCaption",[
 
 }
 
+if(strpos($text,"/vip") === 0){
+
+    if($userId != $OWNER_ID){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Apenas o dono pode usar."
+        ]);
+        exit;
+    }
+
+    if(!isGroupChat($message["chat"]["type"])){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Use apenas em grupos."
+        ]);
+        exit;
+    }
+
+    $parts = explode(" ",$text);
+    $id = $parts[1] ?? null;
+
+    if(!$id){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Use: /vip ID"
+        ]);
+        exit;
+    }
+
+    ativarVipGrupo($id);
+
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>"👑 <b>GRUPO VIP ATIVADO</b>
+
+ID: <code>$id</code>
+
+Acesso vitalício liberado.",
+        "parse_mode"=>"HTML"
+    ]);
+
+    exit;
+}
+
+define("VIP_DB","vip_groups.json");
+
+function ativarVipGrupo($chat){
+
+    $data = [];
+
+    if(file_exists(VIP_DB)){
+        $data = json_decode(file_get_contents(VIP_DB), true);
+    }
+
+    $data[$chat] = [
+        "vip" => true,
+        "ativado_em" => time()
+    ];
+
+    file_put_contents(VIP_DB, json_encode($data));
+}
+
 function gerarCodigoVip(){
 
     $codigo = strtoupper(substr(md5(uniqid()),0,10));
