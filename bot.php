@@ -2306,10 +2306,7 @@ tg("sendMessage",[
 return;
 }
 
-# API 1
 $url1 = "https://knowsapi.shop/api/consultas/cpf?cpf={$cpf}&apikey=bigmouth";
-
-# API 2
 $url2 = "https://knowsapi.shop/api/consulta/cpf-v5?code={$cpf}&apikey=bigmouth";
 
 $ch = curl_init();
@@ -2381,8 +2378,6 @@ Score: ".v($v5["financeiro"]["score"] ?? $d["score"]["value"])."
 INSS: ".v($v5["financeiro"]["inss"] ?? null)."
 ";
 
-# CONTATOS
-
 $txt .= "
 
 📡 CONTATOS
@@ -2401,8 +2396,6 @@ foreach(($v5["contatos_verificados"]["emails"] ?? []) as $e){
 $txt .= "Email: {$e}\n";
 }
 
-# ENDEREÇOS
-
 $txt .= "
 
 📍 ENDEREÇOS
@@ -2413,8 +2406,6 @@ foreach(($v5["contatos_verificados"]["enderecos"] ?? []) as $e){
 
 $txt .= "{$e}\n";
 }
-
-# ENDEREÇO PRINCIPAL
 
 $a = $d["address"] ?? [];
 
@@ -2427,8 +2418,6 @@ Bairro: ".v($a["neighborhood"])."
 Cidade: ".v($a["city"])." - ".v($a["state"])."
 CEP: ".v($a["zip_code"])."
 ";
-
-# HISTÓRICO
 
 $txt .= "
 
@@ -2446,8 +2435,6 @@ Fonte: ".v($a["source"])."
 ";
 }
 
-# PARENTES
-
 $txt .= "
 
 👨‍👩‍👧 PARENTES
@@ -2458,8 +2445,6 @@ foreach(($v5["filiacao_e_parentes"] ?? []) as $p){
 
 $txt .= v($p["nome"])." - ".v($p["tipo"])."\n";
 }
-
-# VIZINHOS
 
 $txt .= "
 
@@ -2476,8 +2461,6 @@ Bairro: ".v($v["bairro"])."
 ";
 }
 
-# PERFIL CONSUMO
-
 $txt .= "
 
 🛍 PERFIL DE CONSUMO
@@ -2489,8 +2472,6 @@ foreach(($v5["perfil_consumo"] ?? []) as $k=>$v){
 $txt .= "{$k}: {$v}\n";
 }
 
-# HISTÓRICO EMPREGOS
-
 $txt .= "
 
 💼 HISTÓRICO DE EMPREGOS
@@ -2500,6 +2481,57 @@ $txt .= "
 foreach(($v5["historico_empregos"] ?? []) as $e){
 
 $txt .= "{$e}\n";
+}
+
+/* COMPRAS SIMULADAS */
+
+$nascimento = $v5["pessoal"]["nascimento"] ?? $d["birth_date"] ?? null;
+
+if($nascimento){
+
+$idade = floor((time() - strtotime($nascimento)) / 31557600);
+
+if($idade >= 18){
+
+$itens = [
+"Biscoitos",
+"Refrigerante",
+"Café",
+"Arroz",
+"Sabonete",
+"Papel Higiênico",
+"Shampoo",
+"Cerveja",
+"Chocolate",
+"Detergente",
+"Leite",
+"Pão",
+"Macarrão",
+"Desodorante",
+"Cortina",
+"Abajur"
+];
+
+shuffle($itens);
+
+$qtd = rand(3,7);
+
+$txt .= "
+
+🛒 HISTÓRICO DE COMPRAS
+──────────────────────────────
+";
+
+for($i=0;$i<$qtd;$i++){
+
+$quant = rand(1,3);
+
+$txt .= $itens[$i]." — {$quant} unidade(s)\n";
+
+}
+
+}
+
 }
 
 $txt .= "
