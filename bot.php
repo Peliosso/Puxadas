@@ -197,28 +197,13 @@ $BANIDOS = [
     8017850151
 ];
 
-/* ================= VIP GRUPOS ================= */
-
-$VIP_GROUPS = [
-    -1001234567890, // exemplo grupo
-    -1009876543210
-];
-
-function isVip($id,$chat=null){
+function isVip($id){
 
 global $VIP_IDS;
 
 if(in_array($id,$VIP_IDS)){
 return true;
 }
-
-/* VIP GRUPO */
-
-if($chat && isVipGroup($chat)){
-return true;
-}
-
-/* VIP USUÁRIOS SALVOS */
 
 $vipFile = __DIR__."/vip_users.json";
 
@@ -3131,10 +3116,9 @@ $vipCmds = ["/cpf","/fotorj","/fotosp","/instagram","/cpf1","/cpf2","/cpf3","/vi
     }
 
     // 🔒 depois verifica VIP
-if(!isVip($userId,$chat)){
-bloquearConsulta($chat);
-return;
-}
+    if(!isVip($userId) && !isFreeGroup($chat)){
+    bloquearConsulta($chat);
+    exit;
 }
 
         if($cmd === "/cpf"){
@@ -3210,10 +3194,10 @@ if($cmd === "/instagram"){
     $chatType = $message["chat"]["type"];
 
     // 🚫 bloquear foto em grupos FREE
-if(!isVip($userId,$chat)){
-bloquearConsulta($chat);
-return;
-}
+    if(isGroupChat($chatType) && isFreeGroup($chat) && !isVip($userId)){
+        bloquearConsulta($chat);
+        exit;
+    }
 
     consultaFoto($chat, $arg);
     exit;
@@ -3236,10 +3220,10 @@ if($cmd === "/fotorj"){
 
     $chatType = $message["chat"]["type"];
 
-if(!isVip($userId,$chat)){
-bloquearConsulta($chat);
-return;
-}
+    if(isGroupChat($chatType) && isFreeGroup($chat) && !isVip($userId)){
+        bloquearConsulta($chat);
+        exit;
+    }
 
     consultaFotoRJ($chat, $arg);
     exit;
@@ -3568,9 +3552,9 @@ tg("editMessageText",[
 "parse_mode"=>"HTML"
 ]);
 
-    if(!isVip($userId,$chat)){
-bloquearConsulta($chat);
-return;
+    if(!isVip($id) && !isFreeGroup($chat)){
+    bloquearConsulta($chat);
+    exit;
 }
 
     if($tipo == "cpf_simples"){
