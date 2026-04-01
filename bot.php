@@ -1517,72 +1517,74 @@ function consultaFoto($chat, $cpf){
     unlink($file);
 }
 
-function consultaTelefone($chat,$telefone){
+function consultaTelefone($chat, $telefone) {
 
-global $STICKER_LOADING;
+    global $STICKER_LOADING;
 
-function v($v){
-return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
-}
+    // Função auxiliar para tratar valores nulos
+    function v($v) {
+        return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
+    }
 
-$sticker = tg("sendSticker",[
-"chat_id"=>$chat,
-"sticker"=>$STICKER_LOADING
-]);
+    // Sticker de carregando
+    $sticker = tg("sendSticker", [
+        "chat_id" => $chat,
+        "sticker" => $STICKER_LOADING
+    ]);
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-$stickerData = json_decode($sticker,true);
-$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+    // Limpa telefone
+    $telefone = preg_replace('/\D/', '', $telefone);
 
-$telefone = preg_replace('/\D/','',$telefone);
+    // Validação mínima
+    if (strlen($telefone) < 10) {
+        if ($stickerMsgId) {
+            tg("deleteMessage", [
+                "chat_id" => $chat,
+                "message_id" => $stickerMsgId
+            ]);
+        }
+        tg("sendMessage", [
+            "chat_id" => $chat,
+            "text" => "❌ Telefone inválido.\nUse: <code>/telefone 31999999999</code>",
+            "parse_mode" => "HTML"
+        ]);
+        return;
+    }
 
-if(strlen($telefone) < 10){
+    // Nova URL da API
+    $url = "https://knowsapi.shop/api/consultas/telefone?telefone={$telefone}&apikey=bigmouth";
 
-if($stickerMsgId){
-tg("deleteMessage",[
-"chat_id"=>$chat,
-"message_id"=>$stickerMsgId
-]);
-}
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 20
+    ]);
+    $response = curl_exec($ch);
+    curl_close($ch);
 
-tg("sendMessage",[
-"chat_id"=>$chat,
-"text"=>"❌ Telefone inválido.\nUse: <code>/telefone 31999999999</code>",
-"parse_mode"=>"HTML"
-]);
+    $data = json_decode($response, true);
 
-return;
-}
+    // Remove sticker
+    if ($stickerMsgId) {
+        tg("deleteMessage", [
+            "chat_id" => $chat,
+            "message_id" => $stickerMsgId
+        ]);
+    }
 
-$url = "https://knowsapi.shop/api/consulta/telefone-v1?telefone={$telefone}&apikey=bigmouth";
+    // Se não encontrou resultados
+    if (empty($data["body"])) {
+        naoEncontrado($chat, "TELEFONE", $telefone);
+        return;
+    }
 
-$ch = curl_init();
-curl_setopt_array($ch,[
-CURLOPT_URL=>$url,
-CURLOPT_RETURNTRANSFER=>true,
-CURLOPT_TIMEOUT=>20
-]);
+    $pessoa = $data["body"][0] ?? [];
 
-$response = curl_exec($ch);
-curl_close($ch);
-
-$data = json_decode($response,true);
-
-if($stickerMsgId){
-tg("deleteMessage",[
-"chat_id"=>$chat,
-"message_id"=>$stickerMsgId
-]);
-}
-
-if(empty($data["resultado"])){
-naoEncontrado($chat,"TELEFONE",$telefone);
-return;
-}
-
-$id = $data["resultado"]["identificacao"] ?? [];
-$loc = $data["resultado"]["localizacao"] ?? [];
-
-$txt = "
+    // Monta texto detalhado
+    $txt = "
 ╔══════════════════════════════╗
    CONSULTA TELEFONE — ASTRO SEARCH
 ╚══════════════════════════════╝
@@ -1593,16 +1595,12 @@ $txt = "
 
 👤 DADOS ENCONTRADOS
 ──────────────────────────────
-Nome: ".v($id["nome"] ?? null)."
-CPF: ".v($id["documento"] ?? null)."
-
-📍 ENDEREÇO
-──────────────────────────────
-".v($loc["logradouro"] ?? null).", ".v($loc["numero"] ?? null)."
-Bairro: ".v($loc["bairro"] ?? null)."
-Cidade: ".v($loc["cidade"] ?? null)."
-Estado: ".v($loc["estado"] ?? null)."
-CEP: ".v($loc["cep"] ?? null)."
+Nome: ".v($pessoa["name"] ?? null)."
+CPF: ".v($pessoa["cpf"] ?? null)."
+Nascimento: ".v($pessoa["birth_date"] ?? null)."
+Email: ".v($pessoa["email"] ?? null)."
+Cidade: ".v($pessoa["city"] ?? null)."
+Estado: ".v($pessoa["state"] ?? null)."
 
 ──────────────────────────────
 
@@ -1610,17 +1608,20 @@ Consulta realizada via:
 ASTRO SEARCH
 ";
 
-$file = tempnam(sys_get_temp_dir(),"telefone_");
-file_put_contents($file,$txt);
+    // Cria arquivo TXT temporário
+    $file = tempnam(sys_get_temp_dir(), "telefone_");
+    file_put_contents($file, $txt);
 
-$preview = "
+    // Preview VIP
+    $preview = "
 💎 <b>Consulta VIP Realizada</b>
 
 <blockquote>
-👤 ".v($id["nome"] ?? null)."
+👤 ".v($pessoa["name"] ?? null)."
 📱 {$telefone}
-🪪 ".v($id["documento"] ?? null)."
-📍 ".v($loc["cidade"] ?? null)." - ".v($loc["estado"] ?? null)."
+🪪 ".v($pessoa["cpf"] ?? null)."
+📍 ".v($pessoa["city"] ?? null)." - ".v($pessoa["state"] ?? null)."
+📧 ".v($pessoa["email"] ?? null)."
 </blockquote>
 
 📄 Um relatório detalhado foi gerado para esta consulta.
@@ -1628,90 +1629,91 @@ $preview = "
 🔓 <i>O dossiê completo está disponível no arquivo TXT.</i>
 ";
 
-tg("sendDocument",[
-"chat_id"=>$chat,
-"document"=>new CURLFile($file,"text/plain","telefone_{$telefone}.txt"),
-"caption"=>$preview,
-"parse_mode"=>"HTML",
-"reply_markup"=>json_encode([
-"inline_keyboard"=>[
-[
-["text"=>"💎 • Adquirir Consultas VIP","url"=>"https://t.me/puxardados5"]
-],
-[
-["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
-]
-]
-])
-]);
+    // Envia documento com preview
+    tg("sendDocument", [
+        "chat_id" => $chat,
+        "document" => new CURLFile($file, "text/plain", "telefone_{$telefone}.txt"),
+        "caption" => $preview,
+        "parse_mode" => "HTML",
+        "reply_markup" => json_encode([
+            "inline_keyboard" => [
+                [
+                    ["text" => "💎 • Adquirir Consultas VIP", "url" => "https://t.me/puxardados5"]
+                ],
+                [
+                    ["text" => "🗑 • Apagar", "callback_data" => "apagar_msg"]
+                ]
+            ]
+        ])
+    ]);
 
-unlink($file);
-
+    unlink($file);
 }
 
-function consultaNome($chat,$nome){
+function consultaNome($chat, $nome) {
 
-global $STICKER_LOADING;
+    global $STICKER_LOADING;
 
-function v($v){
-return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
-}
+    // Função auxiliar para tratar valores nulos
+    function v($v) {
+        return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
+    }
 
-$sticker = tg("sendSticker",[
-"chat_id"=>$chat,
-"sticker"=>$STICKER_LOADING
-]);
+    // Envia sticker de carregando
+    $sticker = tg("sendSticker", [
+        "chat_id" => $chat,
+        "sticker" => $STICKER_LOADING
+    ]);
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-$stickerData = json_decode($sticker,true);
-$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+    // Validação mínima do nome
+    if (strlen($nome) < 5) {
+        if ($stickerMsgId) {
+            tg("deleteMessage", [
+                "chat_id" => $chat,
+                "message_id" => $stickerMsgId
+            ]);
+        }
+        tg("sendMessage", [
+            "chat_id" => $chat,
+            "text" => "❌ Nome inválido.\nUse: <code>/nome João Silva</code>",
+            "parse_mode" => "HTML"
+        ]);
+        return;
+    }
 
-if(strlen($nome) < 5){
+    // URL da nova API
+    $nomeUrl = urlencode($nome);
+    $url = "https://knowsapi.shop/api/consultas/nome?nome={$nomeUrl}&apikey=bigmouth";
 
-if($stickerMsgId){
-tg("deleteMessage",[
-"chat_id"=>$chat,
-"message_id"=>$stickerMsgId
-]);
-}
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 20
+    ]);
+    $response = curl_exec($ch);
+    curl_close($ch);
 
-tg("sendMessage",[
-"chat_id"=>$chat,
-"text"=>"❌ Nome inválido.\nUse: <code>/nome João Silva</code>",
-"parse_mode"=>"HTML"
-]);
+    $data = json_decode($response, true);
 
-return;
-}
+    // Remove sticker de carregando
+    if ($stickerMsgId) {
+        tg("deleteMessage", [
+            "chat_id" => $chat,
+            "message_id" => $stickerMsgId
+        ]);
+    }
 
-$nomeUrl = urlencode($nome);
+    // Se não encontrou resultados
+    if (empty($data["body"])) {
+        naoEncontrado($chat, "NOME", $nome);
+        return;
+    }
 
-$url = "https://knowsapi.shop/api/consulta/nome-v1?nome={$nomeUrl}&apikey=bigmouth";
-
-$ch = curl_init();
-curl_setopt_array($ch,[
-CURLOPT_URL=>$url,
-CURLOPT_RETURNTRANSFER=>true,
-CURLOPT_TIMEOUT=>20
-]);
-
-$response = curl_exec($ch);
-curl_close($ch);
-
-$data = json_decode($response,true);
-
-if($stickerMsgId){
-tg("deleteMessage",[
-"chat_id"=>$chat,
-"message_id"=>$stickerMsgId
-]);
-}
-
-if(empty($data["resultados"])){
-naoEncontrado($chat,"NOME",$nome);
-return;
-}
-
-$txt = "
+    // Monta texto da resposta detalhada
+    $txt = "
 ╔══════════════════════════════╗
    CONSULTA POR NOME — ASTRO SEARCH
 ╚══════════════════════════════╝
@@ -1722,44 +1724,45 @@ $txt = "
 
 📊 TOTAL ENCONTRADOS
 ──────────────────────────────
-".$data["total_encontrados"]."
+".$data["total_results"]."
 ";
 
-foreach($data["resultados"] as $pessoa){
-
-$txt .= "
+    foreach ($data["body"] as $pessoa) {
+        $txt .= "
 
 👤 DADOS ENCONTRADOS
 ──────────────────────────────
-Nome: ".v($pessoa["nome"] ?? null)."
+Nome: ".v($pessoa["name"] ?? null)."
 CPF: ".v($pessoa["cpf"] ?? null)."
-Sexo: ".v($pessoa["sexo"] ?? null)."
-Nascimento: ".v($pessoa["nascimento"] ?? null)."
+Sexo: ".v($pessoa["gender"] ?? null)."
+Nascimento: ".v($pessoa["birth_date"] ?? null)."
+Mãe: ".v($pessoa["mother_name"] ?? null)."
+RG: ".v($pessoa["rg"] ?? null)."
 
 ──────────────────────────────
 ";
+    }
 
-}
-
-$txt .= "
-
+    $txt .= "
 Consulta realizada via:
 ASTRO SEARCH
 ";
 
-$file = tempnam(sys_get_temp_dir(),"nome_");
-file_put_contents($file,$txt);
+    // Cria arquivo TXT temporário com o relatório
+    $file = tempnam(sys_get_temp_dir(), "nome_");
+    file_put_contents($file, $txt);
 
-$pessoa = $data["resultados"][0] ?? [];
+    $pessoa = $data["body"][0] ?? [];
 
-$preview = "
+    // Mensagem de preview VIP
+    $preview = "
 💎 <b>Consulta VIP Realizada</b>
 
 <blockquote>
-👤 ".v($pessoa["nome"] ?? null)."
+👤 ".v($pessoa["name"] ?? null)."
 🪪 ".v($pessoa["cpf"] ?? null)."
-🎂 ".v($pessoa["nascimento"] ?? null)."
-⚧ ".v($pessoa["sexo"] ?? null)."
+🎂 ".v($pessoa["birth_date"] ?? null)."
+⚧ ".v($pessoa["gender"] ?? null)."
 </blockquote>
 
 📄 Um relatório detalhado foi gerado para esta consulta.
@@ -1767,25 +1770,25 @@ $preview = "
 🔓 <i>O dossiê completo está disponível no arquivo TXT.</i>
 ";
 
-tg("sendDocument",[
-"chat_id"=>$chat,
-"document"=>new CURLFile($file,"text/plain","nome.txt"),
-"caption"=>$preview,
-"parse_mode"=>"HTML",
-"reply_markup"=>json_encode([
-"inline_keyboard"=>[
-[
-["text"=>"💎 • Adquirir Consultas VIP","url"=>"https://t.me/puxardados5"]
-],
-[
-["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
-]
-]
-])
-]);
+    // Envia documento TXT com preview
+    tg("sendDocument", [
+        "chat_id" => $chat,
+        "document" => new CURLFile($file, "text/plain", "nome.txt"),
+        "caption" => $preview,
+        "parse_mode" => "HTML",
+        "reply_markup" => json_encode([
+            "inline_keyboard" => [
+                [
+                    ["text" => "💎 • Adquirir Consultas VIP", "url" => "https://t.me/puxardados5"]
+                ],
+                [
+                    ["text" => "🗑 • Apagar", "callback_data" => "apagar_msg"]
+                ]
+            ]
+        ])
+    ]);
 
-unlink($file);
-
+    unlink($file);
 }
 
 function consultaParentes($chat, $cpf){
