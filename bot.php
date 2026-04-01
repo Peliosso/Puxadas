@@ -3212,7 +3212,6 @@ if($cmd === "/vizinhos"){
 }
 
 /* ================= CALLBACKS ================= */
-
 if($callback){
     answer($callback["id"]);
 
@@ -3221,15 +3220,15 @@ if($callback){
     $id   = $callback["from"]["id"];
     $nome = $callback["from"]["first_name"] ?? "usuário";
 
-    // Callback para gerar PIX
+    // -----------------------------
+    // GERAR PIX
+    // -----------------------------
     if(str_starts_with($callback["data"], "gerar_pix|")) {
-        // Explode para pegar user_id e valor
-        list(, $user_id, $PIX_VALOR) = explode("|", $callback["data"]);
+        list(, $user_id) = explode("|", $callback["data"]);
+        $PIX_VALOR = $PIX_VALOR ?? "10.00";
 
-        // URL da API de pagamento
         $payment_url = "https://promstpagamentos.discloud.app/create_payment?user_id={$user_id}&valor={$PIX_VALOR}";
 
-        // Requisição cURL
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $payment_url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -3241,12 +3240,10 @@ if($callback){
 
         $paymentData = ($httpcode == 200 && $response) ? json_decode($response, true) : null;
 
-        // Valores padrão caso a API não retorne
         $valor = $paymentData['amount'] ?? ($paymentData['valor']['original'] ?? $PIX_VALOR);
         $txid  = $paymentData['txid'] ?? "NÃO DISPONÍVEL";
         $pix   = $paymentData['pixCopiaECola'] ?? "NÃO DISPONÍVEL";
 
-        // Texto atualizado com PIX e TXID
         $textoAtualizado = "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
 
 💰 Valor único: <b>R$ {$valor}</b>
@@ -3257,7 +3254,6 @@ if($callback){
 ⚡ Copie o PIX abaixo para pagar:
 <code>{$pix}</code>";
 
-        // Edita a mensagem original
         tg("editMessageText", [
             "chat_id" => $chat,
             "message_id" => $msg,
@@ -3273,106 +3269,98 @@ if($callback){
 
         exit;
     }
-}
-    
-    if(str_starts_with($callback["data"],"cpf2_msg")){
 
-$dados = explode("|",$callback["data"]);
-$cpf = $dados[1];
+    // -----------------------------
+    // ENVIAR ARQUIVO TXT
+    // -----------------------------
+    if(str_starts_with($callback["data"],"txt|")){
+        $file = explode("|",$callback["data"])[1];
+        if(!file_exists($file)) exit;
 
-$file = "cache_cpf2_{$cpf}.txt";
+        $txt = file_get_contents($file);
+        $partes = str_split($txt,4000);
 
-if(!file_exists($file)){
-exit;
-}
+        foreach($partes as $index => $parte){
+            tg("sendMessage",[
+                "chat_id"=>$chat,
+                "text"=>"<pre>".$parte."</pre>",
+                "parse_mode"=>"HTML",
+                "reply_markup"=>$index == 0 ? json_encode([
+                    "inline_keyboard"=>[
+                        [["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]],
+                        [["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]]
+                    ]
+                ]) : null
+            ]);
+        }
 
-$txt = file_get_contents($file);
-$partes = str_split($txt,4000);
+        unlink($file);
+        exit;
+    }
 
-foreach($partes as $index => $parte){
+    // -----------------------------
+    // VOLTAR AO MENU
+    // -----------------------------
+    if(str_starts_with($callback["data"], "voltar_menu")){
+        menuPrincipal($chat, $msg);
+        exit;
+    }
 
-tg("sendMessage",[
-"chat_id"=>$chat,
-"text"=>"<pre>".$parte."</pre>",
-"parse_mode"=>"HTML",
-"reply_markup"=>$index == 0 ? json_encode([
-"inline_keyboard"=>[
-[
-["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
-],
-[
-["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
-]
-]
-]) : null
-]);
+    // -----------------------------
+    // APAGAR MENSAGEM
+    // -----------------------------
+    if(str_starts_with($callback["data"], "apagar_msg")){
+        tg("deleteMessage", [
+            "chat_id" => $chat,
+            "message_id" => $msg
+        ]);
+        exit;
+    }
 
-}
+    // -----------------------------
+    // DELETAR PACOTE DE CONSULTAS
+    // -----------------------------
+    if(str_starts_with($callback["data"],"delpack")){
+        $cpf = explode("|",$callback["data"])[1];
+        $file = "cache_ids_{$cpf}.json";
+        if(!file_exists($file)) exit;
 
-unlink($file);
+        $ids = json_decode(file_get_contents($file),true);
+        foreach($ids as $msg_id){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$msg_id
+            ]);
+        }
 
-exit;
-}
+        unlink($file);
+        exit;
+    }
 
-if(str_starts_with($callback["data"],"delpack")){
+    // -----------------------------
+    // ENVIAR ARQUIVO CPF2
+    // -----------------------------
+    if(str_starts_with($callback["data"],"cpf2_file")){
+        $cpf = explode("|",$callback["data"])[1];
+        $file = "cache_cpf2_{$cpf}.txt";
+        if(!file_exists($file)) exit;
 
-$dados = explode("|",$callback["data"]);
-$cpf = $dados[1];
+        tg("sendDocument",[
+            "chat_id"=>$chat,
+            "document"=>new CURLFile($file,"text/plain","cpf2_{$cpf}.txt"),
+            "caption"=>"📑 <b>Consulta CPF Premium</b>",
+            "parse_mode"=>"HTML",
+            "reply_markup"=>json_encode([
+                "inline_keyboard"=>[
+                    [["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]],
+                    [["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]]
+                ]
+            ])
+        ]);
 
-$file = "cache_ids_{$cpf}.json";
-
-if(!file_exists($file)){
-exit;
-}
-
-$ids = json_decode(file_get_contents($file),true);
-
-foreach($ids as $msg_id){
-
-tg("deleteMessage",[
-"chat_id"=>$chat,
-"message_id"=>$msg_id
-]);
-
-}
-
-unlink($file);
-
-exit;
-}
-
-if(str_starts_with($callback["data"],"cpf2_file")){
-
-$dados = explode("|",$callback["data"]);
-$cpf = $dados[1];
-
-$file = "cache_cpf2_{$cpf}.txt";
-
-if(!file_exists($file)){
-exit;
-}
-
-tg("sendDocument",[
-"chat_id"=>$chat,
-"document"=>new CURLFile($file,"text/plain","cpf2_{$cpf}.txt"),
-"caption"=>"📑 <b>Consulta CPF Premium</b>",
-"parse_mode"=>"HTML",
-"reply_markup"=>json_encode([
-"inline_keyboard"=>[
-[
-["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
-],
-[
-["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
-]
-]
-])
-]);
-
-unlink($file);
-
-exit;
-}
+        unlink($file);
+        exit;
+    }
 
 # CPF3 MOSTRAR NO TELEGRAM
 if(str_starts_with($callback["data"],"cpf3_msg")){
