@@ -3220,56 +3220,58 @@ if($callback){
     $id   = $callback["from"]["id"];
     $nome = $callback["from"]["first_name"] ?? "usuário";
 
-    // -----------------------------
-    // GERAR PIX
-    // -----------------------------
-    if(str_starts_with($callback["data"], "gerar_pix|")) {
-        list(, $user_id) = explode("|", $callback["data"]);
-        $PIX_VALOR = $PIX_VALOR ?? "10.00";
+// =========================================
+// GERAR PIX (NOVO)
+// =========================================
+if($callback["data"] == "gerar_pix"){
 
-        $payment_url = "https://promstpagamentos.discloud.app/create_payment?user_id={$user_id}&valor={$PIX_VALOR}";
+    $MEU_ID = 7320236887;
+    $PIX_VALOR = "15.00";
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $payment_url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0");
-        $response = curl_exec($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+    $url = "https://promstpagamentos.discloud.app/create_payment?user_id={$MEU_ID}&valor={$PIX_VALOR}";
 
-        $paymentData = ($httpcode == 200 && $response) ? json_decode($response, true) : null;
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 15,
+        CURLOPT_SSL_VERIFYPEER => false
+    ]);
 
-        $valor = $paymentData['amount'] ?? ($paymentData['valor']['original'] ?? $PIX_VALOR);
-        $txid  = $paymentData['txid'] ?? "NÃO DISPONÍVEL";
-        $pix   = $paymentData['pixCopiaECola'] ?? "NÃO DISPONÍVEL";
+    $response = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
-        $textoAtualizado = "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
+    $data = ($httpcode == 200 && $response) ? json_decode($response, true) : null;
 
-💰 Valor único: <b>R$ {$valor}</b>
-
-🔑 TXID:
-<code>{$txid}</code>
-
-⚡ Copie o PIX abaixo para pagar:
-<code>{$pix}</code>";
-
-        tg("editMessageText", [
-            "chat_id" => $chat,
-            "message_id" => $msg,
-            "text" => $textoAtualizado,
-            "parse_mode" => "HTML",
-            "reply_markup" => json_encode([
-                "inline_keyboard" => [
-                    [["text" => "🚀 Enviar Comprovante", "url" => "https://t.me/puxardados5"]],
-                    [["text" => "⬅️ Menu", "callback_data" => "voltar_menu"]]
-                ]
-            ])
+    if(!$data){
+        tg("answerCallbackQuery",[
+            "callback_query_id"=>$callback["id"],
+            "text"=>"❌ Erro ao gerar PIX",
+            "show_alert"=>true
         ]);
-
         exit;
     }
 
+    $valor = $data['amount'] ?? ($data['valor']['original'] ?? $PIX_VALOR);
+    $txid  = $data['txid'] ?? "ERRO";
+    $pix   = $data['pixCopiaECola'] ?? "ERRO";
+
+    tg("editMessageText",[
+        "chat_id"=>$chat,
+        "message_id"=>$msg,
+        "text"=>"💰 <b>R$ {$valor}</b>\n\n🔑 <code>{$txid}</code>\n\n<code>{$pix}</code>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [["text"=>"🚀 Enviar Comprovante","url"=>"https://t.me/puxardados5"]],
+                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+            ]
+        ])
+    ]);
+
+    exit;
+}
     // -----------------------------
     // ENVIAR ARQUIVO TXT
     // -----------------------------
@@ -3548,71 +3550,26 @@ if($tipo == "cpf_parentes"){
         break;
 
 case "planos":
-    $MEU_ID = 7320236887; // Seu ID fixo
-    $PIX_VALOR = "10.50"; // Valor do plano
 
-    $textoPlano = "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
+$texto = "⭐ <b>PLANO VITALÍCIO</b>
 
-Tenha acesso completo às consultas VIP
-sem mensalidade e sem limites 🚀
+💰 R$ 15,00
 
-━━━━━━━━━━━━━━━━
-🔓 <b>O que você desbloqueia</b>
+Clique abaixo para gerar o PIX 👇";
 
-✔️ CPF
-✔️ Nome
-✔️ RG
-✔️ CNH
-✔️ Telefone
-✔️ E-mail
-✔️ Placa
-✔️ PIX
-✔️ Renavam
-✔️ Nascimento
-
-━━━━━━━━━━━━━━━━
-♻️ <b>Consultas grátis</b>
-
-• CEP
-• CNPJ
-• IP
-
-━━━━━━━━━━━━━━━━
-💰 <b>Valor único</b>
-<b>R$ {$PIX_VALOR}</b>
-
-🔑 TXID:
-<code>NÃO DISPONÍVEL</code>
-
-⚡ Copie o PIX abaixo para pagar:
-<code>NÃO DISPONÍVEL</code>";
-
-    // Botões
-    $kb = json_encode([
-        "inline_keyboard" => [
-            [["text" => "🚀 Gerar PIX", "callback_data" => "gerar_pix|$MEU_ID|$PIX_VALOR"]],
-            [["text" => "⬅️ Menu", "callback_data" => "voltar_menu"]]
+tg("editMessageText",[
+    "chat_id"=>$chat,
+    "message_id"=>$msg,
+    "text"=>$texto,
+    "parse_mode"=>"HTML",
+    "reply_markup"=>json_encode([
+        "inline_keyboard"=>[
+            [["text"=>"💳 Gerar PIX","callback_data"=>"gerar_pix"]],
+            [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
         ]
-    ]);
+    ])
+]);
 
-    // Envia ou edita mensagem conforme o tipo
-    if(isset($callback["message"]["photo"])) {
-        tg("editMessageCaption", [
-            "chat_id" => $chat,
-            "message_id" => $msg,
-            "caption" => $textoPlano,
-            "parse_mode" => "HTML",
-            "reply_markup" => $kb
-        ]);
-    } else {
-        tg("editMessageText", [
-            "chat_id" => $chat,
-            "message_id" => $msg,
-            "text" => $textoPlano,
-            "parse_mode" => "HTML",
-            "reply_markup" => $kb
-        ]);
-    }
 break;
 
         case "conta":
