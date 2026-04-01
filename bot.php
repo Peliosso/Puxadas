@@ -159,6 +159,7 @@ $VIP_IDS = [
     5342332792,
     7442715942,
     6818620184,
+    8405956241,
     1433645975,
     747379594,
     6477680249,
@@ -3212,17 +3213,10 @@ if($cmd === "/vizinhos"){
 
 /* ================= CALLBACKS ================= */
 
-if($callback){
+if($callback && str_starts_with($callback["data"], "gerar_pix|")) {
     answer($callback["id"]);
 
-    $chat = $callback["message"]["chat"]["id"];
-    $msg  = $callback["message"]["message_id"];
-    $id   = $callback["from"]["id"];
-    $nome = $callback["from"]["first_name"] ?? "usuário";
-
-    if(str_starts_with($callback["data"], "gerar_pix|")) {
-    $MEU_ID = 7320236887; // <--- seu ID fixo
-    $user_id = $MEU_ID;
+    list(, $user_id, $PIX_VALOR) = explode("|", $callback["data"]);
 
     $payment_url = "https://promstpagamentos.discloud.app/create_payment?user_id={$user_id}&valor={$PIX_VALOR}";
 
@@ -3251,46 +3245,19 @@ if($callback){
 ⚡ Copie o PIX abaixo para pagar:
 <code>{$pix}</code>";
 
-    tg("editMessageText",[
-        "chat_id"=>$callback["message"]["chat"]["id"],
-        "message_id"=>$callback["message"]["message_id"],
-        "text"=>$textoAtualizado,
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [["text"=>"🚀 Enviar Comprovante","url"=>"https://t.me/puxardados5"]],
-                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+    tg("editMessageText", [
+        "chat_id" => $callback["message"]["chat"]["id"],
+        "message_id" => $callback["message"]["message_id"],
+        "text" => $textoAtualizado,
+        "parse_mode" => "HTML",
+        "reply_markup" => json_encode([
+            "inline_keyboard" => [
+                [["text" => "🚀 Enviar Comprovante", "url" => "https://t.me/puxardados5"]],
+                [["text" => "⬅️ Menu", "callback_data" => "voltar_menu"]]
             ]
         ])
     ]);
-
     exit;
-}
-
-
-if(str_starts_with($callback["data"],"txt|")){
-
-$file = explode("|",$callback["data"])[1];
-
-if(!file_exists($file)) exit;
-
-tg("sendDocument",[
-"chat_id"=>$chat,
-"document"=>new CURLFile($file),
-"caption"=>"📄 Resultado da consulta",
-"parse_mode"=>"HTML",
-"reply_markup"=>json_encode([
-"inline_keyboard"=>[
-[
-["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
-]
-]
-])
-]);
-
-unlink($file);
-exit;
 }
     
     if(str_starts_with($callback["data"],"cpf2_msg")){
@@ -3578,13 +3545,9 @@ if($tipo == "cpf_parentes"){
         break;
 
 case "planos":
-    global $PIX_VALOR;
-    $user_id = $chat;
+    $MEU_ID = 7320236887; // Seu ID fixo
+    $PIX_VALOR = "10.50"; // Valor do plano
 
-    // Define valor padrão caso não esteja definido
-    $PIX_VALOR = $PIX_VALOR ?? "10.00";
-
-    // Mensagem do plano (sem TXID nem PIX ainda)
     $textoPlano = "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
 
 Tenha acesso completo às consultas VIP
@@ -3624,12 +3587,12 @@ sem mensalidade e sem limites 🚀
     // Botões
     $kb = json_encode([
         "inline_keyboard" => [
-            [["text" => "🚀 Gerar PIX", "callback_data" => "gerar_pix|$user_id"]],
+            [["text" => "🚀 Gerar PIX", "callback_data" => "gerar_pix|$MEU_ID|$PIX_VALOR"]],
             [["text" => "⬅️ Menu", "callback_data" => "voltar_menu"]]
         ]
     ]);
 
-    // Atualiza a mensagem conforme o tipo (foto ou texto)
+    // Envia ou edita mensagem conforme o tipo
     if(isset($callback["message"]["photo"])) {
         tg("editMessageCaption", [
             "chat_id" => $chat,
@@ -3648,6 +3611,7 @@ sem mensalidade e sem limites 🚀
         ]);
     }
 break;
+
         case "conta":
 
 $plano = isVip($id) ? "VIP" : "Grátis";
