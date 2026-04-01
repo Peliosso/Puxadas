@@ -3214,6 +3214,7 @@ if($cmd === "/vizinhos"){
 
 /* ================= CALLBACKS ================= */
 if($callback){
+
     answer($callback["id"]);
 
     $chat = $callback["message"]["chat"]["id"];
@@ -3221,63 +3222,95 @@ if($callback){
     $id   = $callback["from"]["id"];
     $nome = $callback["from"]["first_name"] ?? "usuário";
 
-// =========================================
-// GERAR PIX (NOVO)
-// =========================================
-if($callback["data"] == "gerar_pix"){
+    $data = $callback["data"] ?? "";
 
-    $MEU_ID = 7320236887;
-    $PIX_VALOR = "15.00";
+    // =========================
+    // VOLTAR MENU
+    // =========================
+    if($data == "voltar_menu"){
+        menuPrincipal($chat, $nome, $id, true, $msg);
+        exit;
+    }
 
-    $url = "https://promstpagamentos.discloud.app/create_payment?user_id={$MEU_ID}&valor={$PIX_VALOR}";
-
-    $ch = curl_init();
-    curl_setopt_array($ch, [
-        CURLOPT_URL => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 15,
-        CURLOPT_SSL_VERIFYPEER => false
-    ]);
-
-    $response = curl_exec($ch);
-    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    $data = ($httpcode == 200 && $response) ? json_decode($response, true) : null;
-
-    if(!$data){
-        tg("answerCallbackQuery",[
-            "callback_query_id"=>$callback["id"],
-            "text"=>"❌ Erro ao gerar PIX",
-            "show_alert"=>true
+    // =========================
+    // APAGAR MSG
+    // =========================
+    if($data == "apagar_msg"){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$msg
         ]);
         exit;
     }
 
-    $valor = $data['amount'] ?? ($data['valor']['original'] ?? $PIX_VALOR);
-    $txid  = $data['txid'] ?? "ERRO";
-    $pix   = $data['pixCopiaECola'] ?? "ERRO";
+    // =========================
+    // PLANOS
+    // =========================
+    if($data == "planos"){
 
-    tg("editMessageText",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg,
-        "text"=>"💰 <b>R$ {$valor}</b>\n\n🔑 <code>{$txid}</code>\n\n<code>{$pix}</code>",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [["text"=>"🚀 Enviar Comprovante","url"=>"https://t.me/puxardados5"]],
-                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
-            ]
-        ])
-    ]);
+        tg("editMessageText",[
+            "chat_id"=>$chat,
+            "message_id"=>$msg,
+            "text"=>"⭐ <b>PLANO VITALÍCIO</b>\n\n💰 R$ 15,00\n\nClique abaixo 👇",
+            "parse_mode"=>"HTML",
+            "reply_markup"=>json_encode([
+                "inline_keyboard"=>[
+                    [["text"=>"💳 Gerar PIX","callback_data"=>"gerar_pix"]],
+                    [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+                ]
+            ])
+        ]);
 
-    exit;
-}
-    // -----------------------------
-    // ENVIAR ARQUIVO TXT
-    // -----------------------------
-    if(str_starts_with($callback["data"],"txt|")){
-        $file = explode("|",$callback["data"])[1];
+        exit;
+    }
+
+    // =========================
+    // GERAR PIX
+    // =========================
+    if($data == "gerar_pix"){
+
+        $url = "https://promstpagamentos.discloud.app/create_payment?user_id=7320236887&valor=15.00";
+
+        $response = file_get_contents($url);
+        $json = json_decode($response,true);
+
+        if(!$json || !isset($json["pixCopiaECola"])){
+
+            tg("answerCallbackQuery",[
+                "callback_query_id"=>$callback["id"],
+                "text"=>"❌ Erro ao gerar PIX",
+                "show_alert"=>true
+            ]);
+
+            exit;
+        }
+
+        $valor = $json["valor"]["original"] ?? "15.00";
+        $txid  = $json["txid"];
+        $pix   = $json["pixCopiaECola"];
+
+        tg("editMessageText",[
+            "chat_id"=>$chat,
+            "message_id"=>$msg,
+            "text"=>"💰 <b>R$ {$valor}</b>\n\n🔑 <code>{$txid}</code>\n\n<code>{$pix}</code>",
+            "parse_mode"=>"HTML",
+            "reply_markup"=>json_encode([
+                "inline_keyboard"=>[
+                    [["text"=>"🚀 Enviar Comprovante","url"=>"https://t.me/puxardados5"]],
+                    [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+                ]
+            ])
+        ]);
+
+        exit;
+    }
+
+    // =========================
+    // ENVIAR TXT
+    // =========================
+    if(str_starts_with($data,"txt|")){
+        $file = explode("|",$data)[1];
+
         if(!file_exists($file)) exit;
 
         $txt = file_get_contents($file);
@@ -3301,34 +3334,17 @@ if($callback["data"] == "gerar_pix"){
         exit;
     }
 
-    // -----------------------------
-    // VOLTAR AO MENU
-    // -----------------------------
-    if(str_starts_with($callback["data"], "voltar_menu")){
-        menuPrincipal($chat, $msg);
-        exit;
-    }
-
-    // -----------------------------
-    // APAGAR MENSAGEM
-    // -----------------------------
-    if(str_starts_with($callback["data"], "apagar_msg")){
-        tg("deleteMessage", [
-            "chat_id" => $chat,
-            "message_id" => $msg
-        ]);
-        exit;
-    }
-
-    // -----------------------------
-    // DELETAR PACOTE DE CONSULTAS
-    // -----------------------------
-    if(str_starts_with($callback["data"],"delpack")){
-        $cpf = explode("|",$callback["data"])[1];
+    // =========================
+    // DELETAR PACOTE
+    // =========================
+    if(str_starts_with($data,"delpack")){
+        $cpf = explode("|",$data)[1];
         $file = "cache_ids_{$cpf}.json";
+
         if(!file_exists($file)) exit;
 
         $ids = json_decode(file_get_contents($file),true);
+
         foreach($ids as $msg_id){
             tg("deleteMessage",[
                 "chat_id"=>$chat,
@@ -3340,17 +3356,18 @@ if($callback["data"] == "gerar_pix"){
         exit;
     }
 
-    // -----------------------------
-    // ENVIAR ARQUIVO CPF2
-    // -----------------------------
-    if(str_starts_with($callback["data"],"cpf2_file")){
-        $cpf = explode("|",$callback["data"])[1];
+    // =========================
+    // CPF2 ARQUIVO
+    // =========================
+    if(str_starts_with($data,"cpf2_file")){
+        $cpf = explode("|",$data)[1];
         $file = "cache_cpf2_{$cpf}.txt";
+
         if(!file_exists($file)) exit;
 
         tg("sendDocument",[
             "chat_id"=>$chat,
-            "document"=>new CURLFile($file,"text/plain","cpf2_{$cpf}.txt"),
+            "document"=>new CURLFile($file),
             "caption"=>"📑 <b>Consulta CPF Premium</b>",
             "parse_mode"=>"HTML",
             "reply_markup"=>json_encode([
@@ -3365,241 +3382,113 @@ if($callback["data"] == "gerar_pix"){
         exit;
     }
 
-# CPF3 MOSTRAR NO TELEGRAM
-if(str_starts_with($callback["data"],"cpf3_msg")){
+    // =========================
+    // CPF3 (CORRIGIDO)
+    // =========================
+    if(str_starts_with($data,"cpf3_msg")){
 
-$dados = explode("|",$callback["data"]);
-$cpf = $dados[1];
+        $cpf = explode("|",$data)[1];
+        $file = "cache_cpf3_{$cpf}.txt";
 
-$file = "cache_cpf3_{$cpf}.txt";
+        if(!file_exists($file)) exit;
 
-if(!file_exists($file)){
-exit;
-}
+        $txt = file_get_contents($file);
+        $partes = str_split($txt,4000);
 
-$txt = file_get_contents($file);
-$partes = str_split($txt,4000);
+        $msg_ids = [];
 
-foreach($partes as $index => $parte){
+        foreach($partes as $index => $parte){
 
-tg("sendMessage",[
-"chat_id"=>$chat,
-"text"=>"<pre>".$parte."</pre>",
-"parse_mode"=>"HTML",
-"reply_markup"=>$index == 0 ? json_encode([
-"inline_keyboard"=>[
-[
-["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
-],
-[
-["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
-]
-]
-]) : null
-]);
-
-}
-
-unlink($file);
-
-exit;
-}
-
-# CPF3 ENVIAR TXT
-if(str_starts_with($callback["data"],"cpf3_msg")){
-
-$dados = explode("|",$callback["data"]);
-$cpf = $dados[1];
-
-$file = "cache_cpf3_{$cpf}.txt";
-
-if(!file_exists($file)){
-exit;
-}
-
-$txt = file_get_contents($file);
-$partes = str_split($txt,4000);
-
-$msg_ids = [];
-
-foreach($partes as $index => $parte){
-
-$send = tg("sendMessage",[
-"chat_id"=>$chat,
-"text"=>"<pre>".$parte."</pre>",
-"parse_mode"=>"HTML",
-"reply_markup"=>$index == count($partes)-1 ? json_encode([
-"inline_keyboard"=>[
-[
-["text"=>"🗑 Apagar tudo","callback_data"=>"delpack|$cpf"]
-],
-[
-["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
-]
-]
-]) : null
-]);
-
-$res = json_decode($send,true);
-
-if(isset($res["result"]["message_id"])){
-$msg_ids[] = $res["result"]["message_id"];
-}
-
-}
-
-# salva os ids pra apagar depois
-file_put_contents("cache_ids_{$cpf}.json",json_encode($msg_ids));
-
-unlink($file);
-
-exit;
-}
-    
-    
-    // ===== CALLBACK CPF BOTÕES =====
-
-if(str_starts_with($callback["data"],"cpf_")){
-
-    $dados = explode("|",$callback["data"]);
-    $tipo = $dados[0];
-    $cpf  = $dados[1];
-    
-    // nome do módulo
-    if($tipo == "cpf_simples"){
-        $modulo = "CPF Simples";
-    }
-
-    if($tipo == "cpf_full"){
-        $modulo = "CPF Completo";
-    }
-    
-    if($tipo == "cpf2"){
-        consultaCPF2($chat,$cpf);
-    }
-    
-    if($tipo == "cpf3"){
-        consultaCPF3($chat,$cpf);
-    }
-
-    if($tipo == "cpf_vizinhos"){
-        $modulo = "Vizinhos pelo CPF";
-    }
-
-    if($tipo == "cpf_parentes"){
-        $modulo = "Parentes pelo CPF";
-    }
-    
-tg("editMessageText",[
-"chat_id"=>$chat,
-"message_id"=>$msg,
-"text"=>"🔎 <b>CONSULTA INICIADA</b>
-
-📂 <b>Módulo:</b> {$modulo}
-🪪 <b>CPF:</b> <code>{$cpf}</code>
-
-⏳ <i>Processando consulta nas bases de dados...</i>
-
-━━━━━━━━━━━━━━
-💎 <b>Consulta VIP Astro Search</b>",
-"parse_mode"=>"HTML"
-]);
-
-    if(!isVip($id) && !isFreeGroup($chat)){
-    bloquearConsulta($chat);
-    exit;
-}
-
-    if($tipo == "cpf_simples"){
-    consultaCPF($chat,$cpf);
-}
-
-if($tipo == "cpf_full"){
-    consultaCPF1($chat,$cpf);
-}
-
-if($tipo == "cpf_vizinhos"){
-    consultaVizinhos($chat,$cpf);
-}
-
-if($tipo == "cpf_parentes"){
-    consultaParentes($chat,$cpf);
-}
-
-    exit;
-}
-
-    switch($callback["data"]){
-
-        case "catalogo_1":
-            catalogo1($chat,$msg);
-        break;
-
-        case "catalogo_2":
-            catalogo2($chat,$msg);
-        break;
-
-        case "voltar_menu":
-            menuPrincipal($chat,$nome,$id,true,$msg);
-        break;
-
-        case "apagar_msg":
-            tg("deleteMessage",[
+            $send = tg("sendMessage",[
                 "chat_id"=>$chat,
-                "message_id"=>$msg
-            ]);
-        break;
-
-case "planos":
-
-$texto = "⭐ <b>PLANO VITALÍCIO</b>
-
-💰 R$ 15,00
-
-Clique abaixo para gerar o PIX 👇";
-
-tg("editMessageText",[
-    "chat_id"=>$chat,
-    "message_id"=>$msg,
-    "text"=>$texto,
-    "parse_mode"=>"HTML",
-    "reply_markup"=>json_encode([
-        "inline_keyboard"=>[
-            [["text"=>"💳 Gerar PIX","callback_data"=>"gerar_pix"]],
-            [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
-        ]
-    ])
-]);
-
-break;
-
-        case "conta":
-
-$plano = isVip($id) ? "VIP" : "Grátis";
-
-            tg("editMessageCaption",[
-                "chat_id"=>$chat,
-                "message_id"=>$msg,
-                "caption"=>
-"👤 <b>MINHA CONTA</b>
-
-🆔 ID: <code>{$id}</code>
-👤 Nome: <b>{$nome}</b>
-⭐ Plano: <b>{$plano}</b>",
+                "text"=>"<pre>".$parte."</pre>",
                 "parse_mode"=>"HTML",
-                "reply_markup"=>json_encode([
+                "reply_markup"=>$index == count($partes)-1 ? json_encode([
                     "inline_keyboard"=>[
-                        [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+                        [["text"=>"🗑 Apagar tudo","callback_data"=>"delpack|$cpf"]],
+                        [["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]]
                     ]
-                ])
+                ]) : null
             ]);
 
-        break;
+            $res = json_decode($send,true);
+            if(isset($res["result"]["message_id"])){
+                $msg_ids[] = $res["result"]["message_id"];
+            }
+        }
 
+        file_put_contents("cache_ids_{$cpf}.json",json_encode($msg_ids));
+        unlink($file);
+
+        exit;
     }
 
-    exit;
+    // =========================
+    // CPF CONSULTAS
+    // =========================
+    if(str_starts_with($data,"cpf_")){
+
+        $dados = explode("|",$data);
+        $tipo = $dados[0];
+        $cpf  = $dados[1];
+
+        tg("editMessageText",[
+            "chat_id"=>$chat,
+            "message_id"=>$msg,
+            "text"=>"🔎 <b>CONSULTANDO...</b>\nCPF: <code>{$cpf}</code>",
+            "parse_mode"=>"HTML"
+        ]);
+
+        if(!isVip($id) && !isFreeGroup($chat)){
+            bloquearConsulta($chat);
+            exit;
+        }
+
+        if($tipo == "cpf_simples") consultaCPF($chat,$cpf);
+        if($tipo == "cpf_full") consultaCPF1($chat,$cpf);
+        if($tipo == "cpf2") consultaCPF2($chat,$cpf);
+        if($tipo == "cpf3") consultaCPF3($chat,$cpf);
+        if($tipo == "cpf_vizinhos") consultaVizinhos($chat,$cpf);
+        if($tipo == "cpf_parentes") consultaParentes($chat,$cpf);
+
+        exit;
+    }
+
+    // =========================
+    // CATALOGO
+    // =========================
+    if($data == "catalogo_1"){
+        catalogo1($chat,$msg);
+        exit;
+    }
+
+    if($data == "catalogo_2"){
+        catalogo2($chat,$msg);
+        exit;
+    }
+
+    // =========================
+    // CONTA
+    // =========================
+    if($data == "conta"){
+
+        $plano = isVip($id) ? "VIP" : "Grátis";
+
+        tg("editMessageText",[
+            "chat_id"=>$chat,
+            "message_id"=>$msg,
+            "text"=>"👤 <b>MINHA CONTA</b>\n\n🆔 ID: <code>{$id}</code>\n👤 Nome: <b>{$nome}</b>\n⭐ Plano: <b>{$plano}</b>",
+            "parse_mode"=>"HTML",
+            "reply_markup"=>json_encode([
+                "inline_keyboard"=>[
+                    [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+                ]
+            ])
+        ]);
+
+        exit;
+    }
+
 }
 
 echo "OK";
-
