@@ -3213,29 +3213,41 @@ if($cmd === "/vizinhos"){
 
 /* ================= CALLBACKS ================= */
 
-if($callback && str_starts_with($callback["data"], "gerar_pix|")) {
+if($callback){
     answer($callback["id"]);
 
-    list(, $user_id, $PIX_VALOR) = explode("|", $callback["data"]);
+    $chat = $callback["message"]["chat"]["id"];
+    $msg  = $callback["message"]["message_id"];
+    $id   = $callback["from"]["id"];
+    $nome = $callback["from"]["first_name"] ?? "usuário";
 
-    $payment_url = "https://promstpagamentos.discloud.app/create_payment?user_id={$user_id}&valor={$PIX_VALOR}";
+    // Callback para gerar PIX
+    if(str_starts_with($callback["data"], "gerar_pix|")) {
+        // Explode para pegar user_id e valor
+        list(, $user_id, $PIX_VALOR) = explode("|", $callback["data"]);
 
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $payment_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-    curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0");
-    $response = curl_exec($ch);
-    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+        // URL da API de pagamento
+        $payment_url = "https://promstpagamentos.discloud.app/create_payment?user_id={$user_id}&valor={$PIX_VALOR}";
 
-    $paymentData = ($httpcode == 200 && $response) ? json_decode($response, true) : null;
+        // Requisição cURL
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $payment_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0");
+        $response = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
 
-    $valor = $paymentData['amount'] ?? ($paymentData['valor']['original'] ?? $PIX_VALOR);
-    $txid  = $paymentData['txid'] ?? "NÃO DISPONÍVEL";
-    $pix   = $paymentData['pixCopiaECola'] ?? "NÃO DISPONÍVEL";
+        $paymentData = ($httpcode == 200 && $response) ? json_decode($response, true) : null;
 
-    $textoAtualizado = "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
+        // Valores padrão caso a API não retorne
+        $valor = $paymentData['amount'] ?? ($paymentData['valor']['original'] ?? $PIX_VALOR);
+        $txid  = $paymentData['txid'] ?? "NÃO DISPONÍVEL";
+        $pix   = $paymentData['pixCopiaECola'] ?? "NÃO DISPONÍVEL";
+
+        // Texto atualizado com PIX e TXID
+        $textoAtualizado = "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
 
 💰 Valor único: <b>R$ {$valor}</b>
 
@@ -3245,19 +3257,22 @@ if($callback && str_starts_with($callback["data"], "gerar_pix|")) {
 ⚡ Copie o PIX abaixo para pagar:
 <code>{$pix}</code>";
 
-    tg("editMessageText", [
-        "chat_id" => $callback["message"]["chat"]["id"],
-        "message_id" => $callback["message"]["message_id"],
-        "text" => $textoAtualizado,
-        "parse_mode" => "HTML",
-        "reply_markup" => json_encode([
-            "inline_keyboard" => [
-                [["text" => "🚀 Enviar Comprovante", "url" => "https://t.me/puxardados5"]],
-                [["text" => "⬅️ Menu", "callback_data" => "voltar_menu"]]
-            ]
-        ])
-    ]);
-    exit;
+        // Edita a mensagem original
+        tg("editMessageText", [
+            "chat_id" => $chat,
+            "message_id" => $msg,
+            "text" => $textoAtualizado,
+            "parse_mode" => "HTML",
+            "reply_markup" => json_encode([
+                "inline_keyboard" => [
+                    [["text" => "🚀 Enviar Comprovante", "url" => "https://t.me/puxardados5"]],
+                    [["text" => "⬅️ Menu", "callback_data" => "voltar_menu"]]
+                ]
+            ])
+        ]);
+
+        exit;
+    }
 }
     
     if(str_starts_with($callback["data"],"cpf2_msg")){
