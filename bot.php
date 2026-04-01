@@ -3252,7 +3252,6 @@ unlink($file);
 exit;
 }
 
-if(isset($callback["data"])) {
     if(str_starts_with($callback["data"], "gerar_pix|")) {
 
         $user_id = explode("|",$callback["data"])[1];
