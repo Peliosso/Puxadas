@@ -3580,23 +3580,72 @@ case "planos":
     global $PIX_VALOR;
     $user_id = $chat;
 
+    // Define valor padrão caso não esteja definido
     $PIX_VALOR = $PIX_VALOR ?? "10.00";
 
-    $textoPlano = "..."; // sua mensagem aqui
+    // Mensagem do plano (sem TXID nem PIX ainda)
+    $textoPlano = "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
+
+Tenha acesso completo às consultas VIP
+sem mensalidade e sem limites 🚀
+
+━━━━━━━━━━━━━━━━
+🔓 <b>O que você desbloqueia</b>
+
+✔️ CPF
+✔️ Nome
+✔️ RG
+✔️ CNH
+✔️ Telefone
+✔️ E-mail
+✔️ Placa
+✔️ PIX
+✔️ Renavam
+✔️ Nascimento
+
+━━━━━━━━━━━━━━━━
+♻️ <b>Consultas grátis</b>
+
+• CEP
+• CNPJ
+• IP
+
+━━━━━━━━━━━━━━━━
+💰 <b>Valor único</b>
+<b>R$ {$PIX_VALOR}</b>
+
+🔑 TXID:
+<code>NÃO DISPONÍVEL</code>
+
+⚡ Copie o PIX abaixo para pagar:
+<code>NÃO DISPONÍVEL</code>";
+
+    // Botões
     $kb = json_encode([
-        "inline_keyboard"=>[
-            [["text"=>"🚀 Gerar PIX","callback_data"=>"gerar_pix|$user_id"]],
-            [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+        "inline_keyboard" => [
+            [["text" => "🚀 Gerar PIX", "callback_data" => "gerar_pix|$user_id"]],
+            [["text" => "⬅️ Menu", "callback_data" => "voltar_menu"]]
         ]
     ]);
 
-    tg("editMessageText",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg,
-        "text"=>$textoPlano,
-        "parse_mode"=>"HTML",
-        "reply_markup"=>$kb
-    ]);
+    // Atualiza a mensagem conforme o tipo (foto ou texto)
+    if(isset($callback["message"]["photo"])) {
+        tg("editMessageCaption", [
+            "chat_id" => $chat,
+            "message_id" => $msg,
+            "caption" => $textoPlano,
+            "parse_mode" => "HTML",
+            "reply_markup" => $kb
+        ]);
+    } else {
+        tg("editMessageText", [
+            "chat_id" => $chat,
+            "message_id" => $msg,
+            "text" => $textoPlano,
+            "parse_mode" => "HTML",
+            "reply_markup" => $kb
+        ]);
+    }
 break;
         case "conta":
 
