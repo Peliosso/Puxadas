@@ -3567,12 +3567,24 @@ case "planos":
         global $PIX_VALOR; // Valor do plano
         $user_id = $chat; // ID do usuário no Telegram
 
-        // 1️⃣ Gera pagamento pelo endpoint
+        // 1️⃣ Chama a API de pagamento com cURL
         $payment_url = "https://promstpagamentos.discloud.app/create_payment?user_id={$user_id}&valor={$PIX_VALOR}";
-        $response = file_get_contents($payment_url);
-        $paymentData = json_decode($response, true);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $payment_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        $response = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
 
-        // 2️⃣ Monta o texto do plano
+        $paymentData = ($httpcode == 200 && $response) ? json_decode($response, true) : null;
+
+        // 2️⃣ Valores seguros
+        $valor = $paymentData['amount'] ?? $PIX_VALOR;
+        $txid = $paymentData['txid'] ?? "NÃO DISPONÍVEL";
+        $pix = $paymentData['pixCopiaECola'] ?? "NÃO DISPONÍVEL";
+
+        // 3️⃣ Texto do plano
         $textoPlano = "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
 
 Tenha acesso completo às consultas VIP
@@ -3601,15 +3613,15 @@ sem mensalidade e sem limites 🚀
 
 ━━━━━━━━━━━━━━━━
 💰 <b>Valor único</b>
-<b>R$ {$paymentData['amount']}</b>
+<b>R$ {$valor}</b>
 
 🔑 TXID:
-<code>{$paymentData['txid']}</code>
+<code>{$txid}</code>
 
 ⚡ Copie o PIX abaixo para pagar:
-<code>{$paymentData['pixCopiaECola']}</code>";
+<code>{$pix}</code>";
 
-        // 3️⃣ Monta o teclado inline
+        // 4️⃣ Teclado inline
         $kb = json_encode([
             "inline_keyboard"=>[
                 [["text"=>"🚀 Enviar Comprovante","url"=>"https://t.me/puxardados5"]],
@@ -3617,7 +3629,7 @@ sem mensalidade e sem limites 🚀
             ]
         ]);
 
-        // 4️⃣ Envia ou edita a mensagem
+        // 5️⃣ Edita ou envia mensagem
         if(isset($callback["message"]["photo"])) {
             tg("editMessageCaption",[
                 "chat_id"=>$chat,
@@ -3643,23 +3655,30 @@ sem mensalidade e sem limites 🚀
     // ======================
     case "copiar_pix":
 
-        global $PIX_VALOR;
-        $user_id = $chat;
-
         answer($callback["id"]); // responde callback do Telegram
 
-        // ✅ Gera pagamento novamente (ou poderia salvar em DB para TXID fixo)
-        $payment_url = "https://promstpagamentos.discloud.app/create_payment?user_id={$user_id}&valor={$PIX_VALOR}";
-        $response = file_get_contents($payment_url);
-        $paymentData = json_decode($response, true);
+        // ✅ Regera pagamento via cURL
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $payment_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        $response = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $paymentData = ($httpcode == 200 && $response) ? json_decode($response, true) : null;
+
+        $valor = $paymentData['amount'] ?? $PIX_VALOR;
+        $txid = $paymentData['txid'] ?? "NÃO DISPONÍVEL";
+        $pix = $paymentData['pixCopiaECola'] ?? "NÃO DISPONÍVEL";
 
         $novoTexto = "📋 <b>CHAVE PIX COPIADA!</b>
 
 Agora é só colar no seu banco 👇
 
-<code>{$paymentData['pixCopiaECola']}</code>
+<code>{$pix}</code>
 
-🔑 TXID: <code>{$paymentData['txid']}</code>
+🔑 TXID: <code>{$txid}</code>
 
 ⚡ Após o pagamento envie o comprovante para ativação.";
 
