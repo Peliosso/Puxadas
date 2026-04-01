@@ -3564,28 +3564,26 @@ if($tipo == "cpf_parentes"){
 
 case "planos":
 
-        global $PIX_VALOR; // Valor do plano
-        $user_id = $chat; // ID do usuário no Telegram
+    global $PIX_VALOR;
+    $user_id = $chat;
 
-        // 1️⃣ Chama a API de pagamento com cURL
-        $payment_url = "https://promstpagamentos.discloud.app/create_payment?user_id={$user_id}&valor={$PIX_VALOR}";
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $payment_url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-        $response = curl_exec($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+    $payment_url = "https://promstpagamentos.discloud.app/create_payment?user_id={$user_id}&valor={$PIX_VALOR}";
 
-        $paymentData = ($httpcode == 200 && $response) ? json_decode($response, true) : null;
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $payment_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    $response = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
-        // 2️⃣ Valores seguros
-        $valor = $paymentData['amount'] ?? $PIX_VALOR;
-        $txid = $paymentData['txid'] ?? "NÃO DISPONÍVEL";
-        $pix = $paymentData['pixCopiaECola'] ?? "NÃO DISPONÍVEL";
+    $paymentData = ($httpcode == 200 && $response) ? json_decode($response, true) : null;
 
-        // 3️⃣ Texto do plano
-        $textoPlano = "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
+    $valor = $paymentData['amount'] ?? $PIX_VALOR;
+    $txid = $paymentData['txid'] ?? "NÃO DISPONÍVEL";
+    $pix = $paymentData['pixCopiaECola'] ?? "NÃO DISPONÍVEL";
+
+    $textoPlano = "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
 
 Tenha acesso completo às consultas VIP
 sem mensalidade e sem limites 🚀
@@ -3621,93 +3619,32 @@ sem mensalidade e sem limites 🚀
 ⚡ Copie o PIX abaixo para pagar:
 <code>{$pix}</code>";
 
-        // 4️⃣ Teclado inline
-        $kb = json_encode([
-            "inline_keyboard"=>[
-                [["text"=>"🚀 Enviar Comprovante","url"=>"https://t.me/puxardados5"]],
-                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
-            ]
+    $kb = json_encode([
+        "inline_keyboard"=>[
+            [["text"=>"🚀 Enviar Comprovante","url"=>"https://t.me/puxardados5"]],
+            [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+        ]
+    ]);
+
+    if(isset($callback["message"]["photo"])) {
+        tg("editMessageCaption",[
+            "chat_id"=>$chat,
+            "message_id"=>$msg,
+            "caption"=>$textoPlano,
+            "parse_mode"=>"HTML",
+            "reply_markup"=>$kb
         ]);
-
-        // 5️⃣ Edita ou envia mensagem
-        if(isset($callback["message"]["photo"])) {
-            tg("editMessageCaption",[
-                "chat_id"=>$chat,
-                "message_id"=>$msg,
-                "caption"=>$textoPlano,
-                "parse_mode"=>"HTML",
-                "reply_markup"=>$kb
-            ]);
-        } else {
-            tg("editMessageText",[
-                "chat_id"=>$chat,
-                "message_id"=>$msg,
-                "text"=>$textoPlano,
-                "parse_mode"=>"HTML",
-                "reply_markup"=>$kb
-            ]);
-        }
-
-        break;
-
-    // ======================
-    // COPIAR PIX / CONFIRMAR
-    // ======================
-    case "copiar_pix":
-
-        answer($callback["id"]); // responde callback do Telegram
-
-        // ✅ Regera pagamento via cURL
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $payment_url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-        $response = curl_exec($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $paymentData = ($httpcode == 200 && $response) ? json_decode($response, true) : null;
-
-        $valor = $paymentData['amount'] ?? $PIX_VALOR;
-        $txid = $paymentData['txid'] ?? "NÃO DISPONÍVEL";
-        $pix = $paymentData['pixCopiaECola'] ?? "NÃO DISPONÍVEL";
-
-        $novoTexto = "📋 <b>CHAVE PIX COPIADA!</b>
-
-Agora é só colar no seu banco 👇
-
-<code>{$pix}</code>
-
-🔑 TXID: <code>{$txid}</code>
-
-⚡ Após o pagamento envie o comprovante para ativação.";
-
-        $kb = json_encode([
-            "inline_keyboard"=>[
-                [["text"=>"🚀 ENVIAR COMPROVANTE","url"=>"https://t.me/puxardados5"]],
-                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
-            ]
+    } else {
+        tg("editMessageText",[
+            "chat_id"=>$chat,
+            "message_id"=>$msg,
+            "text"=>$textoPlano,
+            "parse_mode"=>"HTML",
+            "reply_markup"=>$kb
         ]);
+    }
 
-        if(isset($callback["message"]["photo"])) {
-            tg("editMessageCaption",[
-                "chat_id"=>$chat,
-                "message_id"=>$msg,
-                "caption"=>$novoTexto,
-                "parse_mode"=>"HTML",
-                "reply_markup"=>$kb
-            ]);
-        } else {
-            tg("editMessageText",[
-                "chat_id"=>$chat,
-                "message_id"=>$msg,
-                "text"=>$novoTexto,
-                "parse_mode"=>"HTML",
-                "reply_markup"=>$kb
-            ]);
-        }
-
-        break;
+    break;
 
         case "conta":
 
