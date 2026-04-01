@@ -22,7 +22,7 @@ $API   = "https://api.telegram.org/bot{$TOKEN}";
 $START_PHOTO = "https://conventional-magenta-fxkyikrbqe.edgeone.app/E8D6A8B8-36F3-4AE0-8493-E2C66DF18EF3.png";
 
 /* PIX */
-$PIX_VALOR = "15,00";
+$PIX_VALOR = "15.00"; // ponto, não vírgula
 $PIX_CHAVE = "f0d0f3b1-8776-4f06-a254-b6ea3686f71a";
 $PIX_NOME  = "Gabriel Lorenzo";
 $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBLduZ5vHwXjSs4BA";
@@ -3567,22 +3567,10 @@ case "planos":
     global $PIX_VALOR;
     $user_id = $chat;
 
-    $payment_url = "https://promstpagamentos.discloud.app/create_payment?user_id={$user_id}&valor={$PIX_VALOR}";
+    // Valor padrão caso não esteja definido
+    $PIX_VALOR = $PIX_VALOR ?? "10.00";
 
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $payment_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-    $response = curl_exec($ch);
-    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    $paymentData = ($httpcode == 200 && $response) ? json_decode($response, true) : null;
-
-    $valor = $paymentData['amount'] ?? $PIX_VALOR;
-    $txid = $paymentData['txid'] ?? "NÃO DISPONÍVEL";
-    $pix = $paymentData['pixCopiaECola'] ?? "NÃO DISPONÍVEL";
-
+    // Texto inicial do plano (sem TXID nem PIX ainda)
     $textoPlano = "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
 
 Tenha acesso completo às consultas VIP
@@ -3611,17 +3599,18 @@ sem mensalidade e sem limites 🚀
 
 ━━━━━━━━━━━━━━━━
 💰 <b>Valor único</b>
-<b>R$ {$valor}</b>
+<b>R$ {$PIX_VALOR}</b>
 
 🔑 TXID:
-<code>{$txid}</code>
+<code>NÃO DISPONÍVEL</code>
 
 ⚡ Copie o PIX abaixo para pagar:
-<code>{$pix}</code>";
+<code>NÃO DISPONÍVEL</code>";
 
+    // Botões
     $kb = json_encode([
         "inline_keyboard"=>[
-            [["text"=>"🚀 Enviar Comprovante","url"=>"https://t.me/puxardados5"]],
+            [["text"=>"🚀 Gerar PIX","callback_data"=>"gerar_pix|$user_id"]],
             [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
         ]
     ]);
@@ -3644,8 +3633,56 @@ sem mensalidade e sem limites 🚀
         ]);
     }
 
-    break;
+break;
 
+// ================== GERAR PIX DINÂMICO ==================
+if(str_starts_with($callback["data"], "gerar_pix|")) {
+
+    $user_id = explode("|",$callback["data"])[1];
+
+    $payment_url = "https://promstpagamentos.discloud.app/create_payment?user_id={$user_id}&valor={$PIX_VALOR}";
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $payment_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0");
+    $response = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    $paymentData = ($httpcode == 200 && $response) ? json_decode($response, true) : null;
+
+    $valor = $paymentData['amount'] ?? $PIX_VALOR;
+    $txid  = $paymentData['txid'] ?? "NÃO DISPONÍVEL";
+    $pix   = $paymentData['pixCopiaECola'] ?? "NÃO DISPONÍVEL";
+
+    // Atualiza a mensagem com TXID e PIX reais
+    $textoAtualizado = "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
+
+💰 Valor único: <b>R$ {$valor}</b>
+
+🔑 TXID:
+<code>{$txid}</code>
+
+⚡ Copie o PIX abaixo para pagar:
+<code>{$pix}</code>";
+
+    tg("editMessageText",[
+        "chat_id"=>$chat,
+        "message_id"=>$msg,
+        "text"=>$textoAtualizado,
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [["text"=>"🚀 Enviar Comprovante","url"=>"https://t.me/puxardados5"]],
+                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+            ]
+        ])
+    ]);
+
+    exit;
+}
         case "conta":
 
 $plano = isVip($id) ? "VIP" : "Grátis";
