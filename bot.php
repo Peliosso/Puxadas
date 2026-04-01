@@ -3552,11 +3552,18 @@ if($tipo == "cpf_parentes"){
             ]);
         break;
 
-        case "planos":
+case "planos":
 
-global $PIX_VALOR, $PIX_CHAVE, $PIX_NOME;
+        global $PIX_VALOR; // Valor do plano
+        $user_id = $chat; // ID do usuário no Telegram
 
-$textoPlano = "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
+        // 1️⃣ Gera pagamento pelo endpoint
+        $payment_url = "https://promstpagamentos.discloud.app/create_payment?user_id={$user_id}&valor={$PIX_VALOR}";
+        $response = file_get_contents($payment_url);
+        $paymentData = json_decode($response, true);
+
+        // 2️⃣ Monta o texto do plano
+        $textoPlano = "⭐ <b>PLANO VITALÍCIO — ASTRO SEARCH</b>
 
 Tenha acesso completo às consultas VIP
 sem mensalidade e sem limites 🚀
@@ -3584,84 +3591,94 @@ sem mensalidade e sem limites 🚀
 
 ━━━━━━━━━━━━━━━━
 💰 <b>Valor único</b>
+<b>R$ {$paymentData['amount']}</b>
 
-<b>R$ {$PIX_VALOR}</b>
+🔑 TXID:
+<code>{$paymentData['txid']}</code>
 
-🔑 Chave PIX:
-<code>{$PIX_CHAVE}</code>
-👤 {$PIX_NOME}";
+⚡ Copie o PIX abaixo para pagar:
+<code>{$paymentData['pixCopiaECola']}</code>";
 
-$kb = json_encode([
-    "inline_keyboard"=>[
-        [["text"=>"📩 Enviar Comprovante","url"=>"https://t.me/puxardados5"]],
-        [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
-    ]
-]);
+        // 3️⃣ Monta o teclado inline
+        $kb = json_encode([
+            "inline_keyboard"=>[
+                [["text"=>"🚀 Enviar Comprovante","url"=>"https://t.me/puxardados5"]],
+                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+            ]
+        ]);
 
-if(isset($callback["message"]["photo"])){
+        // 4️⃣ Envia ou edita a mensagem
+        if(isset($callback["message"]["photo"])) {
+            tg("editMessageCaption",[
+                "chat_id"=>$chat,
+                "message_id"=>$msg,
+                "caption"=>$textoPlano,
+                "parse_mode"=>"HTML",
+                "reply_markup"=>$kb
+            ]);
+        } else {
+            tg("editMessageText",[
+                "chat_id"=>$chat,
+                "message_id"=>$msg,
+                "text"=>$textoPlano,
+                "parse_mode"=>"HTML",
+                "reply_markup"=>$kb
+            ]);
+        }
 
-    tg("editMessageCaption",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg,
-        "caption"=>$textoPlano,
-        "parse_mode"=>"HTML",
-        "reply_markup"=>$kb
-    ]);
+        break;
 
-}else{
+    // ======================
+    // COPIAR PIX / CONFIRMAR
+    // ======================
+    case "copiar_pix":
 
-    tg("editMessageText",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg,
-        "text"=>$textoPlano,
-        "parse_mode"=>"HTML",
-        "reply_markup"=>$kb
-    ]);
-}
+        global $PIX_VALOR;
+        $user_id = $chat;
 
-break;
+        answer($callback["id"]); // responde callback do Telegram
 
-case "copiar_pix":
+        // ✅ Gera pagamento novamente (ou poderia salvar em DB para TXID fixo)
+        $payment_url = "https://promstpagamentos.discloud.app/create_payment?user_id={$user_id}&valor={$PIX_VALOR}";
+        $response = file_get_contents($payment_url);
+        $paymentData = json_decode($response, true);
 
-global $PIX_CHAVE;
-
-answer($callback["id"]);
-
-$novoTexto = "📋 <b>CHAVE PIX COPIADA!</b>
+        $novoTexto = "📋 <b>CHAVE PIX COPIADA!</b>
 
 Agora é só colar no seu banco 👇
 
-<code>{$PIX_CHAVE}</code>
+<code>{$paymentData['pixCopiaECola']}</code>
+
+🔑 TXID: <code>{$paymentData['txid']}</code>
 
 ⚡ Após o pagamento envie o comprovante para ativação.";
 
-// verifica se a mensagem tem foto
-if(isset($callback["message"]["photo"])){
-
-    tg("editMessageCaption",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg,
-        "caption"=>$novoTexto,
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
+        $kb = json_encode([
             "inline_keyboard"=>[
-                [["text"=>"🚀 ENVIAR COMPROVANTE","url"=>"https://t.me/puxardados5"]]
+                [["text"=>"🚀 ENVIAR COMPROVANTE","url"=>"https://t.me/puxardados5"]],
+                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
             ]
-        ])
-    ]);
+        ]);
 
-}else{
+        if(isset($callback["message"]["photo"])) {
+            tg("editMessageCaption",[
+                "chat_id"=>$chat,
+                "message_id"=>$msg,
+                "caption"=>$novoTexto,
+                "parse_mode"=>"HTML",
+                "reply_markup"=>$kb
+            ]);
+        } else {
+            tg("editMessageText",[
+                "chat_id"=>$chat,
+                "message_id"=>$msg,
+                "text"=>$novoTexto,
+                "parse_mode"=>"HTML",
+                "reply_markup"=>$kb
+            ]);
+        }
 
-    tg("editMessageText",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg,
-        "text"=>$novoTexto,
-        "parse_mode"=>"HTML"
-    ]);
-
-}
-
-break;
+        break;
 
         case "conta":
 
