@@ -3248,10 +3248,10 @@ if($callback){
     // =========================
     if($data == "planos"){
 
-        tg("editMessageText",[
+        tg("editMessageCaption",[
             "chat_id"=>$chat,
             "message_id"=>$msg,
-            "text"=>"⭐ <b>PLANO VITALÍCIO</b>\n\n💰 R$ 15,00\n\nClique abaixo 👇",
+            "caption"=>"⭐ <b>PLANO VITALÍCIO</b>\n\n💰 R$ 15,00\n\nClique abaixo 👇",
             "parse_mode"=>"HTML",
             "reply_markup"=>json_encode([
                 "inline_keyboard"=>[
@@ -3271,7 +3271,7 @@ if($callback){
 
         $url = "https://promstpagamentos.discloud.app/create_payment?user_id=7320236887&valor=15.00";
 
-        $response = file_get_contents($url);
+        $response = @file_get_contents($url);
         $json = json_decode($response,true);
 
         if(!$json || !isset($json["pixCopiaECola"])){
@@ -3286,13 +3286,13 @@ if($callback){
         }
 
         $valor = $json["valor"]["original"] ?? "15.00";
-        $txid  = $json["txid"];
+        $txid  = $json["txid"] ?? "N/A";
         $pix   = $json["pixCopiaECola"];
 
-        tg("editMessageText",[
+        tg("editMessageCaption",[
             "chat_id"=>$chat,
             "message_id"=>$msg,
-            "text"=>"💰 <b>R$ {$valor}</b>\n\n🔑 <code>{$txid}</code>\n\n<code>{$pix}</code>",
+            "caption"=>"💰 <b>R$ {$valor}</b>\n\n🔑 <code>{$txid}</code>\n\n📋 <b>PIX Copia e Cola:</b>\n<code>{$pix}</code>",
             "parse_mode"=>"HTML",
             "reply_markup"=>json_encode([
                 "inline_keyboard"=>[
@@ -3306,125 +3306,29 @@ if($callback){
     }
 
     // =========================
-    // ENVIAR TXT
+    // CONTA
     // =========================
-    if(str_starts_with($data,"txt|")){
-        $file = explode("|",$data)[1];
+    if($data == "conta"){
 
-        if(!file_exists($file)) exit;
+        $plano = isVip($id) ? "VIP" : "Grátis";
 
-        $txt = file_get_contents($file);
-        $partes = str_split($txt,4000);
-
-        foreach($partes as $index => $parte){
-            tg("sendMessage",[
-                "chat_id"=>$chat,
-                "text"=>"<pre>".$parte."</pre>",
-                "parse_mode"=>"HTML",
-                "reply_markup"=>$index == 0 ? json_encode([
-                    "inline_keyboard"=>[
-                        [["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]],
-                        [["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]]
-                    ]
-                ]) : null
-            ]);
-        }
-
-        unlink($file);
-        exit;
-    }
-
-    // =========================
-    // DELETAR PACOTE
-    // =========================
-    if(str_starts_with($data,"delpack")){
-        $cpf = explode("|",$data)[1];
-        $file = "cache_ids_{$cpf}.json";
-
-        if(!file_exists($file)) exit;
-
-        $ids = json_decode(file_get_contents($file),true);
-
-        foreach($ids as $msg_id){
-            tg("deleteMessage",[
-                "chat_id"=>$chat,
-                "message_id"=>$msg_id
-            ]);
-        }
-
-        unlink($file);
-        exit;
-    }
-
-    // =========================
-    // CPF2 ARQUIVO
-    // =========================
-    if(str_starts_with($data,"cpf2_file")){
-        $cpf = explode("|",$data)[1];
-        $file = "cache_cpf2_{$cpf}.txt";
-
-        if(!file_exists($file)) exit;
-
-        tg("sendDocument",[
+        tg("editMessageCaption",[
             "chat_id"=>$chat,
-            "document"=>new CURLFile($file),
-            "caption"=>"📑 <b>Consulta CPF Premium</b>",
+            "message_id"=>$msg,
+            "caption"=>"👤 <b>MINHA CONTA</b>\n\n🆔 ID: <code>{$id}</code>\n👤 Nome: <b>{$nome}</b>\n⭐ Plano: <b>{$plano}</b>",
             "parse_mode"=>"HTML",
             "reply_markup"=>json_encode([
                 "inline_keyboard"=>[
-                    [["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]],
-                    [["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]]
+                    [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
                 ]
             ])
         ]);
 
-        unlink($file);
         exit;
     }
 
     // =========================
-    // CPF3 (CORRIGIDO)
-    // =========================
-    if(str_starts_with($data,"cpf3_msg")){
-
-        $cpf = explode("|",$data)[1];
-        $file = "cache_cpf3_{$cpf}.txt";
-
-        if(!file_exists($file)) exit;
-
-        $txt = file_get_contents($file);
-        $partes = str_split($txt,4000);
-
-        $msg_ids = [];
-
-        foreach($partes as $index => $parte){
-
-            $send = tg("sendMessage",[
-                "chat_id"=>$chat,
-                "text"=>"<pre>".$parte."</pre>",
-                "parse_mode"=>"HTML",
-                "reply_markup"=>$index == count($partes)-1 ? json_encode([
-                    "inline_keyboard"=>[
-                        [["text"=>"🗑 Apagar tudo","callback_data"=>"delpack|$cpf"]],
-                        [["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]]
-                    ]
-                ]) : null
-            ]);
-
-            $res = json_decode($send,true);
-            if(isset($res["result"]["message_id"])){
-                $msg_ids[] = $res["result"]["message_id"];
-            }
-        }
-
-        file_put_contents("cache_ids_{$cpf}.json",json_encode($msg_ids));
-        unlink($file);
-
-        exit;
-    }
-
-    // =========================
-    // CPF CONSULTAS
+    // CPF CONSULTAS (BOTÃO)
     // =========================
     if(str_starts_with($data,"cpf_")){
 
@@ -3432,10 +3336,10 @@ if($callback){
         $tipo = $dados[0];
         $cpf  = $dados[1];
 
-        tg("editMessageText",[
+        tg("editMessageCaption",[
             "chat_id"=>$chat,
             "message_id"=>$msg,
-            "text"=>"🔎 <b>CONSULTANDO...</b>\nCPF: <code>{$cpf}</code>",
+            "caption"=>"🔎 <b>CONSULTANDO...</b>\nCPF: <code>{$cpf}</code>",
             "parse_mode"=>"HTML"
         ]);
 
@@ -3466,6 +3370,8 @@ if($callback){
         catalogo2($chat,$msg);
         exit;
     }
+
+}
 
     // =========================
     // CONTA
