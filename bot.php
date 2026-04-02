@@ -3221,7 +3221,6 @@ if($callback){
     $msg  = $callback["message"]["message_id"];
     $id   = $callback["from"]["id"];
     $nome = $callback["from"]["first_name"] ?? "usuário";
-
     $data = $callback["data"] ?? "";
 
     // =========================
@@ -3328,13 +3327,13 @@ if($callback){
     }
 
     // =========================
-    // CPF CONSULTAS (BOTÃO)
+    // CPF CONSULTAS
     // =========================
     if(str_starts_with($data,"cpf_")){
 
         $dados = explode("|",$data);
-        $tipo = $dados[0];
-        $cpf  = $dados[1];
+        $tipo = $dados[0] ?? "";
+        $cpf  = $dados[1] ?? "";
 
         tg("editMessageCaption",[
             "chat_id"=>$chat,
@@ -3370,31 +3369,6 @@ if($callback){
         catalogo2($chat,$msg);
         exit;
     }
-
-}
-
-    // =========================
-    // CONTA
-    // =========================
-    if($data == "conta"){
-
-        $plano = isVip($id) ? "VIP" : "Grátis";
-
-        tg("editMessageText",[
-            "chat_id"=>$chat,
-            "message_id"=>$msg,
-            "text"=>"👤 <b>MINHA CONTA</b>\n\n🆔 ID: <code>{$id}</code>\n👤 Nome: <b>{$nome}</b>\n⭐ Plano: <b>{$plano}</b>",
-            "parse_mode"=>"HTML",
-            "reply_markup"=>json_encode([
-                "inline_keyboard"=>[
-                    [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
-                ]
-            ])
-        ]);
-
-        exit;
-    }
-
 }
 
 echo "OK";
