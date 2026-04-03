@@ -47,6 +47,7 @@ $VIP_IDS = [
     871109971,
     6924959323,
     1460964575,
+    965277749,
     8086542899,
     2117572146,
     8067257278,
@@ -3295,23 +3296,36 @@ if(strpos($data,"verificar_") === 0){
     $db = json_decode(@file_get_contents("pagamentos.json"), true);
 
     if(!isset($db[$txid])){
+        tg("answerCallbackQuery",[
+            "callback_query_id"=>$callback["id"],
+            "text"=>"❌ Pagamento não encontrado no sistema",
+            "show_alert"=>true
+        ]);
         exit;
     }
 
     $user_id = $db[$txid]["user_id"];
 
-    // 🔥 NOVA API CORRETA
     $url = "https://promstpagamentos.discloud.app/verify_payment?payment_id={$txid}";
     $res = @file_get_contents($url);
+
+    if(!$res){
+        tg("answerCallbackQuery",[
+            "callback_query_id"=>$callback["id"],
+            "text"=>"❌ Erro ao conectar com API",
+            "show_alert"=>true
+        ]);
+        exit;
+    }
+
     $json = json_decode($res,true);
 
+    // ✅ PAGAMENTO APROVADO
     if(isset($json["status_pagamento"]) && $json["status_pagamento"] == "CONCLUIDA"){
 
-        // marca como pago
         $db[$txid]["status"] = "pago";
         file_put_contents("pagamentos.json", json_encode($db));
 
-        // 👑 LIBERA VIP
         $vipFile = "vip_users.json";
         $vip = json_decode(@file_get_contents($vipFile), true) ?? [];
 
@@ -3328,11 +3342,23 @@ if(strpos($data,"verificar_") === 0){
             "parse_mode"=>"HTML"
         ]);
 
-    } else {
+    } 
+    // ❌ NÃO ENCONTRADO / NÃO PAGO
+    elseif(isset($json["detail"])){
 
         tg("answerCallbackQuery",[
             "callback_query_id"=>$callback["id"],
-            "text"=>"⏳ Pagamento ainda não foi confirmado",
+            "text"=>"⏳ Pagamento ainda não foi identificado",
+            "show_alert"=>true
+        ]);
+
+    } 
+    // ⚠️ QUALQUER OUTRO ERRO
+    else {
+
+        tg("answerCallbackQuery",[
+            "callback_query_id"=>$callback["id"],
+            "text"=>"⚠️ Erro ao verificar pagamento",
             "show_alert"=>true
         ]);
     }
