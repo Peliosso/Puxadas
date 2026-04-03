@@ -2566,9 +2566,13 @@ unlink($file);
 
 }
 
-function consultaPlaca($chat, $placa){
+function consultaPlaca($chat,$placa){
 
 global $STICKER_LOADING;
+
+function v($v){
+return ($v === null || $v === "" || $v === "SEM INFORMAÇÃO") ? "NÃO ENCONTRADO" : $v;
+}
 
 $sticker = tg("sendSticker",[
 "chat_id"=>$chat,
@@ -2578,9 +2582,10 @@ $sticker = tg("sendSticker",[
 $stickerData = json_decode($sticker,true);
 $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
+/* LIMPA PLACA */
 $placa = strtoupper(preg_replace('/[^A-Za-z0-9]/','',$placa));
 
-if(strlen($placa) < 7){
+if(strlen($placa) != 7){
 
 if($stickerMsgId){
 tg("deleteMessage",[
@@ -2598,11 +2603,21 @@ tg("sendMessage",[
 return;
 }
 
-$url = "https://api.blackaut.shop/api/dados-pessoais/placa?placa={$placa}&apikey=EbmScZ0ntHf61KJz3H";
+/* API NOVA */
+$url = "https://knowsapi.shop/api/consulta/placa-v2?placa={$placa}&apikey=bigmouth";
 
-$resp = @file_get_contents($url);
-$json = json_decode($resp,true);
+$ch = curl_init();
+curl_setopt_array($ch,[
+CURLOPT_URL => $url,
+CURLOPT_RETURNTRANSFER => true,
+CURLOPT_TIMEOUT => 20
+]);
 
+$response = curl_exec($ch);
+$data = json_decode($response,true);
+curl_close($ch);
+
+/* REMOVE LOADING */
 if($stickerMsgId){
 tg("deleteMessage",[
 "chat_id"=>$chat,
@@ -2610,86 +2625,126 @@ tg("deleteMessage",[
 ]);
 }
 
-if(!$json || !$json["status"]){
+/* ERRO */
+if(!$data || !$data["status"]){
 
-    naoEncontrado($chat,"PLACA",$placa);
-    return;
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ Placa não encontrada."
+]);
 
+return;
 }
 
-$d = $json["resultado"];
+$r = $data["resultado"];
+$v = $r["detalhes_veiculo"];
+$i = $r["identificadores"];
+$g = $r["geografia"];
+$l = $r["legal"];
+$p = $r["proprietario"];
 
-$texto = "";
+/* MONTA TXT */
 
-if(!empty($d["dados"]["enderecos"])){
+$txt = "
+╔══════════════════════════════╗
+   CONSULTA PLACA ULTRA — ASTRO SEARCH
+╚══════════════════════════════╝
 
-$texto = implode("\n",$d["dados"]["enderecos"]);
+🚗 DADOS DO VEÍCULO
+──────────────────────────────
+Placa: ".v($v["placa"])."
+Cor: ".v($v["cor"])."
+Ano Fabricação: ".v($v["ano_fab"])."
+Ano Modelo: ".v($v["ano_mod"])."
+Combustível: ".v($v["combustivel"])."
+Potência: ".v($v["potencia"])."
+Cilindradas: ".v($v["cilindradas"])."
+Tipo: ".v($v["tipo"])."
+Espécie: ".v($v["especie"])."
+Passageiros: ".v($v["passageiros"])."
 
+🔎 IDENTIFICADORES
+──────────────────────────────
+Chassi: ".v($i["chassi"])."
+Renavam: ".v($i["renavam"])."
+Motor: ".v($i["motor"])."
+Origem: ".v($i["origem"])."
+
+🌍 LOCALIZAÇÃO
+──────────────────────────────
+Atual: ".v($g["atual"])."
+Fabricação: ".v($g["fabricacao"])."
+
+⚖️ SITUAÇÃO LEGAL
+──────────────────────────────
+Situação: ".v($l["situacao"])."
+Última Atualização: ".v($l["ultima_atualizacao"])."
+Emissão CRV: ".v($l["emissao_crv"])."
+";
+
+/* RESTRIÇÕES */
+$txt .= "
+⚠️ RESTRIÇÕES
+──────────────────────────────
+";
+
+if(!empty($l["restricoes"])){
+foreach($l["restricoes"] as $res){
+$txt .= v($res)."\n";
+}
+}else{
+$txt .= "NENHUMA\n";
 }
 
-/* LIMPEZA DO TEXTO */
+/* PROPRIETÁRIO */
+$txt .= "
 
-$remove = [
-"Sistema Online MK",
-"UNIX Intelligence",
-"Copiar Texto",
-"Este link expira",
-"©",
-"Todos os direitos reservados"
-];
+👤 PROPRIETÁRIO
+──────────────────────────────
+Nome: ".v($p["nome"])."
+Documento: ".v($p["documento"])."
+";
 
-$texto = str_replace($remove,"",$texto);
+/* FINAL */
+$txt .= "
 
-/* FORMATAÇÃO */
-
-$texto = str_replace("INFORMAÇÕES BÁSICAS DO VEÍCULO","\n🚗 DADOS DO VEÍCULO\n",$texto);
-$texto = str_replace("PROPRIETÁRIO","\n👤 PROPRIETÁRIO\n",$texto);
-$texto = str_replace("ENDEREÇO","\n📍 ENDEREÇO\n",$texto);
-$texto = str_replace("DÉBITOS","\n💰 DÉBITOS\n",$texto);
-$texto = str_replace("RESTRIÇÕES","\n⚠️ RESTRIÇÕES\n",$texto);
-$texto = str_replace("RESUMO DA SITUAÇÃO","\n📊 SITUAÇÃO\n",$texto);
-
-/* QUEBRAS */
-
-$texto = preg_replace('/([A-ZÇ ]+):/',"\n$1:",$texto);
-
-/* REMOVE LINHAS DUPLICADAS */
-
-$linhas = array_unique(array_filter(array_map("trim",explode("\n",$texto))));
-$texto = implode("\n",$linhas);
-
-/* CABEÇALHO */
-
-$txt =
-"🚗 CONSULTA DE PLACA — ASTRO SEARCH
-================================
-
-Placa Consultada: {$placa}
-
-{$texto}
-
---------------------------------
+──────────────────────────────
 Consulta realizada via:
-ASTRO SEARCH
+ASTRO SEARCH ULTRA
 ";
 
 /* CRIA ARQUIVO */
-
 $file = tempnam(sys_get_temp_dir(),"placa_");
 file_put_contents($file,$txt);
 
-/* ENVIA */
+/* PREVIEW */
+$preview = "
+💎 <b>Consulta VIP Realizada</b>
 
+<blockquote>
+🚗 Placa: ".v($v["placa"])."
+🎨 Cor: ".v($v["cor"])."
+📅 ".v($v["ano_mod"])."
+⚖️ Situação: ".v($l["situacao"])."
+📍 ".v($g["atual"])."
+</blockquote>
+
+📄 Relatório completo disponível no arquivo TXT.
+";
+
+/* ENVIA */
 tg("sendDocument",[
 "chat_id"=>$chat,
 "document"=>new CURLFile($file,"text/plain","placa_{$placa}.txt"),
-"caption"=>"🚗 <b>Consulta de Placa concluída</b>",
+"caption"=>$preview,
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
 [
-["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
 ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+],
+[
+["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
 ]
 ]
 ])
