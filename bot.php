@@ -770,7 +770,7 @@ Escolha o formato do resultado:",
 ["text"=>"🗑 Apagar mensagem","callback_data"=>"apagar_msg"]
 ],
 [
-["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
 ]
 ]
 ])
@@ -881,7 +881,7 @@ Créditos: Astro Search
             "inline_keyboard"=>[
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
                 ]
             ]
         ])
@@ -976,7 +976,7 @@ Créditos: Astro Search
             "inline_keyboard"=>[
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
                 ]
             ]
         ])
@@ -1067,7 +1067,7 @@ Créditos: Astro Search
             "inline_keyboard"=>[
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
                 ]
             ]
         ])
@@ -1620,7 +1620,7 @@ ASTRO SEARCH
         "reply_markup" => json_encode([
             "inline_keyboard" => [
                 [
-                    ["text" => "💎 • Adquirir Consultas VIP", "url" => "https://t.me/puxardados5"]
+["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
                 ],
                 [
                     ["text" => "🗑 • Apagar", "callback_data" => "apagar_msg"]
@@ -1761,7 +1761,7 @@ ASTRO SEARCH
         "reply_markup" => json_encode([
             "inline_keyboard" => [
                 [
-                    ["text" => "💎 • Adquirir Consultas VIP", "url" => "https://t.me/puxardados5"]
+["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
                 ],
                 [
                     ["text" => "🗑 • Apagar", "callback_data" => "apagar_msg"]
@@ -1862,7 +1862,7 @@ Tempo resposta API: {$json["responseTime"]}
             "inline_keyboard"=>[
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
                 ]
             ]
         ])
@@ -2027,7 +2027,7 @@ tg("sendDocument",[
     "inline_keyboard"=>[
         [
             ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-            ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
         ]
     ]
 ])
@@ -2247,7 +2247,7 @@ tg("sendMessage",[
 ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
 ],
 [
-["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
 ]
 ]
 ])
@@ -2551,7 +2551,7 @@ tg("sendDocument",[
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
 [
-["text"=>"💎 • Adquirir Consultas VIP","url"=>"https://t.me/puxardados5"]
+["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
 ],
 [
 ["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
@@ -2687,7 +2687,7 @@ tg("sendDocument",[
 "inline_keyboard"=>[
 [
 ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
 ]
 ]
 ])
@@ -2891,7 +2891,7 @@ Astro Search
             "inline_keyboard"=>[
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
+                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
                 ]
             ]
         ])
@@ -3238,7 +3238,9 @@ if($callback){
     // =========================
     if($data == "gerar_pix"){
 
-        $url = "https://promstpagamentos.discloud.app/create_payment?user_id=7320236887&valor=15.00";
+$user_id = $id;
+
+$url = "https://promstpagamentos.discloud.app/create_payment?user_id={$user_id}&valor=15.00";
 
         $response = @file_get_contents($url);
         $json = json_decode($response,true);
@@ -3256,6 +3258,15 @@ if($callback){
 
         $valor = $json["valor"]["original"] ?? "15.00";
         $txid  = $json["txid"] ?? "N/A";
+        $db = json_decode(@file_get_contents("pagamentos.json"), true) ?? [];
+
+$db[$txid] = [
+    "user_id"=>$user_id,
+    "status"=>"pendente",
+    "valor"=>$valor
+];
+
+file_put_contents("pagamentos.json", json_encode($db));
         $pix   = $json["pixCopiaECola"];
 
         tg("editMessageCaption",[
@@ -3264,15 +3275,72 @@ if($callback){
             "caption"=>"💰 <b>R$ {$valor}</b>\n\n🔑 <code>{$txid}</code>\n\n📋 <b>PIX Copia e Cola:</b>\n<code>{$pix}</code>",
             "parse_mode"=>"HTML",
             "reply_markup"=>json_encode([
-                "inline_keyboard"=>[
-                    [["text"=>"🚀 Enviar Comprovante","url"=>"https://t.me/puxardados5"]],
-                    [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
-                ]
+"inline_keyboard"=>[
+    [["text"=>"✅ Verificar Pagamento","callback_data"=>"verificar_{$txid}"]],
+    [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+]
             ])
         ]);
 
         exit;
     }
+    
+    if(strpos($data,"verificar_") === 0){
+
+    $txid = str_replace("verificar_","",$data);
+
+    $db = json_decode(@file_get_contents("pagamentos.json"), true);
+
+    if(!isset($db[$txid])){
+        exit;
+    }
+
+    $user_id = $db[$txid]["user_id"];
+
+    // 🔎 CONSULTA API
+    $url = "https://promstpagamentos.discloud.app/check_payment?txid={$txid}";
+    $res = @file_get_contents($url);
+    $json = json_decode($res,true);
+
+    if(isset($json["status"]) && $json["status"] == "approved"){
+
+        // marca como pago
+        $db[$txid]["status"] = "pago";
+        file_put_contents("pagamentos.json", json_encode($db));
+
+        // 👑 LIBERA VIP
+        $vipFile = "vip_users.json";
+
+        $vip = json_decode(@file_get_contents($vipFile), true) ?? [];
+
+        if(!in_array($user_id,$vip)){
+            $vip[] = $user_id;
+        }
+
+        file_put_contents($vipFile, json_encode($vip));
+
+        tg("editMessageCaption",[
+            "chat_id"=>$chat,
+            "message_id"=>$msg,
+            "caption"=>"✅ <b>PAGAMENTO CONFIRMADO!</b>
+
+👑 VIP liberado automaticamente 🚀
+
+Agora você tem acesso total.",
+            "parse_mode"=>"HTML"
+        ]);
+
+    } else {
+
+        tg("answerCallbackQuery",[
+            "callback_query_id"=>$callback["id"],
+            "text"=>"⏳ Pagamento ainda não caiu",
+            "show_alert"=>true
+        ]);
+    }
+
+    exit;
+}
 
     // =========================
     // CONTA
