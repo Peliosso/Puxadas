@@ -3238,9 +3238,7 @@ if($callback){
     // =========================
     if($data == "gerar_pix"){
 
-$user_id = $id;
-
-$url = "https://promstpagamentos.discloud.app/create_payment?user_id={$user_id}&valor=15.00";
+$url = "https://promstpagamentos.discloud.app/create_payment?user_id=7320236887&valor=15.00";
 
         $response = @file_get_contents($url);
         $json = json_decode($response,true);
