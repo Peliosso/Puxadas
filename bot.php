@@ -3239,9 +3239,6 @@ if($callback){
     // =========================
 if($data == "gerar_pix"){
 
-    $user_id = $id; // 👈 usuário do bot (quem vai receber VIP)
-
-    // 🔥 ID FIXO (SEU)
     $url = "https://promstpagamentos.discloud.app/create_payment?user_id=7320236887&valor=15.00";
 
     $response = @file_get_contents($url);
@@ -3254,24 +3251,15 @@ if($data == "gerar_pix"){
             "text"=>"❌ Erro ao gerar PIX",
             "show_alert"=>true
         ]);
-
         exit;
     }
 
     $valor = $json["valor"] ?? "15.00";
-    $txid  = $json["txid"] ?? "N/A";
+    $txid  = $json["txid"] ?? "";
     $pix   = $json["pixCopiaECola"];
 
-    // 🔥 SALVA QUEM GEROU (IMPORTANTÍSSIMO)
-    $db = json_decode(@file_get_contents("pagamentos.json"), true) ?? [];
-
-    $db[$txid] = [
-        "user_id" => $user_id, // 👈 usuário real do bot
-        "status"  => "pendente",
-        "valor"   => $valor
-    ];
-
-    file_put_contents("pagamentos.json", json_encode($db));
+    // 🔥 EMBUTE ID DO USUÁRIO NO BOTÃO
+    $callbackCheck = "verificar_{$txid}_{$id}";
 
     tg("editMessageCaption",[
         "chat_id"=>$chat,
@@ -3280,7 +3268,7 @@ if($data == "gerar_pix"){
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-                [["text"=>"✅ Verificar Pagamento","callback_data"=>"verificar_{$txid}"]],
+                [["text"=>"✅ Verificar Pagamento","callback_data"=>$callbackCheck]],
                 [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
             ]
         ])
@@ -3291,20 +3279,20 @@ if($data == "gerar_pix"){
     
 if(strpos($data,"verificar_") === 0){
 
-    $txid = str_replace("verificar_","",$data);
+    // formato: verificar_TXID_USERID
+    $partes = explode("_",$data);
 
-    $db = json_decode(@file_get_contents("pagamentos.json"), true);
+    $txid = $partes[1] ?? "";
+    $user_id = $partes[2] ?? "";
 
-    if(!isset($db[$txid])){
+    if(!$txid || !$user_id){
         tg("answerCallbackQuery",[
             "callback_query_id"=>$callback["id"],
-            "text"=>"❌ Pagamento não encontrado no sistema",
+            "text"=>"❌ Erro interno",
             "show_alert"=>true
         ]);
         exit;
     }
-
-    $user_id = $db[$txid]["user_id"];
 
     $url = "https://promstpagamentos.discloud.app/verify_payment?payment_id={$txid}";
     $res = @file_get_contents($url);
@@ -3312,7 +3300,7 @@ if(strpos($data,"verificar_") === 0){
     if(!$res){
         tg("answerCallbackQuery",[
             "callback_query_id"=>$callback["id"],
-            "text"=>"❌ Erro ao conectar com API",
+            "text"=>"❌ Erro na API",
             "show_alert"=>true
         ]);
         exit;
@@ -3320,45 +3308,26 @@ if(strpos($data,"verificar_") === 0){
 
     $json = json_decode($res,true);
 
-    // ✅ PAGAMENTO APROVADO
+    // ✅ PAGOU
     if(isset($json["status_pagamento"]) && $json["status_pagamento"] == "CONCLUIDA"){
 
-        $db[$txid]["status"] = "pago";
-        file_put_contents("pagamentos.json", json_encode($db));
-
-        $vipFile = "vip_users.json";
-        $vip = json_decode(@file_get_contents($vipFile), true) ?? [];
-
-        if(!in_array($user_id,$vip)){
-            $vip[] = $user_id;
+        // 🔥 LIBERA DIRETO (SEM SALVAR)
+        if(!in_array($user_id,$VIP_IDS)){
+            $VIP_IDS[] = (int)$user_id;
         }
-
-        file_put_contents($vipFile, json_encode($vip));
 
         tg("editMessageCaption",[
             "chat_id"=>$chat,
             "message_id"=>$msg,
-            "caption"=>"✅ <b>PAGAMENTO CONFIRMADO!</b>\n\n👑 VIP liberado automaticamente 🚀",
+            "caption"=>"✅ <b>PAGAMENTO CONFIRMADO!</b>\n\n👑 VIP liberado 🚀",
             "parse_mode"=>"HTML"
         ]);
 
-    } 
-    // ❌ NÃO ENCONTRADO / NÃO PAGO
-    elseif(isset($json["detail"])){
+    } else {
 
         tg("answerCallbackQuery",[
             "callback_query_id"=>$callback["id"],
-            "text"=>"⏳ Pagamento ainda não foi identificado",
-            "show_alert"=>true
-        ]);
-
-    } 
-    // ⚠️ QUALQUER OUTRO ERRO
-    else {
-
-        tg("answerCallbackQuery",[
-            "callback_query_id"=>$callback["id"],
-            "text"=>"⚠️ Erro ao verificar pagamento",
+            "text"=>"⏳ Ainda não foi pago",
             "show_alert"=>true
         ]);
     }
