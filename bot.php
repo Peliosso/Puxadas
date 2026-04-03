@@ -398,34 +398,14 @@ Exemplo:
         "parse_mode"=>"HTML"
     ]);
 }
-function bloquearConsulta($chat){
-    global $START_PHOTO, $STICKER_LOADING, $PIX_CHAVE, $PIX_NOME, $PIX_VALOR;
-
-    // 🎬 Sticker
-    $sticker = tg("sendSticker",[
-        "chat_id"=>$chat,
-        "sticker"=>$STICKER_LOADING
-    ]);
-
-    $stickerData = json_decode($sticker, true);
-    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
-
-    // ⏳ Delay real de 6s com "digitando..."
-    for($i=0;$i<6;$i++){
-        tg("sendChatAction",[
-            "chat_id"=>$chat,
-            "action"=>"typing"
-        ]);
-        sleep(1);
-    }
+if($data == "bloquear_consulta"){
 
     // 👥 Prova social
-    $usuarios = rand(200,400);
+    $usuarios = rand(20,60);
 
-    // 🚀 Mensagem
-    tg("sendPhoto",[
+    tg("editMessageCaption",[
         "chat_id"=>$chat,
-        "photo"=>$START_PHOTO,
+        "message_id"=>$msg,
         "caption"=>
 "⚡ • <b>RESULTADO ENCONTRADO!</b>
 
@@ -448,29 +428,19 @@ esse tipo de consulta.
 ✔️ Suporte prioritário
 
 ━━━━━━━━
-💰 <b>VALOR VITALÍCIO:</b> R$ {$PIX_VALOR}
+💰 <b>VALOR VITALÍCIO:</b> R$ 15,00
 
-🔑 • <b>Chave PIX:</b>
-<code>{$PIX_CHAVE}</code>
-👤 • <b>Nome:</b> {$PIX_NOME}
-
-👇 Copie a chave e realize o pagamento:",
+👇 Clique abaixo para continuar:",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-                [["text"=>"📋 COPIAR CHAVE PIX","callback_data"=>"copiar_pix"]],
-                [["text"=>"🚀 ATIVAR VIP AGORA","url"=>"https://t.me/puxardados5"]]
+                [["text"=>"💳 Gerar PIX","callback_data"=>"gerar_pix"]],
+                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
             ]
         ])
     ]);
 
-    // 🗑 Apaga o sticker depois
-    if($stickerMsgId){
-        tg("deleteMessage",[
-            "chat_id"=>$chat,
-            "message_id"=>$stickerMsgId
-        ]);
-    }
+    exit;
 }
 
 
