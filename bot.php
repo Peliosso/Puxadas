@@ -516,7 +516,36 @@ function catalogo1($chat,$msg){
 tg("editMessageCaption",[
 "chat_id"=>$chat,
 "message_id"=>$msg,
-"caption"=>"🚀 <b>MENU DE CONSULTAS</b>\n\nEscolha uma consulta abaixo:",
+"caption"=>"🚀 <b>MENU DE CONSULTAS</b>
+
+Escolha uma categoria:",
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+
+[
+["text"=>"🔱 Consultas VIP","callback_data"=>"menu_vip"],
+["text"=>"♻️ Consultas Grátis","callback_data"=>"menu_free"]
+],
+
+[
+["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
+]
+
+]
+])
+]);
+
+}
+
+function menuVip($chat,$msg){
+
+tg("editMessageCaption",[
+"chat_id"=>$chat,
+"message_id"=>$msg,
+"caption"=>"🔱 <b>CONSULTAS VIP</b>
+
+Escolha uma consulta:",
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
@@ -542,6 +571,32 @@ tg("editMessageCaption",[
 ],
 
 [
+["text"=>"💎 Ativar VIP","callback_data"=>"planos"]
+],
+
+[
+["text"=>"⬅️ Voltar","callback_data"=>"catalogo_1"]
+]
+
+]
+])
+]);
+
+}
+
+function menuFree($chat,$msg){
+
+tg("editMessageCaption",[
+"chat_id"=>$chat,
+"message_id"=>$msg,
+"caption"=>"♻️ <b>CONSULTAS GRÁTIS</b>
+
+Escolha uma consulta:",
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+
+[
 ["text"=>"🌐 IP","callback_data"=>"menu_ip"],
 ["text"=>"🏢 CNPJ","callback_data"=>"menu_cnpj"]
 ],
@@ -551,7 +606,7 @@ tg("editMessageCaption",[
 ],
 
 [
-["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
+["text"=>"⬅️ Voltar","callback_data"=>"catalogo_1"]
 ]
 
 ]
@@ -3293,6 +3348,40 @@ if($callback){
         ]);
         exit;
     }
+    
+    // =========================
+// ABRIR MENUS
+// =========================
+
+if($data == "menu_vip"){
+    menuVip($chat,$msg);
+    exit;
+}
+
+if($data == "menu_free"){
+    menuFree($chat,$msg);
+    exit;
+}
+
+if(strpos($data,"menu_") === 0){
+
+$vipMenus = ["menu_cpf","menu_nome","menu_tel","menu_placa","menu_parentes","menu_vizinhos","menu_foto","menu_email"];
+
+if(in_array($data,$vipMenus)){
+
+    if(!isVip($id) && !isFreeGroup($chat)){
+
+        tg("answerCallbackQuery",[
+            "callback_query_id"=>$callback["id"],
+            "text"=>"🔒 Apenas VIP",
+            "show_alert"=>true
+        ]);
+
+        return;
+    }
+
+}
+}
     
     // =========================
 // MENUS DE CONSULTA
