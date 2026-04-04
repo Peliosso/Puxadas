@@ -516,59 +516,73 @@ function catalogo1($chat,$msg){
 tg("editMessageCaption",[
 "chat_id"=>$chat,
 "message_id"=>$msg,
-"caption"=>
-"🚀 <b>CONSULTAS — 1/2</b>
-
-🔱 <b>VIP</b>
-
-/parentes - 🆕
-/vizinhos - 🆕
-/foto - 🆕
-/fotorj - 🆕
-/fotosp - 🆕
-/cpf3 - 🆕
-/cpf2 - 🆕
-/cpf1 - 🆕
-/cpf
-/nome
-/rg
-/cnh
-/telefone
-/email
-/placa
-/pix
-/nascimento
-/renavam",
+"caption"=>"🚀 <b>MENU DE CONSULTAS</b>\n\nEscolha uma consulta abaixo:",
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
-[["text"=>"➡️ Próxima","callback_data"=>"catalogo_2"]],
-[["text"=>"🔒 Ativar Plano","callback_data"=>"planos"]],
-[["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]],
+
+[
+["text"=>"🧾 CPF","callback_data"=>"menu_cpf"],
+["text"=>"👤 Nome","callback_data"=>"menu_nome"]
+],
+
+[
+["text"=>"📱 Telefone","callback_data"=>"menu_tel"],
+["text"=>"🚗 Placa","callback_data"=>"menu_placa"]
+],
+
+[
+["text"=>"👨‍👩‍👧 Parentes","callback_data"=>"menu_parentes"],
+["text"=>"🏠 Vizinhos","callback_data"=>"menu_vizinhos"]
+],
+
+[
+["text"=>"📸 Foto","callback_data"=>"menu_foto"],
+["text"=>"📧 Email","callback_data"=>"menu_email"]
+],
+
+[
+["text"=>"🌐 IP","callback_data"=>"menu_ip"],
+["text"=>"🏢 CNPJ","callback_data"=>"menu_cnpj"]
+],
+
+[
+["text"=>"📍 CEP","callback_data"=>"menu_cep"]
+],
+
+[
+["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
+]
+
 ]
 ])
 ]);
 
 }
 
-function catalogo2($chat,$msg){
+function telaTutorial($chat,$msg,$titulo,$cmd,$exemplo){
 
 tg("editMessageCaption",[
 "chat_id"=>$chat,
 "message_id"=>$msg,
 "caption"=>
-"🚀 <b>CONSULTAS — 2/2</b>
+"📘 <b>{$titulo}</b>
 
-♻️ <b>GRÁTIS</b>
+🧠 <b>Como usar:</b>
 
-/cep
-/cnpj
-/ip",
+<code>{$cmd} {$exemplo}</code>
+
+━━━━━━━━━━━━━━━
+💡 <b>Dica:</b>
+Envie o comando exatamente assim no chat.
+
+👇 Clique abaixo para voltar",
 "parse_mode"=>"HTML",
 "reply_markup"=>json_encode([
 "inline_keyboard"=>[
-[["text"=>"⬅️ Anterior","callback_data"=>"catalogo_1"]],
-[["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]],
+[
+["text"=>"⬅️ Voltar","callback_data"=>"catalogo_1"]
+]
 ]
 ])
 ]);
@@ -3279,6 +3293,65 @@ if($callback){
         ]);
         exit;
     }
+    
+    // =========================
+// MENUS DE CONSULTA
+// =========================
+
+if($data == "menu_cpf"){
+    telaTutorial($chat,$msg,"Consulta de CPF","/cpf","12345678900");
+    exit;
+}
+
+if($data == "menu_nome"){
+    telaTutorial($chat,$msg,"Consulta por Nome","/nome","João Silva");
+    exit;
+}
+
+if($data == "menu_tel"){
+    telaTutorial($chat,$msg,"Consulta de Telefone","/telefone","31999999999");
+    exit;
+}
+
+if($data == "menu_placa"){
+    telaTutorial($chat,$msg,"Consulta de Placa","/placa","ABC1D23");
+    exit;
+}
+
+if($data == "menu_parentes"){
+    telaTutorial($chat,$msg,"Consulta de Parentes","/parentes","12345678900");
+    exit;
+}
+
+if($data == "menu_vizinhos"){
+    telaTutorial($chat,$msg,"Consulta de Vizinhos","/vizinhos","12345678900");
+    exit;
+}
+
+if($data == "menu_foto"){
+    telaTutorial($chat,$msg,"Consulta de Foto","/foto","12345678900");
+    exit;
+}
+
+if($data == "menu_email"){
+    telaTutorial($chat,$msg,"Consulta de Email","/email","teste@email.com");
+    exit;
+}
+
+if($data == "menu_ip"){
+    telaTutorial($chat,$msg,"Consulta de IP","/ip","8.8.8.8");
+    exit;
+}
+
+if($data == "menu_cnpj"){
+    telaTutorial($chat,$msg,"Consulta de CNPJ","/cnpj","00000000000100");
+    exit;
+}
+
+if($data == "menu_cep"){
+    telaTutorial($chat,$msg,"Consulta de CEP","/cep","01001000");
+    exit;
+}
 
     // =========================
     // PLANOS
