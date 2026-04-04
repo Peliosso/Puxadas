@@ -418,7 +418,7 @@ function bloquearConsulta($chat){
 
     tg("sendPhoto",[
         "chat_id"=>$chat,
-        "photo"=>"https://i.imgur.com/8fK4h6B.png", // pode trocar pela sua
+        "photo"=>"https://conventional-magenta-fxkyikrbqe.edgeone.app/E8D6A8B8-36F3-4AE0-8493-E2C66DF18EF3.png", // pode trocar pela sua
         "caption"=>
 "🔒 <b>ACESSO RESTRITO</b>
 
