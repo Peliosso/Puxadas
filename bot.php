@@ -412,49 +412,43 @@ Exemplo:
         "parse_mode"=>"HTML"
     ]);
 }
-if($data == "bloquear_consulta"){
+function bloquearConsulta($chat){
 
-    // 👥 Prova social
     $usuarios = rand(20,60);
 
-    tg("editMessageCaption",[
+    tg("sendPhoto",[
         "chat_id"=>$chat,
-        "message_id"=>$msg,
+        "photo"=>"https://i.imgur.com/8fK4h6B.png", // pode trocar pela sua
         "caption"=>
-"⚡ • <b>RESULTADO ENCONTRADO!</b>
+"🔒 <b>ACESSO RESTRITO</b>
 
-Mas calma…
+Essa é uma consulta exclusiva para usuários VIP.
 
-Seu plano gratuito não tem permissão para ver
-esse tipo de consulta.
+Seu plano atual é <b>Gratuito</b> e possui limitações.
 
-⭐ <b>Ative o VIP e tenha acesso imediato.</b>
+━━━━━━━━━━━━━━━
+💎 <b>Com o VIP você desbloqueia:</b>
 
-━━━━━━━━
-👑 <b>{$usuarios} usuários VIP ativos</b>
+• Todas as consultas  
+• Dados completos  
+• Respostas mais rápidas  
+• Sem limites  
 
-💎 <b>Vantagens do plano:</b>
+━━━━━━━━━━━━━━━
+💰 <b>Pagamento único: R$ 15,00</b>
 
-✔️ Consultas ilimitadas
-✔️ Sem mensalidade
-✔️ Acesso a todas as bases
-✔️ Liberação instantânea
-✔️ Suporte prioritário
+🚀 Liberação instantânea após pagamento
 
-━━━━━━━━
-💰 <b>VALOR VITALÍCIO:</b> R$ 15,00
-
-👇 Clique abaixo para continuar:",
+👇 Clique abaixo para ativar:",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-                [["text"=>"💳 Gerar PIX","callback_data"=>"gerar_pix"]],
+                [["text"=>"💳 Ativar VIP","callback_data"=>"planos"]],
                 [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
             ]
         ])
     ]);
 
-    exit;
 }
 
 
