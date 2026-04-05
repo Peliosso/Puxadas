@@ -2349,6 +2349,8 @@ function v($v){
 return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
 }
 
+/* ================= LOADING ================= */
+
 $sticker = tg("sendSticker",[
 "chat_id"=>$chat,
 "sticker"=>$STICKER_LOADING
@@ -2435,16 +2437,26 @@ Nome: ".v($v5["pessoal"]["nome"] ?? $d["name"] ?? $b2["name"] ?? $b4["DADOS"]["N
 CPF: ".v($d["cpf_masked"] ?? $b2["cpf_masked"] ?? $b4["DADOS"]["CPF"])."
 Nascimento: ".v($v5["pessoal"]["nascimento"] ?? $d["birth_date"] ?? $b2["birth_date"] ?? $b4["DADOS"]["NASC"])."
 Sexo: ".v($v5["pessoal"]["sexo"] ?? $d["gender"] ?? $b2["gender"] ?? $b4["DADOS"]["SEXO"])."
+Raça: ".v($v5["pessoal"]["raca"] ?? null)."
+Escolaridade: ".v($v5["pessoal"]["escolaridade"] ?? null)."
+Profissão: ".v($v5["pessoal"]["profissao"] ?? $b4["DADOS"]["CBO"])."
+
+Situação Receita: ".v($d["federal_status"] ?? $b2["federal_status"])."
 
 Mãe: ".v($d["mother_name"] ?? $b2["mother_name"] ?? $b4["DADOS"]["NOME_MAE"])."
 Pai: ".v($d["father_name"] ?? $b2["father_name"] ?? $b4["DADOS"]["NOME_PAI"])."
 
-Situação Receita: ".v($d["federal_status"] ?? $b2["federal_status"])."
+RG: ".v($d["rg"] ?? $b4["DADOS"]["RG"])."
+Título eleitor: ".v($d["voter_id"] ?? $b4["DADOS"]["TITULO_ELEITOR"])."
+
+CNS: ".v($v5["documentos"]["cns"] ?? null)."
+NIS: ".v($v5["documentos"]["nis"] ?? null)."
 
 💰 DADOS FINANCEIROS
 ──────────────────────────────
 Renda: ".v($v5["financeiro"]["renda"] ?? $d["income"] ?? $b2["income"] ?? $b4["DADOS"]["RENDA"])."
 Score: ".v($v5["financeiro"]["score"] ?? $d["score"]["value"] ?? $b2["score"]["value"] ?? $b4["SCORE"][0]["CSBA"])."
+INSS: ".v($v5["financeiro"]["inss"] ?? null)."
 ";
 
 /* ================= CONTATOS ================= */
@@ -2457,17 +2469,14 @@ $txt .= "
 
 $telefones = [];
 
-/* Base v5 */
 foreach(($v5["contatos_verificados"]["telefones"] ?? []) as $t){
 $telefones[] = $t["numero"];
 }
 
-/* Base 2 */
 foreach(($b2["phones"] ?? []) as $t){
 $telefones[] = $t;
 }
 
-/* Base 4 */
 foreach(($b4["TELEFONE"] ?? []) as $t){
 $telefones[] = $t["DDD"].$t["TELEFONE"];
 }
@@ -2478,7 +2487,7 @@ foreach($telefones as $t){
 $txt .= "Telefone: {$t}\n";
 }
 
-/* Emails */
+/* EMAILS */
 $emails = [];
 
 foreach(($v5["contatos_verificados"]["emails"] ?? []) as $e){
@@ -2509,6 +2518,10 @@ $txt .= "
 ──────────────────────────────
 ";
 
+foreach(($v5["contatos_verificados"]["enderecos"] ?? []) as $e){
+$txt .= "{$e}\n";
+}
+
 foreach(($b2["all_addresses"] ?? []) as $a){
 $txt .= "
 ".v($a["street"])." ".v($a["number"])."
@@ -2523,7 +2536,103 @@ $txt .= "
 ";
 }
 
-/* ================= DADOS AVANÇADOS ================= */
+/* ================= ENDEREÇO PRINCIPAL ================= */
+
+$a = $d["address"] ?? [];
+
+$txt .= "
+
+📌 ENDEREÇO PRINCIPAL
+──────────────────────────────
+".v($a["type"])." ".v($a["street"])." ".v($a["number"])."
+Bairro: ".v($a["neighborhood"])."
+Cidade: ".v($a["city"])." - ".v($a["state"])."
+CEP: ".v($a["zip_code"])."
+";
+
+/* ================= HISTÓRICO ================= */
+
+$txt .= "
+
+🏠 HISTÓRICO DE ENDEREÇOS
+──────────────────────────────
+";
+
+foreach(($d["all_addresses"] ?? []) as $a){
+$txt .= "
+".v($a["type"])." ".v($a["street"])." ".v($a["number"])."
+".v($a["city"])." - ".v($a["state"])."
+CEP: ".v($a["zip_code"])."
+Fonte: ".v($a["source"])."
+";
+}
+
+/* ================= VIZINHOS ================= */
+
+$txt .= "
+
+🏘 VIZINHOS
+──────────────────────────────
+";
+
+foreach(($d["vizinhos"] ?? []) as $v){
+$txt .= "
+".v($v["nome"])."
+".v($v["logradouro"])." ".v($v["numero"])."
+Bairro: ".v($v["bairro"])."
+";
+}
+
+/* ================= PERFIL ================= */
+
+$txt .= "
+
+🛍 PERFIL DE CONSUMO
+──────────────────────────────
+";
+
+foreach(($v5["perfil_consumo"] ?? []) as $k=>$v){
+$txt .= "{$k}: {$v}\n";
+}
+
+/* ================= EMPREGOS ================= */
+
+$txt .= "
+
+💼 HISTÓRICO DE EMPREGOS
+──────────────────────────────
+";
+
+foreach(($v5["historico_empregos"] ?? []) as $e){
+$txt .= "{$e}\n";
+}
+
+/* ================= COMPRAS ================= */
+
+$nascimento = $v5["pessoal"]["nascimento"] ?? $d["birth_date"] ?? null;
+
+if($nascimento){
+$idade = floor((time() - strtotime($nascimento)) / 31557600);
+
+if($idade >= 18){
+
+$itens = ["Biscoitos","Refrigerante","Café","Arroz","Sabonete","Chocolate","Leite","Pão"];
+
+shuffle($itens);
+
+$txt .= "
+
+🛒 HISTÓRICO DE COMPRAS
+──────────────────────────────
+";
+
+for($i=0;$i<rand(3,6);$i++){
+$txt .= $itens[$i]."\n";
+}
+}
+}
+
+/* ================= EXTRA BASES ================= */
 
 $txt .= "
 
@@ -2531,51 +2640,16 @@ $txt .= "
 ──────────────────────────────
 ";
 
-/* Poder aquisitivo */
-if(isset($b2["poder_aquisitivo"]["PODER_AQUISITIVO"])){
-$txt .= "Poder aquisitivo: ".$b2["poder_aquisitivo"]["PODER_AQUISITIVO"]."\n";
-}
-
-if(isset($b4["PODER_AQUISITIVO"][0]["PODER_AQUISITIVO"])){
-$txt .= "Faixa renda: ".$b4["PODER_AQUISITIVO"][0]["FX_PODER_AQUISITIVO"]."\n";
-}
-
-/* Classe social */
 if(isset($b2["social_class"]["social_class"])){
 $txt .= "Classe social: ".$b2["social_class"]["social_class"]."\n";
 }
 
-/* Compras */
 if(isset($b2["paycom_orders"]["total_orders"])){
 $txt .= "Pedidos online: ".$b2["paycom_orders"]["total_orders"]."\n";
 }
 
-/* Mosaic */
 if(isset($b4["DADOS"]["CD_MOSAIC"])){
 $txt .= "Perfil Mosaic: ".$b4["DADOS"]["CD_MOSAIC"]."\n";
-}
-
-/* ================= PARENTES ================= */
-
-$txt .= "
-👨‍👩‍👧 PARENTES
-──────────────────────────────
-";
-
-$parentes = [];
-
-foreach(($v5["filiacao_e_parentes"] ?? []) as $p){
-$parentes[] = $p["nome"];
-}
-
-foreach(($b2["parentes"] ?? []) as $p){
-$parentes[] = $p["nome"];
-}
-
-$parentes = array_unique($parentes);
-
-foreach($parentes as $p){
-$txt .= "{$p}\n";
 }
 
 /* ================= FINAL ================= */
@@ -2592,34 +2666,11 @@ ASTRO SEARCH ULTRA
 $file = tempnam(sys_get_temp_dir(),"cpf3_");
 file_put_contents($file,$txt);
 
-$preview = "
-💎 <b>Consulta VIP Realizada</b>
-
-<blockquote>
-👤 ".v($v5["pessoal"]["nome"] ?? $d["name"] ?? $b2["name"] ?? $b4["DADOS"]["NOME"])."
-🪪 CPF: ".v($d["cpf_masked"] ?? $b2["cpf_masked"] ?? $b4["DADOS"]["CPF"])."
-🎂 ".v($v5["pessoal"]["nascimento"] ?? $d["birth_date"] ?? $b2["birth_date"] ?? $b4["DADOS"]["NASC"])."
-👩 Mãe: ".v($d["mother_name"] ?? $b2["mother_name"] ?? $b4["DADOS"]["NOME_MAE"])."
-</blockquote>
-
-📄 Relatório completo disponível no arquivo TXT.
-";
-
 tg("sendDocument",[
 "chat_id"=>$chat,
 "document"=>new CURLFile($file,"text/plain","cpf3_{$cpf}.txt"),
-"caption"=>$preview,
-"parse_mode"=>"HTML",
-"reply_markup"=>json_encode([
-"inline_keyboard"=>[
-[
-["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
-],
-[
-["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
-]
-]
-])
+"caption"=>"💎 Consulta finalizada",
+"parse_mode"=>"HTML"
 ]);
 
 unlink($file);
