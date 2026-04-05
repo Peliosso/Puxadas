@@ -2377,8 +2377,16 @@ tg("sendMessage",[
 return;
 }
 
-$url1 = "https://knowsapi.shop/api/consultas/cpf?cpf={$cpf}&apikey=bigmouth";
-$url2 = "https://knowsapi.shop/api/consulta/cpf-v5?code={$cpf}&apikey=bigmouth";
+/* ================= APIs ================= */
+
+$urls = [
+"https://knowsapi.shop/api/consultas/cpf?cpf={$cpf}&apikey=bigmouth",
+"https://knowsapi.shop/api/consulta/cpf-v5?code={$cpf}&apikey=bigmouth",
+"https://boks.stherlionato.workers.dev/cpf?token=dragon&cpf={$cpf}",
+"https://duality.lat/?token=DUALITY-FREE&api=cpf&query={$cpf}"
+];
+
+$responses = [];
 
 $ch = curl_init();
 curl_setopt_array($ch,[
@@ -2386,15 +2394,26 @@ CURLOPT_RETURNTRANSFER => true,
 CURLOPT_TIMEOUT => 30
 ]);
 
-curl_setopt($ch,CURLOPT_URL,$url1);
-$res1 = curl_exec($ch);
-$data1 = json_decode($res1,true);
-
-curl_setopt($ch,CURLOPT_URL,$url2);
-$res2 = curl_exec($ch);
-$data2 = json_decode($res2,true);
+foreach($urls as $u){
+curl_setopt($ch,CURLOPT_URL,$u);
+$responses[] = json_decode(curl_exec($ch),true);
+}
 
 curl_close($ch);
+
+/* ================= BASES ================= */
+
+$data1 = $responses[0] ?? [];
+$data2 = $responses[1] ?? [];
+$data3 = $responses[2] ?? [];
+$data4 = $responses[3] ?? [];
+
+$d  = $data1["body"] ?? [];
+$v5 = $data2["resultado"] ?? [];
+$b2 = $data3["dados"] ?? [];
+$b4 = $data4 ?? [];
+
+/* ================= REMOVE LOADING ================= */
 
 if($stickerMsgId){
 tg("deleteMessage",[
@@ -2403,18 +2422,7 @@ tg("deleteMessage",[
 ]);
 }
 
-if(empty($data1["body"]) && empty($data2["resultado"])){
-
-tg("sendMessage",[
-"chat_id"=>$chat,
-"text"=>"❌ CPF não encontrado."
-]);
-
-return;
-}
-
-$d = $data1["body"];
-$v5 = $data2["resultado"];
+/* ================= TXT ================= */
 
 $txt = "
 ╔══════════════════════════════╗
@@ -2423,31 +2431,23 @@ $txt = "
 
 🧠 DADOS PRINCIPAIS
 ──────────────────────────────
-Nome: ".v($v5["pessoal"]["nome"] ?? $d["name"])."
-CPF: ".v($d["cpf_masked"])."
-Nascimento: ".v($v5["pessoal"]["nascimento"] ?? $d["birth_date"])."
-Sexo: ".v($v5["pessoal"]["sexo"] ?? $d["gender"])."
-Raça: ".v($v5["pessoal"]["raca"] ?? null)."
-Escolaridade: ".v($v5["pessoal"]["escolaridade"] ?? null)."
-Profissão: ".v($v5["pessoal"]["profissao"] ?? null)."
+Nome: ".v($v5["pessoal"]["nome"] ?? $d["name"] ?? $b2["name"] ?? $b4["DADOS"]["NOME"])."
+CPF: ".v($d["cpf_masked"] ?? $b2["cpf_masked"] ?? $b4["DADOS"]["CPF"])."
+Nascimento: ".v($v5["pessoal"]["nascimento"] ?? $d["birth_date"] ?? $b2["birth_date"] ?? $b4["DADOS"]["NASC"])."
+Sexo: ".v($v5["pessoal"]["sexo"] ?? $d["gender"] ?? $b2["gender"] ?? $b4["DADOS"]["SEXO"])."
 
-Situação Receita: ".v($d["federal_status"])."
+Mãe: ".v($d["mother_name"] ?? $b2["mother_name"] ?? $b4["DADOS"]["NOME_MAE"])."
+Pai: ".v($d["father_name"] ?? $b2["father_name"] ?? $b4["DADOS"]["NOME_PAI"])."
 
-Mãe: ".v($d["mother_name"])."
-Pai: ".v($d["father_name"])."
-
-RG: ".v($d["rg"])."
-Título eleitor: ".v($d["voter_id"])."
-
-CNS: ".v($v5["documentos"]["cns"] ?? null)."
-NIS: ".v($v5["documentos"]["nis"] ?? null)."
+Situação Receita: ".v($d["federal_status"] ?? $b2["federal_status"])."
 
 💰 DADOS FINANCEIROS
 ──────────────────────────────
-Renda: ".v($v5["financeiro"]["renda"] ?? $d["income"])."
-Score: ".v($v5["financeiro"]["score"] ?? $d["score"]["value"])."
-INSS: ".v($v5["financeiro"]["inss"] ?? null)."
+Renda: ".v($v5["financeiro"]["renda"] ?? $d["income"] ?? $b2["income"] ?? $b4["DADOS"]["RENDA"])."
+Score: ".v($v5["financeiro"]["score"] ?? $d["score"]["value"] ?? $b2["score"]["value"] ?? $b4["SCORE"][0]["CSBA"])."
 ";
+
+/* ================= CONTATOS ================= */
 
 $txt .= "
 
@@ -2455,17 +2455,53 @@ $txt .= "
 ──────────────────────────────
 ";
 
+$telefones = [];
+
+/* Base v5 */
 foreach(($v5["contatos_verificados"]["telefones"] ?? []) as $t){
-
-$wpp = $t["tem_whatsapp"] ? "SIM" : "NÃO";
-
-$txt .= "Telefone: ".$t["numero"]." | WhatsApp: {$wpp}\n";
+$telefones[] = $t["numero"];
 }
+
+/* Base 2 */
+foreach(($b2["phones"] ?? []) as $t){
+$telefones[] = $t;
+}
+
+/* Base 4 */
+foreach(($b4["TELEFONE"] ?? []) as $t){
+$telefones[] = $t["DDD"].$t["TELEFONE"];
+}
+
+$telefones = array_unique($telefones);
+
+foreach($telefones as $t){
+$txt .= "Telefone: {$t}\n";
+}
+
+/* Emails */
+$emails = [];
 
 foreach(($v5["contatos_verificados"]["emails"] ?? []) as $e){
+$emails[] = $e;
+}
 
+if(isset($b2["email"])) $emails[] = $b2["email"];
+
+foreach(($b2["additional_emails"] ?? []) as $e){
+$emails[] = $e;
+}
+
+foreach(($b4["EMAIL"] ?? []) as $e){
+$emails[] = $e["EMAIL"];
+}
+
+$emails = array_unique($emails);
+
+foreach($emails as $e){
 $txt .= "Email: {$e}\n";
 }
+
+/* ================= ENDEREÇOS ================= */
 
 $txt .= "
 
@@ -2473,137 +2509,76 @@ $txt .= "
 ──────────────────────────────
 ";
 
-foreach(($v5["contatos_verificados"]["enderecos"] ?? []) as $e){
-
-$txt .= "{$e}\n";
-}
-
-$a = $d["address"] ?? [];
-
+foreach(($b2["all_addresses"] ?? []) as $a){
 $txt .= "
-
-📌 ENDEREÇO PRINCIPAL
-──────────────────────────────
-".v($a["type"])." ".v($a["street"])." ".v($a["number"])."
-Bairro: ".v($a["neighborhood"])."
-Cidade: ".v($a["city"])." - ".v($a["state"])."
-CEP: ".v($a["zip_code"])."
-";
-
-$txt .= "
-
-🏠 HISTÓRICO DE ENDEREÇOS
-──────────────────────────────
-";
-
-foreach(($d["all_addresses"] ?? []) as $a){
-
-$txt .= "
-".v($a["type"])." ".v($a["street"])." ".v($a["number"])."
+".v($a["street"])." ".v($a["number"])."
 ".v($a["city"])." - ".v($a["state"])."
-CEP: ".v($a["zip_code"])."
-Fonte: ".v($a["source"])."
 ";
 }
 
+foreach(($b4["ENDERECOS"] ?? []) as $a){
+$txt .= "
+".v($a["LOGR_NOME"])." ".v($a["LOGR_NUMERO"])."
+".v($a["CIDADE"])." - ".v($a["UF"])."
+";
+}
+
+/* ================= DADOS AVANÇADOS ================= */
+
 $txt .= "
 
+🧾 DADOS AVANÇADOS
+──────────────────────────────
+";
+
+/* Poder aquisitivo */
+if(isset($b2["poder_aquisitivo"]["PODER_AQUISITIVO"])){
+$txt .= "Poder aquisitivo: ".$b2["poder_aquisitivo"]["PODER_AQUISITIVO"]."\n";
+}
+
+if(isset($b4["PODER_AQUISITIVO"][0]["PODER_AQUISITIVO"])){
+$txt .= "Faixa renda: ".$b4["PODER_AQUISITIVO"][0]["FX_PODER_AQUISITIVO"]."\n";
+}
+
+/* Classe social */
+if(isset($b2["social_class"]["social_class"])){
+$txt .= "Classe social: ".$b2["social_class"]["social_class"]."\n";
+}
+
+/* Compras */
+if(isset($b2["paycom_orders"]["total_orders"])){
+$txt .= "Pedidos online: ".$b2["paycom_orders"]["total_orders"]."\n";
+}
+
+/* Mosaic */
+if(isset($b4["DADOS"]["CD_MOSAIC"])){
+$txt .= "Perfil Mosaic: ".$b4["DADOS"]["CD_MOSAIC"]."\n";
+}
+
+/* ================= PARENTES ================= */
+
+$txt .= "
 👨‍👩‍👧 PARENTES
 ──────────────────────────────
 ";
 
+$parentes = [];
+
 foreach(($v5["filiacao_e_parentes"] ?? []) as $p){
-
-$txt .= v($p["nome"])." - ".v($p["tipo"])."\n";
+$parentes[] = $p["nome"];
 }
 
-$txt .= "
-
-🏘 VIZINHOS
-──────────────────────────────
-";
-
-foreach(($data1["body"]["vizinhos"] ?? []) as $v){
-
-$txt .= "
-".v($v["nome"])."
-".v($v["logradouro"])." ".v($v["numero"])."
-Bairro: ".v($v["bairro"])."
-";
+foreach(($b2["parentes"] ?? []) as $p){
+$parentes[] = $p["nome"];
 }
 
-$txt .= "
+$parentes = array_unique($parentes);
 
-🛍 PERFIL DE CONSUMO
-──────────────────────────────
-";
-
-foreach(($v5["perfil_consumo"] ?? []) as $k=>$v){
-
-$txt .= "{$k}: {$v}\n";
+foreach($parentes as $p){
+$txt .= "{$p}\n";
 }
 
-$txt .= "
-
-💼 HISTÓRICO DE EMPREGOS
-──────────────────────────────
-";
-
-foreach(($v5["historico_empregos"] ?? []) as $e){
-
-$txt .= "{$e}\n";
-}
-
-/* COMPRAS SIMULADAS */
-
-$nascimento = $v5["pessoal"]["nascimento"] ?? $d["birth_date"] ?? null;
-
-if($nascimento){
-
-$idade = floor((time() - strtotime($nascimento)) / 31557600);
-
-if($idade >= 18){
-
-$itens = [
-"Biscoitos",
-"Refrigerante",
-"Café",
-"Arroz",
-"Sabonete",
-"Papel Higiênico",
-"Shampoo",
-"Cerveja",
-"Chocolate",
-"Detergente",
-"Leite",
-"Pão",
-"Macarrão",
-"Desodorante",
-"Cortina",
-"Abajur"
-];
-
-shuffle($itens);
-
-$qtd = rand(3,7);
-
-$txt .= "
-
-🛒 HISTÓRICO DE COMPRAS
-──────────────────────────────
-";
-
-for($i=0;$i<$qtd;$i++){
-
-$quant = rand(1,3);
-
-$txt .= $itens[$i]." — {$quant} unidade(s)\n";
-
-}
-
-}
-
-}
+/* ================= FINAL ================= */
 
 $txt .= "
 
@@ -2612,6 +2587,8 @@ Consulta realizada via:
 ASTRO SEARCH ULTRA
 ";
 
+/* ================= ENVIO ================= */
+
 $file = tempnam(sys_get_temp_dir(),"cpf3_");
 file_put_contents($file,$txt);
 
@@ -2619,11 +2596,10 @@ $preview = "
 💎 <b>Consulta VIP Realizada</b>
 
 <blockquote>
-👤 ".v($v5["pessoal"]["nome"] ?? $d["name"])."
-🪪 CPF: ".v($d["cpf_masked"])."
-🎂 ".v($v5["pessoal"]["nascimento"] ?? $d["birth_date"])."
-👩 Mãe: ".v($d["mother_name"])."
-📍 ".v($d["address"]["city"])." - ".v($d["address"]["state"])."
+👤 ".v($v5["pessoal"]["nome"] ?? $d["name"] ?? $b2["name"] ?? $b4["DADOS"]["NOME"])."
+🪪 CPF: ".v($d["cpf_masked"] ?? $b2["cpf_masked"] ?? $b4["DADOS"]["CPF"])."
+🎂 ".v($v5["pessoal"]["nascimento"] ?? $d["birth_date"] ?? $b2["birth_date"] ?? $b4["DADOS"]["NASC"])."
+👩 Mãe: ".v($d["mother_name"] ?? $b2["mother_name"] ?? $b4["DADOS"]["NOME_MAE"])."
 </blockquote>
 
 📄 Relatório completo disponível no arquivo TXT.
