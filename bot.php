@@ -1892,7 +1892,7 @@ function consultaParentes($chat, $cpf){
     }
 
     // 🔥 API SARA PARENTES
-    $url = "https://knowsapi.shop/api/consulta/parentes?cpf={$cpf}&apikey=bigmouth";
+    $url = "https://knowsapi.shop/api/consultas/parentes?cpf={$cpf}&apikey=bigmouth";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
