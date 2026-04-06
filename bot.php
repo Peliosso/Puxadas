@@ -3537,6 +3537,11 @@ if($cmd === "/cpf3"){
     exit;
 }
 
+if($cmd === "/cpf4"){
+    consultaCpf4($chat, $arg);
+    exit;
+}
+
 if($cmd === "/instagram"){
     consultaInstagram($chat,$arg);
     exit;
