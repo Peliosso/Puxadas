@@ -1863,73 +1863,78 @@ ASTRO SEARCH
     unlink($file);
 }
 
-function consultaCpf4($chat, $cpf){
+function consultaCpf4($chat,$cpf){
 
-    global $STICKER_LOADING;
+global $STICKER_LOADING;
 
-    function v($v){
-        return ($v === null || $v === "" || $v === "NULL" || strpos($v, "SEM INFORMA") !== false) ? "NÃO ENCONTRADO" : $v;
-    }
+function v($v){
+return ($v === null || $v === "" || $v === "NULL" || strpos($v,"SEM INFORMA") !== false) ? "NÃO ENCONTRADO" : $v;
+}
 
-    // 🎬 Loading
-    $sticker = tg("sendSticker",[
-        "chat_id"=>$chat,
-        "sticker"=>$STICKER_LOADING
-    ]);
+$sticker = tg("sendSticker",[
+"chat_id"=>$chat,
+"sticker"=>$STICKER_LOADING
+]);
 
-    $stickerData = json_decode($sticker, true);
-    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+$stickerData = json_decode($sticker,true);
+$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-    $cpf = preg_replace('/\D/', '', $cpf);
+$cpf = preg_replace('/\D/','',$cpf);
 
-    if(strlen($cpf) != 11){
-        if($stickerMsgId){
-            tg("deleteMessage",[
-                "chat_id"=>$chat,
-                "message_id"=>$stickerMsgId
-            ]);
-        }
+if(strlen($cpf) != 11){
 
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>"❌ CPF inválido.\nUse: <code>/cpf 00000000000</code>",
-            "parse_mode"=>"HTML"
-        ]);
-        return;
-    }
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
 
-    // 🌐 API
-    $url = "https://boks.stherlionato.workers.dev/cpf?cpf={$cpf}&token=VIP_123";
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ CPF inválido.\nUse: <code>/cpf4 00000000000</code>",
+"parse_mode"=>"HTML"
+]);
 
-    $ch = curl_init();
-    curl_setopt_array($ch,[
-        CURLOPT_URL=>$url,
-        CURLOPT_RETURNTRANSFER=>true,
-        CURLOPT_TIMEOUT=>25
-    ]);
+return;
+}
 
-    $response = curl_exec($ch);
-    curl_close($ch);
+// 🌐 API NOVA
+$url = "https://boks.stherlionato.workers.dev/cpf?cpf={$cpf}&token=VIP_123";
 
-    $data = json_decode($response, true);
+$ch = curl_init();
+curl_setopt_array($ch,[
+CURLOPT_URL => $url,
+CURLOPT_RETURNTRANSFER => true,
+CURLOPT_TIMEOUT => 30
+]);
 
-    if($stickerMsgId){
-        tg("deleteMessage",[
-            "chat_id"=>$chat,
-            "message_id"=>$stickerMsgId
-        ]);
-    }
+$response = curl_exec($ch);
+$data = json_decode($response,true);
+curl_close($ch);
 
-    if(empty($data["result"]["informaes_bsicas"][0])){
-        naoEncontrado($chat, "CPF", $cpf);
-        return;
-    }
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
 
-    $r = $data["result"];
-    $b = $r["informaes_bsicas"][0];
+// 🚨 VALIDAÇÃO CORRETA (igual cpf3)
+if(empty($data["result"]["informaes_bsicas"][0])){
 
-    // 🧾 TXT COMPLETO
-    $txt = "
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ CPF não encontrado."
+]);
+
+return;
+}
+
+$r = $data["result"];
+$b = $r["informaes_bsicas"][0];
+
+$txt = "
 ╔══════════════════════════════╗
    CONSULTA CPF ULTRA — ASTRO SEARCH
 ╚══════════════════════════════╝
@@ -1943,215 +1948,173 @@ Sexo: ".v($b["sexo"])."
 Mãe: ".v($b["nome_da_me"])."
 Pai: ".v($b["nome_do_pai"])."
 Situação: ".v($b["situao_cadastral"])."
+";
 
-📊 DADOS ECONÔMICOS
+$txt .= "
+
+💰 DADOS ECONÔMICOS
 ──────────────────────────────
 ";
 
-    foreach(($r["dados_econmicos"] ?? []) as $eco){
-        $txt .= "
+foreach(($r["dados_econmicos"] ?? []) as $eco){
+$txt .= "
 Renda: ".v($eco["renda"])."
 Score: ".v($eco["score_csb"])."
 Risco: ".v($eco["faixa_de_risco_csb"])."
-──────────────────────────────
 ";
-    }
+}
 
-    $txt .= "
-
-🧬 MOSAIC
-──────────────────────────────
-";
-
-    foreach(($r["serasa_mosaic"] ?? []) as $m){
-        $txt .= "
-Perfil: ".v($m["descrio_mosaic_novo"])."
-Classe: ".v($m["classe_mosaic_novo"])."
-──────────────────────────────
-";
-    }
-
-    $txt .= "
-
-💼 PROFISSÃO
-──────────────────────────────
-";
-
-    foreach(($r["profisso"] ?? []) as $p){
-        $txt .= "
-".v($p["descrio_cbo"])."
-──────────────────────────────
-";
-    }
-
-    $txt .= "
-
-🏠 ENDEREÇOS
-──────────────────────────────
-";
-
-    foreach(($r["endereos"] ?? []) as $e){
-        $txt .= "
-".v($e["logradouro"]).", ".v($e["nmero"])."
-".v($e["bairro"])."
-".v($e["cidade"])." - ".v($e["uf"])."
-CEP: ".v($e["cep"])."
-──────────────────────────────
-";
-    }
-
-    $txt .= "
+$txt .= "
 
 📞 TELEFONES
 ──────────────────────────────
 ";
 
-    foreach(($r["telefones"] ?? []) as $t){
-        $txt .= "
-".v($t["nmero"])." (".v($t["tipo"]).")
-Operadora: ".v($t["operadora"])."
-──────────────────────────────
-";
-    }
+foreach(($r["telefones"] ?? []) as $t){
+$txt .= $t["nmero"]." | ".v($t["tipo"])."\n";
+}
 
-    $txt .= "
+$txt .= "
 
 📧 EMAILS
 ──────────────────────────────
 ";
 
-    foreach(($r["emails"] ?? []) as $e){
-        $txt .= "
-".v($e["email"])."
+foreach(($r["emails"] ?? []) as $e){
+$txt .= v($e["email"])."\n";
+}
+
+$txt .= "
+
+📍 ENDEREÇOS
 ──────────────────────────────
 ";
-    }
 
-    $txt .= "
+foreach(($r["endereos"] ?? []) as $e){
+$txt .= "
+".v($e["logradouro"]).", ".v($e["nmero"])."
+".v($e["bairro"])."
+".v($e["cidade"])." - ".v($e["uf"])."
+CEP: ".v($e["cep"])."
+";
+}
+
+$txt .= "
 
 👨‍👩‍👧 PARENTES
 ──────────────────────────────
 ";
 
-    foreach(($r["parentes"] ?? []) as $p){
-        $txt .= "
-".v($p["nome"])." - ".v($p["grau_de_parentesco"])."
-──────────────────────────────
-";
-    }
+foreach(($r["parentes"] ?? []) as $p){
+$txt .= v($p["nome"])." - ".v($p["grau_de_parentesco"])."\n";
+}
 
-    $txt .= "
+$txt .= "
 
 🏢 EMPRESAS
 ──────────────────────────────
 ";
 
-    foreach(($r["empresas"] ?? []) as $e){
-        $txt .= "
-CNPJ: ".v($e["cnpj"])."
-Relação: ".v($e["relao"])."
-──────────────────────────────
-";
-    }
+foreach(($r["empresas"] ?? []) as $e){
+$txt .= "CNPJ: ".v($e["cnpj"])." | ".v($e["relao"])."\n";
+}
 
-    $txt .= "
+$txt .= "
 
 💰 BENEFÍCIOS
 ──────────────────────────────
 ";
 
-    foreach(($r["benefcios"] ?? []) as $b){
-        $txt .= "
-".$b["tipo"].": ".$b["total_recebido"]."
-";
-    }
+foreach(($r["benefcios"] ?? []) as $b2){
+$txt .= $b2["tipo"].": ".$b2["total_recebido"]."\n";
+}
 
-    $txt .= "
+$txt .= "
 
 💉 VACINAS
 ──────────────────────────────
 ";
 
-    foreach(($r["vacinas"] ?? []) as $vcn){
-        $txt .= "
-".$vcn["fabricante"]." - ".$vcn["data_aplicao"]."
-";
-    }
+foreach(($r["vacinas"] ?? []) as $vcn){
+$txt .= $vcn["fabricante"]." - ".$vcn["data_aplicao"]."\n";
+}
 
-    $txt .= "
+$txt .= "
 
-🧍 VIZINHOS
+🏘 VIZINHOS
 ──────────────────────────────
 ";
 
-    foreach(($r["vizinhos"] ?? []) as $v){
-        $txt .= "
-".v($v["nome"])."
-";
-    }
+foreach(($r["vizinhos"] ?? []) as $v){
+$txt .= v($v["nome"])."\n";
+}
 
-    $txt .= "
+$txt .= "
 
 🛒 COMPRAS
 ──────────────────────────────
 ";
 
-    foreach(($r["compras_identificadas"] ?? []) as $c){
-        $txt .= "
-".v($c["produto"])." - ".v($c["preo"])."
-";
-    }
+foreach(($r["compras_identificadas"] ?? []) as $c){
+$txt .= v($c["produto"])." - ".v($c["preo"])."\n";
+}
 
-    $txt .= "
+$txt .= "
 
 📊 PERFIL DE CONSUMO
 ──────────────────────────────
 ";
 
-    foreach(($r["perfil_de_consumo"] ?? []) as $pc){
-        foreach($pc as $k=>$v2){
-            $txt .= ucfirst($k).": ".$v2."\n";
-        }
-    }
+foreach(($r["perfil_de_consumo"] ?? []) as $pc){
+foreach($pc as $k=>$v2){
+$txt .= "{$k}: {$v2}\n";
+}
+}
 
-    $txt .= "\nConsulta via ASTRO SEARCH";
+$txt .= "
 
-    // 📁 Arquivo
-    $file = tempnam(sys_get_temp_dir(), "cpf_");
-    file_put_contents($file, $txt);
+──────────────────────────────
+Consulta realizada via:
+ASTRO SEARCH ULTRA
+";
 
-    // 💎 Preview
-    $preview = "
+// 📁 TXT
+$file = tempnam(sys_get_temp_dir(),"cpf4_");
+file_put_contents($file,$txt);
+
+// 💎 Preview (igual cpf3)
+$preview = "
 💎 <b>Consulta VIP Realizada</b>
 
 <blockquote>
 👤 ".v($b["nome"])."
-🪪 ".v($b["cpf"])."
+🪪 CPF: ".v($b["cpf"])."
 🎂 ".v($b["data_de_nascimento"])."
-⚧ ".v($b["sexo"])."
+👩 Mãe: ".v($b["nome_da_me"])."
 </blockquote>
 
-📄 Relatório completo no arquivo.
+📄 Relatório completo disponível no arquivo TXT.
 ";
 
-    tg("sendDocument",[
-        "chat_id"=>$chat,
-        "document"=>new CURLFile($file, "text/plain", "cpf.txt"),
-        "caption"=>$preview,
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
-                ],
-                [
-                    ["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
-                ]
-            ]
-        ])
-    ]);
+tg("sendDocument",[
+"chat_id"=>$chat,
+"document"=>new CURLFile($file,"text/plain","cpf4_{$cpf}.txt"),
+"caption"=>$preview,
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+],
+[
+["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
+]
+]
+])
+]);
 
-    unlink($file);
+unlink($file);
+
 }
 
 function consultaParentes($chat, $cpf){
