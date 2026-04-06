@@ -3915,6 +3915,7 @@ if(strpos($data,"verificar_") === 0){
         if($tipo == "cpf_full") consultaCPF1($chat,$cpf);
         if($tipo == "cpf2") consultaCPF2($chat,$cpf);
         if($tipo == "cpf3") consultaCPF3($chat,$cpf);
+        if($tipo == "cpf4") consultaCpf3($chat,$cpf);
         if($tipo == "cpf_vizinhos") consultaVizinhos($chat,$cpf);
         if($tipo == "cpf_parentes") consultaParentes($chat,$cpf);
 
