@@ -3442,7 +3442,7 @@ Todas consultas VIP liberadas por 1 hora.",
     }
 
     // ===== COMANDOS VIP =====
-$vipCmds = ["/cpf","/fotorj","/fotosp","/instagram","/cpf1","/cpf2","/cpf3","cpf4","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
+$vipCmds = ["/cpf","/fotorj","/fotosp","/instagram","/cpf1","/cpf2","/cpf3","/cpf4","/vizinhos","/parentes","/nome","/rg","/cnh","/telefone","/email","/placa","/pix","/renavam","/nascimento","/foto"];
     if(in_array($cmd, $vipCmds)){
 
     // ❗ primeiro valida se enviou argumento
