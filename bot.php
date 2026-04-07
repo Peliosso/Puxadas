@@ -32,6 +32,7 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 $VIP_IDS = [
     7140709439,
     6697676301,
+    8795946397,
     8743074571,
     5557211646,
     7731604667,
@@ -1774,12 +1775,14 @@ function consultaNome($chat, $nome) {
 
     global $STICKER_LOADING;
 
-    // Função auxiliar para tratar valores nulos
+    // Função auxiliar
     function v($v) {
-        return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
+        return ($v === null || $v === "" || $v === "NULL" || stripos($v, "NÂ") !== false)
+            ? "NÃO ENCONTRADO"
+            : $v;
     }
 
-    // Envia sticker de carregando
+    // Sticker loading
     $sticker = tg("sendSticker", [
         "chat_id" => $chat,
         "sticker" => $STICKER_LOADING
@@ -1787,7 +1790,7 @@ function consultaNome($chat, $nome) {
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-    // Validação mínima do nome
+    // Validação
     if (strlen($nome) < 5) {
         if ($stickerMsgId) {
             tg("deleteMessage", [
@@ -1795,6 +1798,7 @@ function consultaNome($chat, $nome) {
                 "message_id" => $stickerMsgId
             ]);
         }
+
         tg("sendMessage", [
             "chat_id" => $chat,
             "text" => "❌ Nome inválido.\nUse: <code>/nome João Silva</code>",
@@ -1803,9 +1807,9 @@ function consultaNome($chat, $nome) {
         return;
     }
 
-    // URL da nova API
+    // NOVA API
     $nomeUrl = urlencode($nome);
-    $url = "https://knowsapi.shop/api/consultas/nome?nome={$nomeUrl}&apikey=bigmouth";
+    $url = "https://boks.stherlionato.workers.dev/nome?token=ifnvip&nome={$nomeUrl}";
 
     $ch = curl_init();
     curl_setopt_array($ch, [
@@ -1818,7 +1822,7 @@ function consultaNome($chat, $nome) {
 
     $data = json_decode($response, true);
 
-    // Remove sticker de carregando
+    // Remove sticker
     if ($stickerMsgId) {
         tg("deleteMessage", [
             "chat_id" => $chat,
@@ -1826,13 +1830,15 @@ function consultaNome($chat, $nome) {
         ]);
     }
 
-    // Se não encontrou resultados
-    if (empty($data["body"])) {
+    // Validação resposta
+    if (!$data || empty($data["result"]["pessoas_encontradas"])) {
         naoEncontrado($chat, "NOME", $nome);
         return;
     }
 
-    // Monta texto da resposta detalhada
+    $lista = $data["result"]["pessoas_encontradas"];
+
+    // TXT COMPLETO
     $txt = "
 ╔══════════════════════════════╗
    CONSULTA POR NOME — ASTRO SEARCH
@@ -1844,20 +1850,25 @@ function consultaNome($chat, $nome) {
 
 📊 TOTAL ENCONTRADOS
 ──────────────────────────────
-".$data["total_results"]."
+".count($lista)."
 ";
 
-    foreach ($data["body"] as $pessoa) {
+    foreach ($lista as $pessoa) {
+
         $txt .= "
 
 👤 DADOS ENCONTRADOS
 ──────────────────────────────
-Nome: ".v($pessoa["name"] ?? null)."
+Nome: ".v($pessoa["nome"] ?? null)."
 CPF: ".v($pessoa["cpf"] ?? null)."
-Sexo: ".v($pessoa["gender"] ?? null)."
-Nascimento: ".v($pessoa["birth_date"] ?? null)."
-Mãe: ".v($pessoa["mother_name"] ?? null)."
-RG: ".v($pessoa["rg"] ?? null)."
+Nascimento: ".v($pessoa["data_de_nascimento"] ?? null)."
+Sexo: ".v($pessoa["sexo"] ?? null)."
+Mãe: ".v($pessoa["nome_da_me"] ?? null)."
+Situação: ".v($pessoa["situao_cadastral"] ?? null)."
+
+🏠 ENDEREÇO
+──────────────────────────────
+".v($pessoa["endereo_completo"] ?? null)."
 
 ──────────────────────────────
 ";
@@ -1868,29 +1879,29 @@ Consulta realizada via:
 ASTRO SEARCH
 ";
 
-    // Cria arquivo TXT temporário com o relatório
+    // Cria TXT
     $file = tempnam(sys_get_temp_dir(), "nome_");
     file_put_contents($file, $txt);
 
-    $pessoa = $data["body"][0] ?? [];
+    $pessoa = $lista[0] ?? [];
 
-    // Mensagem de preview VIP
+    // Preview VIP
     $preview = "
 💎 <b>Consulta VIP Realizada</b>
 
 <blockquote>
-👤 ".v($pessoa["name"] ?? null)."
+👤 ".v($pessoa["nome"] ?? null)."
 🪪 ".v($pessoa["cpf"] ?? null)."
-🎂 ".v($pessoa["birth_date"] ?? null)."
-⚧ ".v($pessoa["gender"] ?? null)."
+🎂 ".v($pessoa["data_de_nascimento"] ?? null)."
+⚧ ".v($pessoa["sexo"] ?? null)."
 </blockquote>
 
-📄 Um relatório detalhado foi gerado para esta consulta.
+📄 Relatório completo disponível no arquivo.
 
-🔓 <i>O dossiê completo está disponível no arquivo TXT.</i>
+🔓 <i>Acesso total liberado via TXT.</i>
 ";
 
-    // Envia documento TXT com preview
+    // Envia
     tg("sendDocument", [
         "chat_id" => $chat,
         "document" => new CURLFile($file, "text/plain", "nome.txt"),
@@ -1899,10 +1910,10 @@ ASTRO SEARCH
         "reply_markup" => json_encode([
             "inline_keyboard" => [
                 [
-["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
                 ],
                 [
-                    ["text" => "🗑 • Apagar", "callback_data" => "apagar_msg"]
+                    ["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
                 ]
             ]
         ])
