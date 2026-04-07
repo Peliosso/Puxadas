@@ -1608,12 +1608,14 @@ function consultaTelefone($chat, $telefone) {
 
     global $STICKER_LOADING;
 
-    // Função auxiliar para tratar valores nulos
+    // Função auxiliar
     function v($v) {
-        return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
+        return ($v === null || $v === "" || $v === "NULL" || stripos($v, "Sem Informa") !== false)
+            ? "NÃO ENCONTRADO"
+            : $v;
     }
 
-    // Sticker de carregando
+    // Sticker loading
     $sticker = tg("sendSticker", [
         "chat_id" => $chat,
         "sticker" => $STICKER_LOADING
@@ -1624,7 +1626,7 @@ function consultaTelefone($chat, $telefone) {
     // Limpa telefone
     $telefone = preg_replace('/\D/', '', $telefone);
 
-    // Validação mínima
+    // Validação
     if (strlen($telefone) < 10) {
         if ($stickerMsgId) {
             tg("deleteMessage", [
@@ -1632,6 +1634,7 @@ function consultaTelefone($chat, $telefone) {
                 "message_id" => $stickerMsgId
             ]);
         }
+
         tg("sendMessage", [
             "chat_id" => $chat,
             "text" => "❌ Telefone inválido.\nUse: <code>/telefone 31999999999</code>",
@@ -1640,8 +1643,8 @@ function consultaTelefone($chat, $telefone) {
         return;
     }
 
-    // Nova URL da API
-    $url = "https://knowsapi.shop/api/consultas/telefone?telefone={$telefone}&apikey=bigmouth";
+    // NOVA API
+    $url = "https://boks.stherlionato.workers.dev/telefone?token=ifnvip&telefone={$telefone}";
 
     $ch = curl_init();
     curl_setopt_array($ch, [
@@ -1662,41 +1665,72 @@ function consultaTelefone($chat, $telefone) {
         ]);
     }
 
-    // Se não encontrou resultados
-    if (empty($data["body"])) {
+    // Validação resposta
+    if (!$data || empty($data["result"])) {
         naoEncontrado($chat, "TELEFONE", $telefone);
         return;
     }
 
-    $pessoa = $data["body"][0] ?? [];
+    $r1 = $data["result"]["registro_1"][0] ?? [];
+    $r2 = $data["result"]["registro_2"][0] ?? [];
+    $resumo = $data["result"]["resumo_da_consulta"][0] ?? [];
 
-    // Monta texto detalhado
+    if (empty($r1) && empty($r2)) {
+        naoEncontrado($chat, "TELEFONE", $telefone);
+        return;
+    }
+
+    // Monta endereço
+    $endereco = trim(
+        v($r1["tipo_logradouro"] ?? "") . " " .
+        v($r1["logradouro"] ?? "") . ", " .
+        v($r1["nmero"] ?? "") . " - " .
+        v($r1["bairro"] ?? "") . " - " .
+        v($r1["cidade"] ?? "") . "/" .
+        v($r1["uf"] ?? "")
+    );
+
+    // TXT COMPLETO
     $txt = "
 ╔══════════════════════════════╗
    CONSULTA TELEFONE — ASTRO SEARCH
 ╚══════════════════════════════╝
 
-📱 TELEFONE CONSULTADO
+📱 TELEFONE
 ──────────────────────────────
 {$telefone}
 
-👤 DADOS ENCONTRADOS
+👤 REGISTRO PRINCIPAL
 ──────────────────────────────
-Nome: ".v($pessoa["name"] ?? null)."
-CPF: ".v($pessoa["cpf"] ?? null)."
-Nascimento: ".v($pessoa["birth_date"] ?? null)."
-Email: ".v($pessoa["email"] ?? null)."
-Cidade: ".v($pessoa["city"] ?? null)."
-Estado: ".v($pessoa["state"] ?? null)."
+Nome: ".v($r1["nome"] ?? null)."
+CPF/CNPJ: ".v($r1["cpfcnpj"] ?? null)."
+Nascimento: ".v($r1["data_de_nascimento"] ?? null)."
+Mãe: ".v($r1["nome_da_me"] ?? null)."
+
+🏠 ENDEREÇO
+──────────────────────────────
+{$endereco}
+CEP: ".v($r1["cep"] ?? null)."
+
+👤 REGISTRO SECUNDÁRIO
+──────────────────────────────
+Nome: ".v($r2["nome"] ?? null)."
+CPF/CNPJ: ".v($r2["cpfcnpj"] ?? null)."
+Nascimento: ".v($r2["data_de_nascimento"] ?? null)."
+Mãe: ".v($r2["nome_da_me"] ?? null)."
+
+📊 RESUMO
+──────────────────────────────
+Data: ".v($resumo["data_da_consulta"] ?? null)."
+Expira: ".v($resumo["expira_em"] ?? null)."
+Total: ".v($resumo["total_de_registros"] ?? null)."
 
 ──────────────────────────────
-
-Consulta realizada via:
 ASTRO SEARCH
 ";
 
-    // Cria arquivo TXT temporário
-    $file = tempnam(sys_get_temp_dir(), "telefone_");
+    // Cria TXT
+    $file = tempnam(sys_get_temp_dir(), "tel_");
     file_put_contents($file, $txt);
 
     // Preview VIP
@@ -1704,19 +1738,18 @@ ASTRO SEARCH
 💎 <b>Consulta VIP Realizada</b>
 
 <blockquote>
-👤 ".v($pessoa["name"] ?? null)."
+👤 ".v($r1["nome"] ?? $r2["nome"] ?? null)."
 📱 {$telefone}
-🪪 ".v($pessoa["cpf"] ?? null)."
-📍 ".v($pessoa["city"] ?? null)." - ".v($pessoa["state"] ?? null)."
-📧 ".v($pessoa["email"] ?? null)."
+🪪 ".v($r1["cpfcnpj"] ?? $r2["cpfcnpj"] ?? null)."
+📍 ".v($r1["cidade"] ?? null)." - ".v($r1["uf"] ?? null)."
 </blockquote>
 
-📄 Um relatório detalhado foi gerado para esta consulta.
+📄 Relatório completo disponível no arquivo.
 
-🔓 <i>O dossiê completo está disponível no arquivo TXT.</i>
+🔓 <i>Acesso total liberado via TXT.</i>
 ";
 
-    // Envia documento com preview
+    // Envia
     tg("sendDocument", [
         "chat_id" => $chat,
         "document" => new CURLFile($file, "text/plain", "telefone_{$telefone}.txt"),
@@ -1725,10 +1758,10 @@ ASTRO SEARCH
         "reply_markup" => json_encode([
             "inline_keyboard" => [
                 [
-["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
                 ],
                 [
-                    ["text" => "🗑 • Apagar", "callback_data" => "apagar_msg"]
+                    ["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
                 ]
             ]
         ])
