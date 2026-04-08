@@ -15,7 +15,7 @@ flush();
 
 /* ================= CONFIG ================= */
 
-$TOKEN = "8241553232:AAGvxGZhHWJkAzKxQ-RsE-Efvy-e4q2XI4U";
+$TOKEN = "8770165870:AAEOgijkR_bo47LaLkOwviHlSvTZqN5iOuw";
 $API   = "https://api.telegram.org/bot{$TOKEN}";
 
 /* IMAGEM */
