@@ -400,7 +400,7 @@ Exemplo:
         "parse_mode"=>"HTML"
     ]);
 }
-if($data == "bloquear_consulta"){
+if($data == "bloquearConsulta"){
 
     // 👥 Prova social
     $usuarios = rand(20,60);
