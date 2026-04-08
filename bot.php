@@ -1665,7 +1665,7 @@ function consultaTelefone($chat, $telefone) {
     }
 
     // NOVA API
-    $url = "https://boks.stherlionato.workers.dev/telefone?token=ifnastro&telefone={$telefone}";
+    $url = "https://boks.stherlionato.workers.dev/telefone?token=ifnvip&telefone={$telefone}";
 
     $ch = curl_init();
     curl_setopt_array($ch, [
@@ -1829,7 +1829,7 @@ function consultaNome($chat, $nome) {
 
     // NOVA API
     $nomeUrl = urlencode($nome);
-    $url = "https://boks.stherlionato.workers.dev/nome?token=ifnastro&nome={$nomeUrl}";
+    $url = "https://boks.stherlionato.workers.dev/nome?token=ifnvip&nome={$nomeUrl}";
 
     $ch = curl_init();
     curl_setopt_array($ch, [
