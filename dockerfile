@@ -4,4 +4,4 @@ WORKDIR /var/www/html
 
 COPY . .
 
-CMD php -S 0.0.0.0:$PORT -t /var/www/html
+CMD ["sh", "-c", "php -S 0.0.0.0:${PORT:-10000} -t /var/www/html"]
