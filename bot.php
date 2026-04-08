@@ -1872,170 +1872,121 @@ Tempo resposta API: {$json["responseTime"]}
     unlink($file);
 }
 
-function consultaCPF1($chat,$cpf){
+function consultaCPF1($chat, $cpf) {
 
-global $STICKER_LOADING;
+    global $STICKER_LOADING;
 
-$sticker = tg("sendSticker",[
-"chat_id"=>$chat,
-"sticker"=>$STICKER_LOADING
-]);
+    function v($v) {
+        return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
+    }
 
-$stickerData = json_decode($sticker,true);
-$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+    // Sticker loading
+    $sticker = tg("sendSticker", [
+        "chat_id" => $chat,
+        "sticker" => $STICKER_LOADING
+    ]);
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-$cpf = preg_replace('/\D/','',$cpf);
+    // Limpa CPF
+    $cpf = preg_replace('/\D/', '', $cpf);
+    if (strlen($cpf) !== 11) {
+        if ($stickerMsgId) {
+            tg("deleteMessage", [
+                "chat_id" => $chat,
+                "message_id" => $stickerMsgId
+            ]);
+        }
+        tg("sendMessage", [
+            "chat_id" => $chat,
+            "text" => "❌ CPF inválido.\nUse: <code>/cpf 12345678900</code>",
+            "parse_mode" => "HTML"
+        ]);
+        return;
+    }
 
-if(strlen($cpf) != 11){
+    // 🔥 API CPF
+    $url = "https://obitostore.shop/api/consulta/cpf?cpf={$cpf}&apikey=bigmouthh";
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 20
+    ]);
+    $response = curl_exec($ch);
+    curl_close($ch);
 
-if($stickerMsgId){
-tg("deleteMessage",[
-"chat_id"=>$chat,
-"message_id"=>$stickerMsgId
-]);
-}
+    $data = json_decode($response, true);
 
-tg("sendMessage",[
-"chat_id"=>$chat,
-"text"=>"❌ CPF inválido.\nUse: <code>/cpf1 00000000000</code>",
-"parse_mode"=>"HTML"
-]);
+    // Remove sticker
+    if ($stickerMsgId) {
+        tg("deleteMessage", [
+            "chat_id" => $chat,
+            "message_id" => $stickerMsgId
+        ]);
+    }
 
-return;
-}
+    // ❌ Sem resultado
+    if (empty($data["resultado"])) {
+        naoEncontrado($chat, "CPF", $cpf);
+        return;
+    }
 
-// NOVA API
-$url = "https://api.blackaut.shop/api/dados-pessoais/cpf?cpf={$cpf}&apikey=EbmScZ0ntHf61KJz3H";
+    $txt = "
+╔══════════════════════════════╗
+   CONSULTA CPF — ASTRO SEARCH
+╚══════════════════════════════╝
 
-$resp = @file_get_contents($url);
-$json = json_decode($resp,true);
+CPF: {$cpf}
 
-if($stickerMsgId){
-tg("deleteMessage",[
-"chat_id"=>$chat,
-"message_id"=>$stickerMsgId
-]);
-}
-
-// VALIDAÇÃO
-if(!$json || !$json["status"]){
-naoEncontrado($chat,"CPF",$cpf);
-return;
-}
-
-$p = $json["resultado"];
-
-$txt = "CONSULTA CPF — FULL
-=================================
-
-CPF: {$p["cpf"]}
-Nome: {$p["name"]}
-Nascimento: {$p["birth"]}
-Idade: {$p["age"]}
-Sexo: {$p["gender"]}
-
-Mãe: {$p["mother_name"]}
-Pai: ".($p["father_name"] ?: "Não informado")."
-
-Signo: {$p["sign"]}
-Estado Civil: ".($p["marital_status"] ?: "Não informado")."
-
-CBO: {$p["cbo"]}
-Situação Receita: {$p["cd_sit_cad"]}
-Data Situação: {$p["dt_sit_cad"]}
-
---------------------------------
+📄 RESULTADO COMPLETO
+──────────────────────────────
+{$data['resultado']}
 ";
 
-// ENDEREÇOS
-if(!empty($p["addresses"])){
+    $file = tempnam(sys_get_temp_dir(), "cpf_");
+    file_put_contents($file, $txt);
 
-$txt .= "\nENDEREÇOS
---------------------------------\n";
+    // 💎 PREVIEW VIP
+    // Pega apenas o nome e cidade/UF se existirem no texto
+    preg_match("/NOME:\s*(.+)/", $data["resultado"], $mNome);
+    preg_match("/CIDADE:\s*(.+)/", $data["resultado"], $mCidade);
+    preg_match("/UF:\s*(.+)/", $data["resultado"], $mUF);
 
-foreach($p["addresses"] as $e){
+    $nome = $mNome[1] ?? "NÃO INFORMADO";
+    $cidade = $mCidade[1] ?? "-";
+    $uf = $mUF[1] ?? "-";
 
-$txt .= "{$e["logr_type"]} {$e["logr_name"]}, {$e["logr_number"]}\n";
-$txt .= "{$e["neighborhood"]} - {$e["city"]}/{$e["state"]}\n";
-$txt .= "CEP {$e["zip_code"]}\n\n";
+    $preview = "
+💎 <b>Consulta VIP Realizada</b>
 
-}
+<blockquote>
+👤 ".v($nome)."
+🪪 {$cpf}
+📍 ".v($cidade)." - ".v($uf)."
+</blockquote>
 
-}
-
-// TELEFONES
-if(!empty($p["telephones"])){
-
-$txt .= "\nTELEFONES
---------------------------------\n";
-
-foreach($p["telephones"] as $t){
-
-$txt .= "({$t["ddd"]}) {$t["phone_number"]}\n";
-
-}
-
-}
-
-// EMAILS
-if(!empty($p["emails"])){
-
-$txt .= "\nEMAILS
---------------------------------\n";
-
-foreach($p["emails"] as $e){
-
-$txt .= "{$e["email"]}\n";
-
-}
-
-}
-
-// PIS
-if(!empty($p["pis"]["pis_number"])){
-
-$txt .= "\nPIS
---------------------------------\n";
-$txt .= "{$p["pis"]["pis_number"]}\n";
-
-}
-
-// SCORE
-if(!empty($p["score"])){
-
-$txt .= "\nSCORE
---------------------------------\n";
-
-$txt .= "CSBA: {$p["score"]["csba"]}\n";
-$txt .= "Faixa: {$p["score"]["csba_range"]}\n";
-
-}
-
-$txt .= "\n--------------------------------
-Consulta via:
-Astro Search
+📄 Relatório completo no arquivo TXT.
 ";
 
-$file = tempnam(sys_get_temp_dir(),"cpf_");
-file_put_contents($file,$txt);
+    tg("sendDocument", [
+        "chat_id" => $chat,
+        "document" => new CURLFile($file, "text/plain", "cpf_{$cpf}.txt"),
+        "caption" => $preview,
+        "parse_mode" => "HTML",
+        "reply_markup" => json_encode([
+            "inline_keyboard" => [
+                [
+                    ["text" => "💎 • Adquirir VIP", "url" => "https://t.me/puxardados5"]
+                ],
+                [
+                    ["text" => "🗑 • Apagar", "callback_data" => "apagar_msg"]
+                ]
+            ]
+        ])
+    ]);
 
-tg("sendDocument",[
-"chat_id"=>$chat,
-"document"=>new CURLFile($file,"text/plain","cpf_{$cpf}.txt"),
-"caption"=>"🧾 <b>Consulta de CPF concluída</b>\n\n⚡ API: <b>Astro</b>",
-"parse_mode"=>"HTML",
-"reply_markup"=>json_encode([
-    "inline_keyboard"=>[
-        [
-            ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-            ["text"=>"🚀 Adquirir Bot","url"=>"https://t.me/puxardados5"]
-        ]
-    ]
-])
-]);
-
-unlink($file);
-
+    unlink($file);
 }
 
 function consultaCPF2($chat,$cpf){
