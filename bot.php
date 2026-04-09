@@ -2349,25 +2349,36 @@ function consultaCPF1($chat, $cpf){
 
     $d = $json["resultado"]; // resultados da API
 
-    // Monta o TXT completo
-    $txt = "RELATÓRIO CPF — VIP
-====================================\n";
-    $txt .= $d; // já vem tudo em texto da API
+    // Função auxiliar
+    function v($val){ return $val ?? "Não informado"; }
 
-    // Salva arquivo temporário
+    // Monta o TXT completo
+    $txt = "RELATÓRIO CPF — VIP\n====================================\n";
+    foreach($d as $k => $v){
+        if(is_array($v)){
+            foreach($v as $subk => $subv){
+                $txt .= "$subk: $subv\n";
+            }
+        } else {
+            $txt .= "$k: $v\n";
+        }
+    }
+
     $file = tempnam(sys_get_temp_dir(),"cpf3_");
     file_put_contents($file,$txt);
 
-    // Preview resumido para caption
+    // Preview resumido
     $preview = "
 💎 <b>Consulta VIP Realizada</b>
 
 <blockquote>
-👤 ".($d["NOME"] ?? "Não informado")."
-🪪 CPF: ".($d["CPF"] ?? "Não informado")."
-🎂 ".($d["DATA DE NASCIMENTO"] ?? "Não informado")."
-👩 Mãe: ".($d["NOME DA MÃE"] ?? "Não informado")."
-📍 ".($d["MUNICÍPIO DE NASCIMENTO"] ?? "Não informado")." - ".($d["UF"] ?? "Não informado")."
+👤 ".v($d["NOME"])."
+🪪 CPF: ".v($d["CPF"])."
+🎂 Nascimento: ".v($d["DATA DE NASCIMENTO"])."
+👩 Mãe: ".v($d["NOME DA MÃE"])."
+📍 Endereço: ".v($d["ENDEREÇO"]["LOGRADOURO"] ?? $d["ENDEREÇO"])." - ".v($d["ENDEREÇO"]["CIDADE"] ?? $d["MUNICÍPIO DE NASCIMENTO"])." - ".v($d["ENDEREÇO"]["UF"] ?? $d["UF"])."
+📞 Telefone: ".v($d["TELEFONE"] ?? $d["FONE"])."
+📧 Email: ".v($d["EMAIL"])."
 </blockquote>
 
 📄 Relatório completo disponível no arquivo TXT.
