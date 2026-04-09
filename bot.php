@@ -2301,65 +2301,91 @@ Tempo resposta API: {$json["responseTime"]}
     unlink($file);
 }
 
-function consultaCPF1($chat, $cpf) {
+function consultaCPF_VIP($chat, $cpf){
     global $STICKER_LOADING;
 
-    // Envia sticker de carregando
-    $sticker = tg("sendSticker", [
-        "chat_id" => $chat,
-        "sticker" => $STICKER_LOADING
+    // Sticker de carregando
+    $sticker = tg("sendSticker",[
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
     ]);
-    $stickerData = json_decode($sticker, true);
+
+    $stickerData = json_decode($sticker,true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-    $cpf = preg_replace('/\D/', '', $cpf);
-    if (strlen($cpf) != 11) {
-        if ($stickerMsgId) {
-            tg("deleteMessage", ["chat_id" => $chat, "message_id" => $stickerMsgId]);
+    $cpf = preg_replace('/\D/','',$cpf);
+
+    if(strlen($cpf) != 11){
+        if($stickerMsgId){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
         }
-        tg("sendMessage", [
-            "chat_id" => $chat,
-            "text" => "❌ CPF inválido.\nUse: <code>/cpf5 00000000000</code>",
-            "parse_mode" => "HTML"
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ CPF inválido.\nUse: <code>/cpf 00000000000</code>",
+            "parse_mode"=>"HTML"
         ]);
         return;
     }
 
-    // Consulta API
+    // API nova
     $url = "https://obitostore.shop/api/consulta/cpf5?cpf={$cpf}&apikey=bigmouthh";
     $resp = @file_get_contents($url);
-    $json = json_decode($resp, true);
+    $json = json_decode($resp,true);
 
-    if ($stickerMsgId) {
-        tg("deleteMessage", ["chat_id" => $chat, "message_id" => $stickerMsgId]);
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
     }
 
-    if (!$json || $json["status"] != "ok") {
-        naoEncontrado($chat, "CPF", $cpf);
+    if(!$json || $json["status"] != "ok"){
+        naoEncontrado($chat,"CPF",$cpf);
         return;
     }
 
-    $p = $json["resultado"]; // resultado vem como string, precisa tratar se quiser separar campos
+    $d = $json["resultado"]; // resultados da API
 
-    // Monta arquivo TXT com todos os dados retornados
-    $txt = "CONSULTA CPF — FULL\n=================================\n\n";
-    $txt .= $p; // Mantém o retorno completo como string
+    // Monta o TXT completo
+    $txt = "RELATÓRIO CPF — VIP
+====================================\n";
+    $txt .= $d; // já vem tudo em texto da API
 
-    $txt .= "\n--------------------------------\nConsulta via: Astro Search";
+    // Salva arquivo temporário
+    $file = tempnam(sys_get_temp_dir(),"cpf3_");
+    file_put_contents($file,$txt);
 
-    $file = tempnam(sys_get_temp_dir(), "cpf_");
-    file_put_contents($file, $txt);
+    // Preview resumido para caption
+    $preview = "
+💎 <b>Consulta VIP Realizada</b>
 
-    tg("sendDocument", [
-        "chat_id" => $chat,
-        "document" => new CURLFile($file, "text/plain", "cpf_{$cpf}.txt"),
-        "caption" => "🧾 <b>Consulta de CPF concluída</b>\n\n⚡ API: <b>Astro</b>",
-        "parse_mode" => "HTML",
-        "reply_markup" => json_encode([
-            "inline_keyboard" => [
+<blockquote>
+👤 ".($d["NOME"] ?? "Não informado")."
+🪪 CPF: ".($d["CPF"] ?? "Não informado")."
+🎂 ".($d["DATA DE NASCIMENTO"] ?? "Não informado")."
+👩 Mãe: ".($d["NOME DA MÃE"] ?? "Não informado")."
+📍 ".($d["MUNICÍPIO DE NASCIMENTO"] ?? "Não informado")." - ".($d["UF"] ?? "Não informado")."
+</blockquote>
+
+📄 Relatório completo disponível no arquivo TXT.
+";
+
+    // Envia documento com preview
+    tg("sendDocument",[
+        "chat_id"=>$chat,
+        "document"=>new CURLFile($file,"text/plain","cpf3_{$cpf}.txt"),
+        "caption"=>$preview,
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
                 [
-                    ["text" => "🗑 Apagar", "callback_data" => "apagar_msg"],
-                    ["text" => "💎 • Ativar VIP", "callback_data" => "planos"]
+                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+                ],
+                [
+                    ["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
                 ]
             ]
         ])
