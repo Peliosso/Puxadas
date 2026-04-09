@@ -2301,7 +2301,7 @@ Tempo resposta API: {$json["responseTime"]}
     unlink($file);
 }
 
-function consultaCPF_VIP($chat, $cpf){
+function consultaCPF1($chat, $cpf){
     global $STICKER_LOADING;
 
     // Sticker de carregando
