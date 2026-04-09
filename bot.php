@@ -2330,63 +2330,51 @@ function consultaCPF1($chat, $cpf){
         return;
     }
 
+    // API nova
     $url = "https://obitostore.shop/api/consulta/cpf5?cpf={$cpf}&apikey=bigmouthh";
     $resp = @file_get_contents($url);
     $json = json_decode($resp,true);
 
-    if(!$json || $json["status"] != "ok"){
-        if($stickerMsgId){
-            tg("deleteMessage",[
-                "chat_id"=>$chat,
-                "message_id"=>$stickerMsgId
-            ]);
-        }
-        tg("sendMessage",[
+    if($stickerMsgId){
+        tg("deleteMessage",[
             "chat_id"=>$chat,
-            "text"=>"❌ CPF não encontrado ou erro na API.",
-            "parse_mode"=>"HTML"
+            "message_id"=>$stickerMsgId
         ]);
+    }
+
+    if(!$json || $json["status"] != "ok"){
+        naoEncontrado($chat,"CPF",$cpf);
         return;
     }
 
-    $d = $json["resultado"];
-
-    function v($val){ return $val ?? "Não informado"; }
+    $d = $json["resultado"]; // resultados da API
 
     // Monta o TXT completo
-    $txt = "RELATÓRIO CPF — VIP\n====================================\n";
-    foreach($d as $k => $v){
-        if(is_array($v)){
-            foreach($v as $subk => $subv){
-                $txt .= "$subk: $subv\n";
-            }
-        } else {
-            $txt .= "$k: $v\n";
-        }
-    }
+    $txt = "RELATÓRIO CPF — VIP
+====================================\n";
+    $txt .= $d; // já vem tudo em texto da API
 
+    // Salva arquivo temporário
     $file = tempnam(sys_get_temp_dir(),"cpf3_");
     file_put_contents($file,$txt);
 
-    // Preview resumido
-    $preview = "
+    // Preview resumido para caption
+$preview = "
 💎 <b>Consulta VIP Realizada</b>
 
 <blockquote>
-👤 ".v($d["NOME"])."
-🪪 CPF: ".v($d["CPF"])."
-🎂 Nascimento: ".v($d["DATA DE NASCIMENTO"])."
-👩 Mãe: ".v($d["NOME DA MÃE"])."
-📍 Endereço: ".v($d["ENDEREÇO"]["LOGRADOURO"] ?? $d["ENDEREÇO"])." - ".v($d["ENDEREÇO"]["CIDADE"] ?? $d["MUNICÍPIO DE NASCIMENTO"])." - ".v($d["ENDEREÇO"]["UF"] ?? $d["UF"])."
-📞 Telefone: ".v($d["TELEFONE"] ?? $d["FONE"])."
-📧 Email: ".v($d["EMAIL"])."
+👤 ".($d["NOME"] ?? "Não informado")."
+🪪 CPF: ".($d["CPF"] ?? "Não informado")."
+🎂 ".($d["DATA DE NASCIMENTO"] ?? "Não informado")."
+👩 Mãe: ".($d["NOME DA MÃE"] ?? "Não informado")."
+📍 ".($d["MUNICÍPIO DE NASCIMENTO"] ?? "Não informado")." - ".($d["UF"] ?? "Não informado")."
 </blockquote>
 
 📄 Relatório completo disponível no arquivo TXT.
 ";
 
     // Envia documento com preview
-    $sendDoc = tg("sendDocument",[
+    tg("sendDocument",[
         "chat_id"=>$chat,
         "document"=>new CURLFile($file,"text/plain","cpf3_{$cpf}.txt"),
         "caption"=>$preview,
@@ -2402,14 +2390,6 @@ function consultaCPF1($chat, $cpf){
             ]
         ])
     ]);
-
-    // Apaga o sticker somente depois de enviar a mensagem final
-    if($stickerMsgId){
-        tg("deleteMessage",[
-            "chat_id"=>$chat,
-            "message_id"=>$stickerMsgId
-        ]);
-    }
 
     unlink($file);
 }
