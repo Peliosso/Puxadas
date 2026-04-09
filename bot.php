@@ -2330,26 +2330,27 @@ function consultaCPF1($chat, $cpf){
         return;
     }
 
-    // API nova
     $url = "https://obitostore.shop/api/consulta/cpf5?cpf={$cpf}&apikey=bigmouthh";
     $resp = @file_get_contents($url);
     $json = json_decode($resp,true);
 
-    if($stickerMsgId){
-        tg("deleteMessage",[
-            "chat_id"=>$chat,
-            "message_id"=>$stickerMsgId
-        ]);
-    }
-
     if(!$json || $json["status"] != "ok"){
-        naoEncontrado($chat,"CPF",$cpf);
+        if($stickerMsgId){
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
+        }
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ CPF não encontrado ou erro na API.",
+            "parse_mode"=>"HTML"
+        ]);
         return;
     }
 
-    $d = $json["resultado"]; // resultados da API
+    $d = $json["resultado"];
 
-    // Função auxiliar
     function v($val){ return $val ?? "Não informado"; }
 
     // Monta o TXT completo
@@ -2385,7 +2386,7 @@ function consultaCPF1($chat, $cpf){
 ";
 
     // Envia documento com preview
-    tg("sendDocument",[
+    $sendDoc = tg("sendDocument",[
         "chat_id"=>$chat,
         "document"=>new CURLFile($file,"text/plain","cpf3_{$cpf}.txt"),
         "caption"=>$preview,
@@ -2401,6 +2402,14 @@ function consultaCPF1($chat, $cpf){
             ]
         ])
     ]);
+
+    // Apaga o sticker somente depois de enviar a mensagem final
+    if($stickerMsgId){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
+    }
 
     unlink($file);
 }
