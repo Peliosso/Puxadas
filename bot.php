@@ -3292,8 +3292,8 @@ function consultaCPF($chat, $cpf){
         return;
     }
 
-    // 🔥 NOVA API SARA
-    $url = "https://sara-api.xyz/api/consultas/cpf?cpf={$cpf}&apikey=mouth";
+    // 🔥 NOVA API DUALITY
+    $url = "https://duality.lat/?token=DUALITY-FREE&api=cpf&query={$cpf}";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -3305,7 +3305,7 @@ function consultaCPF($chat, $cpf){
         ]);
     }
 
-    if(!$json || $json["statusCode"] != 200){
+    if(!$json || !isset($json["DADOS"])){
         tg("sendMessage",[
             "chat_id"=>$chat,
             "text"=>"❌ CPF não encontrado ou instabilidade na API."
@@ -3313,36 +3313,57 @@ function consultaCPF($chat, $cpf){
         return;
     }
 
-    $d = $json["body"];
+    $d = $json["DADOS"];
+
+    // 🔥 TRATAMENTOS
+    $nome = trim($d["NOME"] ?? "Não informado");
+    $mae = trim($d["NOME_MAE"] ?? "") ?: "Não informado";
+    $pai = trim($d["NOME_PAI"] ?? "") ?: "Não informado";
+
+    $sexo = ($d["SEXO"] == "M") ? "MASCULINO" : (($d["SEXO"] == "F") ? "FEMININO" : "Não informado");
+
+    $nasc = !empty($d["NASC"]) ? date("d/m/Y", strtotime($d["NASC"])) : "Não informado";
+
+    $obito = (!empty($d["DT_OB"])) ? "SIM" : "NÃO";
+
+    // renda formatada
+    $renda = !empty($d["RENDA"]) ? "R$ ".$d["RENDA"] : "Não informado";
+
+    // estado civil
+    $estadoCivilMap = [
+        "S"=>"SOLTEIRO",
+        "C"=>"CASADO",
+        "D"=>"DIVORCIADO",
+        "V"=>"VIÚVO"
+    ];
+    $estadoCivil = $estadoCivilMap[$d["ESTCIV"]] ?? "Não informado";
+
+    // score
+    $score = $json["SCORE"][0]["CSB8"] ?? "Não informado";
 
     $txt =
 "CONSULTA CPF — ASTRO SEARCH
 ================================
 
-CPF: {$d["cpf_masked"]}
-Nome: {$d["name"]}
-Primeiro Nome: {$d["first_name"]}
-Último Nome: {$d["last_name"]}
+CPF: {$cpf}
+Nome: {$nome}
 
-Sexo: {$d["gender"]}
-Nascimento: {$d["birth_date"]}
+Sexo: {$sexo}
+Nascimento: {$nasc}
+Estado Civil: {$estadoCivil}
 
-Mãe: ".($d["mother_name"] ?: "Não informado")."
-Pai: ".($d["father_name"] ?: "Não informado")."
+Mãe: {$mae}
+Pai: {$pai}
 
-Status Receita: {$d["federal_status"]}
-Óbito: ".($d["death_flag"] == "1" ? "SIM" : "NÃO")."
+Situação Receita: {$d["CD_SIT_CAD"]}
+Óbito: {$obito}
 
-Renda: {$d["income"]}
-Faixa Renda: {$d["income_bracket"]}
-
-Classe Social: {$d["social_class"]["social_class"]} {$d["social_class"]["sub_social_class"]}
-
-Score: {$d["credit_score"]["score"]}
+Renda: {$renda}
+Score: {$score}
 
 --------------------------------
 Consulta via:
-Astro Search
+Astro Search (Nova API)
 ";
 
     $file = tempnam(sys_get_temp_dir(), "cpf_");
