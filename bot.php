@@ -1316,19 +1316,19 @@ Cidade: {$d["cidade"]}
 function consultaVizinhos($chat, $cpf){
     global $STICKER_LOADING;
 
-    // sticker loading
+    // 🎬 Sticker loading
     $sticker = tg("sendSticker",[
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
     ]);
 
-    $stickerData = json_decode($sticker,true);
+    $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
+    // limpa cpf
     $cpf = preg_replace('/\D/','',$cpf);
 
     if(strlen($cpf) != 11){
-
         if($stickerMsgId){
             tg("deleteMessage",[
                 "chat_id"=>$chat,
@@ -1344,11 +1344,12 @@ function consultaVizinhos($chat, $cpf){
         return;
     }
 
-    // API
-    $url = "https://sara-api.xyz/api/consultas/vizinhos?cpf={$cpf}&apikey=bigmouth";
+    // 🔥 NOVA API CPF
+    $url = "https://obitostore.shop/api/consulta/cpf4?cpf={$cpf}&apikey=bigmouthh";
     $resp = @file_get_contents($url);
-    $json = json_decode($resp,true);
+    $json = json_decode($resp, true);
 
+    // remove sticker
     if($stickerMsgId){
         tg("deleteMessage",[
             "chat_id"=>$chat,
@@ -1356,51 +1357,86 @@ function consultaVizinhos($chat, $cpf){
         ]);
     }
 
-    if(!$json || !$json["success"]){
-    naoEncontrado($chat,"VIZINHOS",$cpf);
-    return;
-}
+    if(!$json || $json["status"] != "ok"){
+        naoEncontrado($chat,"VIZINHOS",$cpf);
+        return;
+    }
 
-    $nome = $json["pessoa"];
-    $total = $json["total"];
+    $resultado = $json["resultado"];
+
+    // 🔥 EXTRAIR BLOCO DE VIZINHOS
+    preg_match('/VIZINHOS(.*?)COMPRAS IDENTIFICADAS/s', $resultado, $match);
+
+    if(!isset($match[1])){
+        naoEncontrado($chat,"VIZINHOS",$cpf);
+        return;
+    }
+
+    $vizinhosRaw = trim($match[1]);
+
+    // 🔥 PEGAR DADOS DOS VIZINHOS
+    preg_match_all('/NOME:\s*(.*?)\nCPF:\s*(.*?)\nDATA NASCIMENTO:\s*(.*?)\nIDADE:\s*(.*?)\nSEXO:\s*(.*?)\nNOME MÃE:\s*(.*?)\n/', $vizinhosRaw, $matches, PREG_SET_ORDER);
+
+    if(!$matches){
+        naoEncontrado($chat,"VIZINHOS",$cpf);
+        return;
+    }
+
+    // 🔥 PEGAR NOME DO TITULAR
+    preg_match('/NOME:\s*(.*?)\n/', $resultado, $titularMatch);
+    $titular = $titularMatch[1] ?? "Não encontrado";
 
     $txt =
 "CONSULTA DE VIZINHOS — ASTRO SEARCH
-====================================
+================================
 
-CPF CONSULTADO: {$cpf}
-TITULAR: {$nome}
+CPF Consultado: {$cpf}
+Titular: {$titular}
+Total de vizinhos: ".count($matches)."
 
-TOTAL DE VIZINHOS: {$total}
-
-------------------------------------
-
+================================
 ";
 
-    foreach($json["data"] as $v){
+    foreach($matches as $v){
 
-        $txt .=
-"Nome: {$v["nome"]}
-CPF: {$v["cpf"]}
-Endereço: {$v["logradouro"]} {$v["numero"]}
-Bairro: {$v["bairro"]}
-Cidade: {$v["cidade"]}
+        $nome = trim($v[1]);
+        $cpfViz = trim($v[2]);
+        $nasc = trim($v[3]);
+        $idade = trim($v[4]);
+        $sexo = trim($v[5]);
+        $mae = trim($v[6]);
 
-------------------------------------
+        $txt .= "
+Nome: {$nome}
+CPF: {$cpfViz}
+Nascimento: {$nasc}
+Idade: {$idade}
+Sexo: {$sexo}
+Mãe: {$mae}
+
+--------------------------------
 ";
     }
 
-    $file = tempnam(sys_get_temp_dir(),"viz_");
-    file_put_contents($file,$txt);
+    $txt .= "
+Consulta via:
+Astro Search (Nova API)
+";
+
+    $file = tempnam(sys_get_temp_dir(), "vizinhos_");
+    file_put_contents($file, $txt);
 
     tg("sendDocument",[
         "chat_id"=>$chat,
-        "document"=>new CURLFile($file,"text/plain","vizinhos_{$cpf}.txt"),
-        "caption"=>"🏠 <b>Consulta de vizinhos concluída</b>\n\nCréditos: <b>Astro Search</b>",
+        "document"=>new CURLFile($file, "text/plain", "vizinhos_{$cpf}.txt"),
+        "caption"=>"🏘 <b>Consulta de Vizinhos concluída</b>\n\nCréditos: <b>Astro Search</b>",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-                [["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]]
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
+                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+                ]
             ]
         ])
     ]);
@@ -2251,8 +2287,8 @@ function consultaParentes($chat, $cpf){
         return;
     }
 
-    // 🔥 API SARA PARENTES
-    $url = "https://knowsapi.shop/api/consultas/parentes?cpf={$cpf}&apikey=bigmouth";
+    // 🔥 NOVA API CPF
+    $url = "https://obitostore.shop/api/consulta/cpf4?cpf={$cpf}&apikey=bigmouthh";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -2264,28 +2300,56 @@ function consultaParentes($chat, $cpf){
         ]);
     }
 
-    if(!$json || !$json["success"]){
-    naoEncontrado($chat,"PARENTES",$cpf);
-    return;
-}
+    if(!$json || $json["status"] != "ok"){
+        naoEncontrado($chat,"PARENTES",$cpf);
+        return;
+    }
+
+    $resultado = $json["resultado"];
+
+    // 🔥 EXTRAIR BLOCO DE PARENTES
+    preg_match('/PARENTES(.*?)EMPRESAS/s', $resultado, $match);
+
+    if(!isset($match[1])){
+        naoEncontrado($chat,"PARENTES",$cpf);
+        return;
+    }
+
+    $parentesRaw = trim($match[1]);
+
+    // 🔥 PEGAR NOME / CPF / GRAU
+    preg_match_all('/NOME:\s*(.*?)\nCPF:\s*(.*?)\nGRAU DE PARENTESCO:\s*(.*?)\n/', $parentesRaw, $matches, PREG_SET_ORDER);
+
+    if(!$matches){
+        naoEncontrado($chat,"PARENTES",$cpf);
+        return;
+    }
+
+    // 🔥 PEGAR NOME DO TITULAR
+    preg_match('/NOME:\s*(.*?)\n/', $resultado, $titularMatch);
+    $titular = $titularMatch[1] ?? "Não encontrado";
 
     $txt =
 "CONSULTA DE PARENTES — ASTRO SEARCH
 ================================
 
-CPF Consultado: {$json["query"]}
-Titular: {$json["pessoa"]}
-Total de vínculos: {$json["total"]}
+CPF Consultado: {$cpf}
+Titular: {$titular}
+Total de vínculos: ".count($matches)."
 
 ================================
 ";
 
-    foreach($json["data"] as $parente){
+    foreach($matches as $p){
+
+        $nome = trim($p[1]);
+        $cpfParente = trim($p[2]);
+        $grau = trim($p[3]);
 
         $txt .= "
-Nome: {$parente["nome"]}
-CPF: {$parente["cpf"]}
-Vínculo: {$parente["vinculo"]}
+Nome: {$nome}
+CPF: {$cpfParente}
+Vínculo: {$grau}
 
 --------------------------------
 ";
@@ -2293,8 +2357,7 @@ Vínculo: {$parente["vinculo"]}
 
     $txt .= "
 Consulta via:
-Astro Search
-Tempo resposta API: {$json["responseTime"]}
+Astro Search (Nova API)
 ";
 
     $file = tempnam(sys_get_temp_dir(), "parentes_");
@@ -2309,7 +2372,7 @@ Tempo resposta API: {$json["responseTime"]}
             "inline_keyboard"=>[
                 [
                     ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
                 ]
             ]
         ])
