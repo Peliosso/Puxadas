@@ -3919,20 +3919,34 @@ if(strpos($data,"verificar_") === 0){
             $VIP_IDS[] = (int)$user_id;
         }
 
-        tg("editMessageCaption",[
-            "chat_id"=>$chat,
-            "message_id"=>$msg,
-            "caption"=>"✅ <b>PAGAMENTO CONFIRMADO!</b>\n\n👑 VIP liberado 🚀",
-            "parse_mode"=>"HTML"
-        ]);
+tg("editMessageCaption",[
+    "chat_id"=>$chat,
+    "message_id"=>$msg,
+    "caption"=>"✅ <b>PAGAMENTO CONFIRMADO!</b>\n\n👑 VIP liberado 🚀\n\n📞 Suporte disponível abaixo:",
+    "parse_mode"=>"HTML",
+    "reply_markup"=>json_encode([
+        "inline_keyboard"=>[
+            [
+                ["text"=>"💬 Suporte","url"=>"https://t.me/puxardados5"]
+            ]
+        ]
+    ])
+]);
 
     } else {
 
-        tg("answerCallbackQuery",[
-            "callback_query_id"=>$callback["id"],
-            "text"=>"⏳ Ainda não foi pago",
-            "show_alert"=>true
-        ]);
+tg("editMessageCaption",[
+    "chat_id"=>$chat,
+    "message_id"=>$msg,
+    "caption"=>"⏳ <b>Pagamento ainda não identificado</b>\n\nApós pagar, clique novamente em verificar.",
+    "parse_mode"=>"HTML",
+    "reply_markup"=>json_encode([
+        "inline_keyboard"=>[
+            [["text"=>"🔄 Verificar novamente","callback_data"=>$data]],
+            [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+        ]
+    ])
+]);
     }
 
     exit;
