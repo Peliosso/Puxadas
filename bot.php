@@ -314,6 +314,9 @@ $BANIDOS = [
     8017850151
 ];
 
+$PAYMENTS = [];
+$GATEWAY_USER_ID = "7320236887";
+
 function isVip($id){
 
 global $VIP_IDS;
@@ -321,6 +324,12 @@ global $VIP_IDS;
 if(in_array($id,$VIP_IDS)){
 return true;
 }
+
+$PLANOS = [
+    "diario" => 10.00,
+    "mensal" => 20.00,
+    "vitalicio" => 30.00
+];
 
 $vipFile = __DIR__."/vip_users.json";
 
@@ -505,36 +514,38 @@ Exemplo:
 }
 function bloquearConsulta($chat){
 
-    $usuarios = rand(20,60);
-
     tg("sendPhoto",[
         "chat_id"=>$chat,
-        "photo"=>"https://conventional-magenta-fxkyikrbqe.edgeone.app/E8D6A8B8-36F3-4AE0-8493-E2C66DF18EF3.png", // pode trocar pela sua
+        "photo"=>"https://conventional-magenta-fxkyikrbqe.edgeone.app/E8D6A8B8-36F3-4AE0-8493-E2C66DF18EF3.png",
         "caption"=>
 "🔒 <b>ACESSO RESTRITO</b>
 
-Essa é uma consulta exclusiva para usuários VIP.
+Essa consulta é exclusiva para usuários VIP.
 
 Seu plano atual é <b>Gratuito</b> e possui limitações.
 
 ━━━━━━━━━━━━━━━
-💎 <b>Com o VIP você desbloqueia:</b>
+💎 <b>Benefícios do VIP:</b>
 
-• Todas as consultas  
+• Consultas liberadas  
 • Dados completos  
 • Respostas mais rápidas  
 • Sem limites  
 
 ━━━━━━━━━━━━━━━
-💰 <b>Pagamento único: R$ 20,00</b>
+💰 <b>Planos disponíveis:</b>
 
-🚀 Liberação instantânea após pagamento
+📅 Diário: R$ 10,00  
+📆 Mensal: R$ 20,00  
+👑 Vitalício: R$ 30,00  
 
-👇 Clique abaixo para ativar:",
+🚀 Liberação automática após pagamento
+
+👇 Escolha seu plano abaixo:",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-                [["text"=>"💳 Ativar VIP","callback_data"=>"planos"]],
+                [["text"=>"💳 Ver Planos","callback_data"=>"planos"]],
                 [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
             ]
         ])
@@ -3924,59 +3935,76 @@ if($data == "menu_cep"){
     // =========================
     // PLANOS
     // =========================
-    if($data == "planos"){
+// =========================
+// PLANOS
+// =========================
+if($data == "planos"){
 
-        tg("editMessageCaption",[
-            "chat_id"=>$chat,
-            "message_id"=>$msg,
-            "caption"=>"⭐ <b>PLANO VITALÍCIO</b>\n\n💰 R$ 20,00\n\nClique abaixo 👇",
-            "parse_mode"=>"HTML",
-            "reply_markup"=>json_encode([
-                "inline_keyboard"=>[
-                    [["text"=>"💳 Gerar PIX","callback_data"=>"gerar_pix"]],
-                    [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+    tg("editMessageCaption",[
+        "chat_id"=>$chat,
+        "message_id"=>$msg,
+        "caption"=>"⭐ <b>ESCOLHA SEU PLANO</b>\n\n💰 Diário: R$ 10,00\n💰 Mensal: R$ 20,00\n💰 Vitalício: R$ 30,00",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"📅 Diário - R$10","callback_data"=>"gerar_pix_diario"],
+                    ["text"=>"📆 Mensal - R$20","callback_data"=>"gerar_pix_mensal"]
+                ],
+                [
+                    ["text"=>"👑 Vitalício - R$30","callback_data"=>"gerar_pix_vitalicio"]
+                ],
+                [
+                    ["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
                 ]
-            ])
-        ]);
+            ]
+        ])
+    ]);
 
-        exit;
-    }
+    exit;
+}
 
     // =========================
     // GERAR PIX
     // =========================
-if($data == "gerar_pix"){
+if(strpos($data, "gerar_pix_") === 0){
 
-    $url = "https://promstpagamentos.discloud.app/create_payment?user_id=7320236887&valor=20.00";
+    global $PLANOS, $PAYMENTS, $GATEWAY_USER_ID;
 
-    $response = @file_get_contents($url);
-    $json = json_decode($response,true);
+    $plano = str_replace("gerar_pix_", "", $data);
 
-    if(!$json || !isset($json["pixCopiaECola"])){
-
+    if(!isset($PLANOS[$plano])){
         tg("answerCallbackQuery",[
             "callback_query_id"=>$callback["id"],
-            "text"=>"❌ Erro ao gerar PIX",
+            "text"=>"❌ Plano inválido",
             "show_alert"=>true
         ]);
         exit;
     }
 
-    $valor = $json["valor"] ?? "20.00";
-    $txid  = $json["txid"] ?? "";
-    $pix   = $json["pixCopiaECola"];
+    $valor = $PLANOS[$plano];
 
-    // 🔥 EMBUTE ID DO USUÁRIO NO BOTÃO
-    $callbackCheck = "verificar_{$txid}_{$id}";
+    $url = "https://promstpagamentos.discloud.app/create_payment?user_id={$GATEWAY_USER_ID}&valor={$valor}";
+    $res = json_decode(file_get_contents($url), true);
+
+    $txid = $res["txid"];
+    $pix  = $res["pixCopiaECola"];
+
+    // 🔥 salva relação TXID -> usuário
+    $PAYMENTS[$txid] = [
+        "user_id" => $user_id,
+        "plano" => $plano,
+        "valor" => $valor
+    ];
 
     tg("editMessageCaption",[
         "chat_id"=>$chat,
         "message_id"=>$msg,
-        "caption"=>"💰 <b>R$ 20,00</b>\n\n🔑 <code>{$txid}</code>\n\n📋 <b>PIX Copia e Cola:</b>\n<code>{$pix}</code>",
+        "caption"=>"💰 Plano: ".strtoupper($plano)."\n\n💸 R$ {$valor}\n\n🔑 TXID:\n<code>{$txid}</code>\n\n📋 PIX:\n<code>{$pix}</code>",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-                [["text"=>"✅ Verificar Pagamento","callback_data"=>$callbackCheck]],
+                [["text"=>"✅ Verificar","callback_data"=>"verificar_{$txid}"]],
                 [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
             ]
         ])
@@ -3985,78 +4013,57 @@ if($data == "gerar_pix"){
     exit;
 }
     
-if(strpos($data,"verificar_") === 0){
+if(strpos($data, "verificar_") === 0){
 
-    // formato: verificar_TXID_USERID
-    $partes = explode("_",$data);
+    global $PAYMENTS;
 
-    $txid = $partes[1] ?? "";
-    $user_id = $partes[2] ?? "";
+    $txid = str_replace("verificar_", "", $data);
 
-    if(!$txid || !$user_id){
+    if(!isset($PAYMENTS[$txid])){
         tg("answerCallbackQuery",[
             "callback_query_id"=>$callback["id"],
-            "text"=>"❌ Erro interno",
+            "text"=>"❌ Pagamento não encontrado",
             "show_alert"=>true
         ]);
         exit;
     }
+
+    $map = $PAYMENTS[$txid];
 
     $url = "https://promstpagamentos.discloud.app/verify_payment?payment_id={$txid}";
-    $res = @file_get_contents($url);
+    $res = json_decode(file_get_contents($url), true);
 
-    if(!$res){
-        tg("answerCallbackQuery",[
-            "callback_query_id"=>$callback["id"],
-            "text"=>"❌ Erro na API",
-            "show_alert"=>true
-        ]);
-        exit;
-    }
+    if(isset($res["status_pagamento"]) && $res["status_pagamento"] == "CONCLUIDA"){
 
-    $json = json_decode($res,true);
+        $vipUser = $map["user_id"];
 
-    // ✅ PAGOU
-    if(isset($json["status_pagamento"]) && $json["status_pagamento"] == "CONCLUIDA"){
-
-        // 🔥 LIBERA DIRETO (SEM SALVAR)
-        if(!in_array($user_id,$VIP_IDS)){
-            $VIP_IDS[] = (int)$user_id;
+        if(!in_array($vipUser, $VIP_IDS)){
+            $VIP_IDS[] = $vipUser;
         }
 
-tg("editMessageCaption",[
-    "chat_id"=>$chat,
-    "message_id"=>$msg,
-    "caption"=>"✅ <b>PAGAMENTO CONFIRMADO!</b>\n\n👑 VIP liberado 🚀\n\n📞 Suporte disponível abaixo:",
-    "parse_mode"=>"HTML",
-    "reply_markup"=>json_encode([
-        "inline_keyboard"=>[
-            [
-                ["text"=>"💬 Suporte","url"=>"https://t.me/puxardados5"]
-            ]
-        ]
-    ])
-]);
+        tg("editMessageCaption",[
+            "chat_id"=>$chat,
+            "message_id"=>$msg,
+            "caption"=>"✅ PAGAMENTO CONFIRMADO!\n\n👑 VIP liberado automaticamente 🚀",
+            "parse_mode"=>"HTML",
+            "reply_markup"=>json_encode([
+                "inline_keyboard"=>[
+                    [["text"=>"💬 Suporte","url"=>"https://t.me/puxardados5"]]
+                ]
+            ])
+        ]);
 
     } else {
 
-tg("editMessageCaption",[
-    "chat_id"=>$chat,
-    "message_id"=>$msg,
-    "caption"=>"⏳ <b>Pagamento ainda não identificado</b>\n\nApós pagar, clique novamente em verificar.",
-    "parse_mode"=>"HTML",
-    "reply_markup"=>json_encode([
-        "inline_keyboard"=>[
-            [["text"=>"🔄 Verificar novamente","callback_data"=>$data]],
-            [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
-        ]
-    ])
-]);
+        tg("answerCallbackQuery",[
+            "callback_query_id"=>$callback["id"],
+            "text"=>"⏳ Pagamento ainda não confirmado",
+            "show_alert"=>true
+        ]);
     }
 
     exit;
 }
-
     // =========================
     // CONTA
     // =========================
