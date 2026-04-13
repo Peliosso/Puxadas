@@ -3298,130 +3298,253 @@ tg("sendPhoto",[
 
 }
 
-function consultaCPF($chat, $cpf){
-    global $STICKER_LOADING;
+function consultaCPF($chat,$cpf){
 
-    // 🎬 Sticker loading
-    $sticker = tg("sendSticker",[
-        "chat_id"=>$chat,
-        "sticker"=>$STICKER_LOADING
-    ]);
+global $STICKER_LOADING;
 
-    $stickerData = json_decode($sticker, true);
-    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+function v($v){
+return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
+}
 
-    // limpa cpf
-    $cpf = preg_replace('/\D/','',$cpf);
+/* LOADING */
+$sticker = tg("sendSticker",[
+"chat_id"=>$chat,
+"sticker"=>$STICKER_LOADING
+]);
 
-    if(strlen($cpf) != 11){
-        if($stickerMsgId){
-            tg("deleteMessage",[
-                "chat_id"=>$chat,
-                "message_id"=>$stickerMsgId
-            ]);
-        }
+$stickerData = json_decode($sticker,true);
+$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>"❌ CPF inválido.\nUse: <code>/cpf 00000000000</code>",
-            "parse_mode"=>"HTML"
-        ]);
-        return;
-    }
+/* LIMPA CPF */
+$cpf = preg_replace('/[^0-9]/','',$cpf);
 
-    // 🔥 NOVA API DUALITY
-    $url = "https://duality.lat/?token=DUALITY-FREE&api=cpf&query={$cpf}";
-    $resp = @file_get_contents($url);
-    $json = json_decode($resp, true);
+if(strlen($cpf) != 11){
 
-    // remove sticker
-    if($stickerMsgId){
-        tg("deleteMessage",[
-            "chat_id"=>$chat,
-            "message_id"=>$stickerMsgId
-        ]);
-    }
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
 
-    if(!$json || !isset($json["DADOS"])){
-        tg("sendMessage",[
-            "chat_id"=>$chat,
-            "text"=>"❌ CPF não encontrado ou instabilidade na API."
-        ]);
-        return;
-    }
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ CPF inválido.\nUse: <code>/cpf 00000000000</code>",
+"parse_mode"=>"HTML"
+]);
 
-    $d = $json["DADOS"];
+return;
+}
 
-    // 🔥 TRATAMENTOS
-    $nome = trim($d["NOME"] ?? "Não informado");
-    $mae = trim($d["NOME_MAE"] ?? "") ?: "Não informado";
-    $pai = trim($d["NOME_PAI"] ?? "") ?: "Não informado";
+/* API */
+$url = "https://sara-api.xyz/api/consulta/cpf?apikey=bigmouth&cpf={$cpf}";
 
-    $sexo = ($d["SEXO"] == "M") ? "MASCULINO" : (($d["SEXO"] == "F") ? "FEMININO" : "Não informado");
+$ch = curl_init();
+curl_setopt_array($ch,[
+CURLOPT_URL => $url,
+CURLOPT_RETURNTRANSFER => true,
+CURLOPT_TIMEOUT => 25
+]);
 
-    $nasc = !empty($d["NASC"]) ? date("d/m/Y", strtotime($d["NASC"])) : "Não informado";
+$response = curl_exec($ch);
+$data = json_decode($response,true);
+curl_close($ch);
 
-    $obito = (!empty($d["DT_OB"])) ? "SIM" : "NÃO";
+/* REMOVE LOADING */
+if($stickerMsgId){
+tg("deleteMessage",[
+"chat_id"=>$chat,
+"message_id"=>$stickerMsgId
+]);
+}
 
-    // renda formatada
-    $renda = !empty($d["RENDA"]) ? "R$ ".$d["RENDA"] : "Não informado";
+if(!$data || !$data["status"]){
+tg("sendMessage",[
+"chat_id"=>$chat,
+"text"=>"❌ CPF não encontrado."
+]);
+return;
+}
 
-    // estado civil
-    $estadoCivilMap = [
-        "S"=>"SOLTEIRO",
-        "C"=>"CASADO",
-        "D"=>"DIVORCIADO",
-        "V"=>"VIÚVO"
-    ];
-    $estadoCivil = $estadoCivilMap[$d["ESTCIV"]] ?? "Não informado";
+$body = $data["resultado"]["body"];
 
-    // score
-    $score = $json["SCORE"][0]["CSB8"] ?? "Não informado";
+/* ===== DADOS BASE ===== */
+$nome = v($body["name"]);
+$cpf_mask = v($body["cpf_masked"]);
+$sexo = v($body["gender"]);
+$nascimento = v($body["birth_date"]);
+$mae = v($body["mother_name"]);
+$pai = v($body["father_name"]);
+$email = v($body["email"]);
+$status = v($body["federal_status"]);
+$renda = v($body["income"]);
 
-    $txt =
-"CONSULTA CPF — ASTRO SEARCH
-================================
+/* ENDEREÇO PRINCIPAL */
+$end = $body["address"] ?? [];
+$endereco = v($end["street"]).", ".v($end["number"])." - ".v($end["neighborhood"])." - ".v($end["city"])."/".v($end["state"])." - CEP: ".v($end["zip_code"]);
 
-CPF: {$cpf}
+/* TELEFONES */
+$telefones = "";
+if(!empty($body["phones"])){
+foreach($body["phones"] as $t){
+$telefones .= "• {$t}\n";
+}
+}else{
+$telefones = "NÃO ENCONTRADO";
+}
+
+/* EMAILS */
+$emails = "";
+if(!empty($body["additional_emails"])){
+foreach($body["additional_emails"] as $e){
+$emails .= "• {$e}\n";
+}
+}else{
+$emails = $email;
+}
+
+/* ENDEREÇOS SECUNDÁRIOS */
+$enderecos2 = "";
+if(!empty($body["all_addresses"])){
+foreach($body["all_addresses"] as $e){
+$enderecos2 .= "• ".v($e["street"]).", ".v($e["number"])." - ".v($e["city"])."/".v($e["state"])."\n";
+}
+}else{
+$enderecos2 = "NÃO ENCONTRADO";
+}
+
+/* PARENTES */
+$parentes = "";
+if(!empty($body["parentes"])){
+foreach($body["parentes"] as $p){
+$parentes .= "• {$p["nome"]} ({$p["vinculo"]})\n";
+}
+}else{
+$parentes = "NÃO ENCONTRADO";
+}
+
+/* VIZINHOS */
+$vizinhos = "";
+if(!empty($body["vizinhos"])){
+foreach($body["vizinhos"] as $v){
+$vizinhos .= "• {$v["nome"]} - {$v["logradouro"]}, {$v["numero"]}\n";
+}
+}else{
+$vizinhos = "NÃO ENCONTRADO";
+}
+
+/* SCORE */
+$score = v($body["serasa_completo"]["score"]["CSBA"] ?? null);
+
+/* CLASSE SOCIAL */
+$classe = v($body["social_class"]["social_class"] ?? null);
+
+/* PEDIDOS */
+$pedidos = "";
+if(!empty($body["paycom_orders"]["latest_orders"])){
+foreach($body["paycom_orders"]["latest_orders"] as $o){
+$pedidos .= "• Pedido {$o["order_id"]} ({$o["created_at"]})\n";
+}
+}else{
+$pedidos = "NÃO ENCONTRADO";
+}
+
+/* TXT */
+
+$txt = "
+╔══════════════════════════════╗
+   CONSULTA CPF ULTRA — ASTRO
+╚══════════════════════════════╝
+
+👤 DADOS PESSOAIS
+──────────────────────────────
 Nome: {$nome}
-
+CPF: {$cpf_mask}
 Sexo: {$sexo}
-Nascimento: {$nasc}
-Estado Civil: {$estadoCivil}
+Nascimento: {$nascimento}
 
+👪 FILIAÇÃO
+──────────────────────────────
 Mãe: {$mae}
 Pai: {$pai}
 
-Situação Receita: {$d["CD_SIT_CAD"]}
-Óbito: {$obito}
+📞 CONTATO
+──────────────────────────────
+Telefones:
+{$telefones}
 
+Emails:
+{$emails}
+
+🏠 ENDEREÇO PRINCIPAL
+──────────────────────────────
+{$endereco}
+
+📍 ENDEREÇOS SECUNDÁRIOS
+──────────────────────────────
+{$enderecos2}
+
+💰 FINANCEIRO
+──────────────────────────────
 Renda: {$renda}
+Status: {$status}
 Score: {$score}
+Classe Social: {$classe}
 
---------------------------------
-Consulta via:
-Astro Search (Nova API)
+🛒 ATIVIDADE (PAYCOM)
+──────────────────────────────
+{$pedidos}
+
+👨‍👩‍👧 PARENTES
+──────────────────────────────
+{$parentes}
+
+🏘 VIZINHOS
+──────────────────────────────
+{$vizinhos}
+
+──────────────────────────────
 ";
 
-    $file = tempnam(sys_get_temp_dir(), "cpf_");
-    file_put_contents($file, $txt);
+/* FILE */
+$file = tempnam(sys_get_temp_dir(),"cpf_");
+file_put_contents($file,$txt);
 
-    tg("sendDocument",[
-        "chat_id"=>$chat,
-        "document"=>new CURLFile($file, "text/plain", "cpf_{$cpf}.txt"),
-        "caption"=>"🧾 <b>Consulta de CPF concluída</b>\n\nCréditos: <b>Astro Search</b>",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
-                ]
-            ]
-        ])
-    ]);
+/* PREVIEW */
+$preview = "
+💎 <b>Consulta CPF ULTRA</b>
 
-    unlink($file);
+<blockquote>
+👤 {$nome}
+📄 {$cpf_mask}
+🎂 {$nascimento}
+⚖️ {$status}
+💰 R$ {$renda}
+</blockquote>
+
+📄 Relatório completo no TXT.
+";
+
+/* ENVIA */
+tg("sendDocument",[
+"chat_id"=>$chat,
+"document"=>new CURLFile($file,"text/plain","cpf_{$cpf}.txt"),
+"caption"=>$preview,
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+],
+[
+["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
+]
+]
+])
+]);
+
+unlink($file);
+
 }
 
 /* ================= START ================= */
@@ -3581,54 +3704,16 @@ $vipCmds = ["/cpf","/fotorj","/fotosp","/instagram","/cpf1","/cpf2","/cpf3","/cp
     bloquearConsulta($chat);
     exit;
 }
-
-        if($cmd === "/cpf"){
-
-    if(!$arg){
-        tutorial($chat,"/cpf");
-        exit;
-    }
-
-    tg("sendMessage",[
-        "chat_id"=>$chat,
-        "text"=>"🔎 <b>Selecione o tipo de consulta</b>\n\nCPF: <code>{$arg}</code>",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"📄 CPF Simples","callback_data"=>"cpf_simples|{$arg}"],
-                    ["text"=>"📑 CPF Full","callback_data"=>"cpf_full|{$arg}"]
-                ],
-                [
-                    ["text"=>"🏠 Vizinhos","callback_data"=>"cpf_vizinhos|{$arg}"],
-                    ["text"=>"👨‍👩‍👧 Parentes","callback_data"=>"cpf_parentes|{$arg}"]
-                ]
-            ]
-        ])
-    ]);
-
-    exit;
-}
         
         if($cmd === "/cpf1"){
             $arg ? consultaCPF1($chat, $arg) : tutorial($chat, "/cpf");
             exit;
         }
         
-        if($cmd === "/cpf2"){
-    consultaCPF2($chat, $arg);
-    exit;
-}
-
-if($cmd === "/cpf3"){
-    consultaCPF3($chat, $arg);
-    exit;
-}
-
-if($cmd === "/cpf4"){
-    consultaCpf4($chat, $arg);
-    exit;
-}
+         if($cmd === "/cpf"){
+            $arg ? consultaCPF($chat, $arg) : tutorial($chat, "/cpf");
+            exit;
+        }
 
 if($cmd === "/instagram"){
     consultaInstagram($chat,$arg);
