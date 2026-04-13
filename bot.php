@@ -2999,9 +2999,10 @@ function consultaPlaca($chat,$placa){
 global $STICKER_LOADING;
 
 function v($v){
-return ($v === null || $v === "" || $v === "SEM INFORMAÇÃO") ? "NÃO ENCONTRADO" : $v;
+return ($v === null || $v === "" || stripos($v,"Sem Informação") !== false) ? "NÃO ENCONTRADO" : $v;
 }
 
+/* LOADING */
 $sticker = tg("sendSticker",[
 "chat_id"=>$chat,
 "sticker"=>$STICKER_LOADING
@@ -3025,14 +3026,21 @@ tg("deleteMessage",[
 tg("sendMessage",[
 "chat_id"=>$chat,
 "text"=>"❌ Placa inválida.\nUse: <code>/placa ABC1234</code>",
-"parse_mode"=>"HTML"
+"parse_mode"=>"HTML",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+]
+]
+])
 ]);
 
 return;
 }
 
-/* API NOVA */
-$url = "https://knowsapi.shop/api/consulta/placa-v2?placa={$placa}&apikey=bigmouth";
+/* 🔥 NOVA API */
+$url = "https://astro.stherlionato.workers.dev/placa?token=astropro&placa={$placa}";
 
 $ch = curl_init();
 curl_setopt_array($ch,[
@@ -3058,20 +3066,54 @@ if(!$data || !$data["status"]){
 
 tg("sendMessage",[
 "chat_id"=>$chat,
-"text"=>"❌ Placa não encontrada."
+"text"=>"❌ Placa não encontrada.",
+"reply_markup"=>json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
+]
+]
+])
 ]);
 
 return;
 }
 
-$r = $data["resultado"];
-$v = $r["detalhes_veiculo"];
-$i = $r["identificadores"];
-$g = $r["geografia"];
-$l = $r["legal"];
-$p = $r["proprietario"];
+/* 🔥 PROCESSA NOVO FORMATO */
+$resultados = $data["dados"]["resultado"] ?? [];
 
-/* MONTA TXT */
+$textoBruto = "";
+foreach($resultados as $item){
+$textoBruto .= $item["titulo"]."\n".$item["conteudo"]."\n\n";
+}
+
+/* FUNÇÃO PRA PEGAR DADO */
+function pegar($texto,$campo){
+preg_match("/{$campo}: (.*)/i",$texto,$m);
+return $m[1] ?? "NÃO ENCONTRADO";
+}
+
+/* EXTRAÇÃO */
+$placa_v = pegar($textoBruto,"PLACA");
+$cor = pegar($textoBruto,"COR");
+$ano_fab = pegar($textoBruto,"ANO FABRICAÇÃO");
+$ano_mod = pegar($textoBruto,"ANO MODELO");
+$combustivel = pegar($textoBruto,"COMBUSTÍVEL");
+$potencia = pegar($textoBruto,"POTÊNCIA");
+$cilindradas = pegar($textoBruto,"CILINDRADAS");
+$tipo = pegar($textoBruto,"TIPO VEÍCULO");
+$especie = pegar($textoBruto,"ESPÉCIE");
+$chassi = pegar($textoBruto,"CHASSI");
+$renavam = pegar($textoBruto,"RENAVAM");
+$motor = pegar($textoBruto,"NÚMERO MOTOR");
+$origem = pegar($textoBruto,"PROCEDÊNCIA");
+$situacao = pegar($textoBruto,"SITUAÇÃO");
+$cidade = pegar($textoBruto,"MUNICÍPIO EMPLACAMENTO");
+$uf = pegar($textoBruto,"UF");
+$nome = pegar($textoBruto,"NOME");
+$doc = pegar($textoBruto,"DOCUMENTO");
+
+/* TXT */
 
 $txt = "
 ╔══════════════════════════════╗
@@ -3080,84 +3122,59 @@ $txt = "
 
 🚗 DADOS DO VEÍCULO
 ──────────────────────────────
-Placa: ".v($v["placa"])."
-Cor: ".v($v["cor"])."
-Ano Fabricação: ".v($v["ano_fab"])."
-Ano Modelo: ".v($v["ano_mod"])."
-Combustível: ".v($v["combustivel"])."
-Potência: ".v($v["potencia"])."
-Cilindradas: ".v($v["cilindradas"])."
-Tipo: ".v($v["tipo"])."
-Espécie: ".v($v["especie"])."
-Passageiros: ".v($v["passageiros"])."
+Placa: ".v($placa_v)."
+Cor: ".v($cor)."
+Ano Fabricação: ".v($ano_fab)."
+Ano Modelo: ".v($ano_mod)."
+Combustível: ".v($combustivel)."
+Potência: ".v($potencia)."
+Cilindradas: ".v($cilindradas)."
+Tipo: ".v($tipo)."
+Espécie: ".v($especie)."
 
 🔎 IDENTIFICADORES
 ──────────────────────────────
-Chassi: ".v($i["chassi"])."
-Renavam: ".v($i["renavam"])."
-Motor: ".v($i["motor"])."
-Origem: ".v($i["origem"])."
+Chassi: ".v($chassi)."
+Renavam: ".v($renavam)."
+Motor: ".v($motor)."
+Origem: ".v($origem)."
 
 🌍 LOCALIZAÇÃO
 ──────────────────────────────
-Atual: ".v($g["atual"])."
-Fabricação: ".v($g["fabricacao"])."
+Cidade: ".v($cidade)."
+UF: ".v($uf)."
 
-⚖️ SITUAÇÃO LEGAL
+⚖️ SITUAÇÃO
 ──────────────────────────────
-Situação: ".v($l["situacao"])."
-Última Atualização: ".v($l["ultima_atualizacao"])."
-Emissão CRV: ".v($l["emissao_crv"])."
-";
-
-/* RESTRIÇÕES */
-$txt .= "
-⚠️ RESTRIÇÕES
-──────────────────────────────
-";
-
-if(!empty($l["restricoes"])){
-foreach($l["restricoes"] as $res){
-$txt .= v($res)."\n";
-}
-}else{
-$txt .= "NENHUMA\n";
-}
-
-/* PROPRIETÁRIO */
-$txt .= "
+Situação: ".v($situacao)."
 
 👤 PROPRIETÁRIO
 ──────────────────────────────
-Nome: ".v($p["nome"])."
-Documento: ".v($p["documento"])."
-";
-
-/* FINAL */
-$txt .= "
+Nome: ".v($nome)."
+Documento: ".v($doc)."
 
 ──────────────────────────────
-Consulta realizada via:
-ASTRO SEARCH ULTRA
+Consulta via ASTRO ULTRA
 ";
 
-/* CRIA ARQUIVO */
+/* ARQUIVO */
 $file = tempnam(sys_get_temp_dir(),"placa_");
 file_put_contents($file,$txt);
 
 /* PREVIEW */
+
 $preview = "
 💎 <b>Consulta VIP Realizada</b>
 
 <blockquote>
-🚗 Placa: ".v($v["placa"])."
-🎨 Cor: ".v($v["cor"])."
-📅 ".v($v["ano_mod"])."
-⚖️ Situação: ".v($l["situacao"])."
-📍 ".v($g["atual"])."
+🚗 Placa: ".v($placa_v)."
+🎨 Cor: ".v($cor)."
+📅 ".v($ano_mod)."
+⚖️ Situação: ".v($situacao)."
+📍 ".v($cidade)." - ".v($uf)."
 </blockquote>
 
-📄 Relatório completo disponível no arquivo TXT.
+📄 Relatório completo no TXT.
 ";
 
 /* ENVIA */
