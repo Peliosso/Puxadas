@@ -22,7 +22,7 @@ $API   = "https://api.telegram.org/bot{$TOKEN}";
 $START_PHOTO = "https://conventional-magenta-fxkyikrbqe.edgeone.app/E8D6A8B8-36F3-4AE0-8493-E2C66DF18EF3.png";
 
 /* PIX */
-$PIX_VALOR = "15.00"; // ponto, não vírgula
+$PIX_VALOR = "20.00"; // ponto, não vírgula
 $PIX_CHAVE = "f0d0f3b1-8776-4f06-a254-b6ea3686f71a";
 $PIX_NOME  = "Gabriel Lorenzo";
 $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBLduZ5vHwXjSs4BA";
@@ -3859,7 +3859,7 @@ if($data == "menu_cep"){
     // =========================
 if($data == "gerar_pix"){
 
-    $url = "https://promstpagamentos.discloud.app/create_payment?user_id=7320236887&valor=15.00";
+    $url = "https://promstpagamentos.discloud.app/create_payment?user_id=7320236887&valor=20.00";
 
     $response = @file_get_contents($url);
     $json = json_decode($response,true);
@@ -3874,7 +3874,7 @@ if($data == "gerar_pix"){
         exit;
     }
 
-    $valor = $json["valor"] ?? "15.00";
+    $valor = $json["valor"] ?? "20.00";
     $txid  = $json["txid"] ?? "";
     $pix   = $json["pixCopiaECola"];
 
