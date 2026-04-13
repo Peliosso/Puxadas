@@ -524,7 +524,7 @@ Seu plano atual é <b>Gratuito</b> e possui limitações.
 • Sem limites  
 
 ━━━━━━━━━━━━━━━
-💰 <b>Pagamento único: R$ 15,00</b>
+💰 <b>Pagamento único: R$ 20,00</b>
 
 🚀 Liberação instantânea após pagamento
 
@@ -3842,7 +3842,7 @@ if($data == "menu_cep"){
         tg("editMessageCaption",[
             "chat_id"=>$chat,
             "message_id"=>$msg,
-            "caption"=>"⭐ <b>PLANO VITALÍCIO</b>\n\n💰 R$ 15,00\n\nClique abaixo 👇",
+            "caption"=>"⭐ <b>PLANO VITALÍCIO</b>\n\n💰 R$ 20,00\n\nClique abaixo 👇",
             "parse_mode"=>"HTML",
             "reply_markup"=>json_encode([
                 "inline_keyboard"=>[
@@ -3885,7 +3885,7 @@ if($data == "gerar_pix"){
     tg("editMessageCaption",[
         "chat_id"=>$chat,
         "message_id"=>$msg,
-        "caption"=>"💰 <b>R$ {$valor}</b>\n\n🔑 <code>{$txid}</code>\n\n📋 <b>PIX Copia e Cola:</b>\n<code>{$pix}</code>",
+        "caption"=>"💰 <b>R$ 20,00</b>\n\n🔑 <code>{$txid}</code>\n\n📋 <b>PIX Copia e Cola:</b>\n<code>{$pix}</code>",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
