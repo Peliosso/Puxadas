@@ -7,6 +7,14 @@ set_time_limit(0);
 header("Content-Type: application/json");
 http_response_code(200);
 
+$PLANOS = [
+    "diario" => 10.00,
+    "mensal" => 20.00,
+    "vitalicio" => 30.00
+];
+
+$GATEWAY_USER_ID = "7320236887";
+
 /* LER UPDATE UMA VEZ */
 $update = json_decode(file_get_contents("php://input"), true);
 
@@ -324,12 +332,6 @@ global $VIP_IDS;
 if(in_array($id,$VIP_IDS)){
 return true;
 }
-
-$PLANOS = [
-    "diario" => 10.00,
-    "mensal" => 20.00,
-    "vitalicio" => 30.00
-];
 
 $vipFile = __DIR__."/vip_users.json";
 
