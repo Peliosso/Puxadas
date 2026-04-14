@@ -367,6 +367,8 @@ function isGroupChat($type){
 define("VIP_CODES_DB","vip_codes.json");
 $OWNER_ID = 7320236887;
 
+define("WELCOME_DB", "welcome.json");
+
 /* ================= FREE MODE GRUPOS ================= */
 
 define("FREE_DB","free_groups.json");
@@ -407,14 +409,78 @@ function isFreeGroup($chat){
     return true;
 }
 
+function setWelcome($chat,$status){
+
+    $data = [];
+
+    if(file_exists(WELCOME_DB)){
+        $data = json_decode(file_get_contents(WELCOME_DB), true);
+    }
+
+    $data[$chat] = $status;
+
+    file_put_contents(WELCOME_DB, json_encode($data));
+}
+
+function isWelcome($chat){
+
+    if(!file_exists(WELCOME_DB)){
+        return false;
+    }
+
+    $data = json_decode(file_get_contents(WELCOME_DB), true);
+
+    return isset($data[$chat]) && $data[$chat] == 1;
+}
+
 /* ================= UPDATE ================= */
 
 $message  = $update["message"] ?? null;
 $callback = $update["callback_query"] ?? null;
-$msgId = $message["message_id"] ?? null;
-$chat  = $message["chat"]["id"] ?? null;
-$userId = $message["from"]["id"] ?? null;
+
+$msgId   = $message["message_id"] ?? null;
+$chat    = $message["chat"]["id"] ?? null;
+$userId  = $message["from"]["id"] ?? null;
 $chatType = $message["chat"]["type"] ?? null;
+
+// 👋 NOVOS MEMBROS
+if($message && isset($message["new_chat_members"])){
+
+    if(!isWelcome($chat)){
+        return;
+    }
+
+    foreach($message["new_chat_members"] as $user){
+
+        $nome = $user["first_name"];
+        $id   = $user["id"];
+
+        $texto =
+"👋 <b>Bem-vindo ao Astro Search!</b>
+
+Olá, <a href=\"tg://user?id={$id}\"><b>{$nome}</b></a> 🚀
+
+🔎 Aqui você pode fazer diversas consultas.
+
+💎 Para acesso completo, adquira o VIP.
+
+👇 Use o menu abaixo para começar:";
+
+        tg("sendPhoto",[
+            "chat_id"=>$chat,
+            "photo"=>$START_PHOTO,
+            "caption"=>$texto,
+            "parse_mode"=>"HTML",
+            "reply_markup"=>json_encode([
+                "inline_keyboard"=>[
+                    [
+                        ["text"=>"🚀 Abrir Menu","url"=>"https://t.me/SEU_BOT"]
+                    ]
+                ]
+            ])
+        ]);
+    }
+}
 
 /* APAGAR COMANDOS NO GRUPO (EXCETO DO ADMIN) */
 
@@ -3584,6 +3650,42 @@ if($message && isset($message["text"])){
         menuPrincipal($chat_id, $nome, $user_id);
         exit;
     }
+}
+
+if($message && isset($message["text"])){
+
+$text = $message["text"];
+
+// 🔹 ATIVAR/DESATIVAR WELCOME
+if(strpos($text, "/setwelcome") === 0){
+
+    if($chatType == "private"){
+        return;
+    }
+
+    if($userId != $ADMIN_ID){
+        return;
+    }
+
+    $args = explode(" ", $text);
+    $status = $args[1] ?? null;
+
+    if($status != "1" && $status != "0"){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"⚙️ Use:\n<code>/setwelcome 1</code> para ativar\n<code>/setwelcome 0</code> para desativar",
+            "parse_mode"=>"HTML"
+        ]);
+        return;
+    }
+
+    setWelcome($chat, $status);
+
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>$status == 1 ? "✅ Welcome ativado!" : "❌ Welcome desativado!"
+    ]);
+}
 }
 
 /* ================= COMANDOS ================= */
