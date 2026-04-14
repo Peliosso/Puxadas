@@ -475,7 +475,7 @@ Olá, <a href=\"tg://user?id={$id}\"><b>{$nome}</b></a> 🚀
             "reply_markup"=>json_encode([
                 "inline_keyboard"=>[
                     [
-                        ["text"=>"🚀 Abrir Menu","url"=>"https://t.me/SEU_BOT"]
+                        ["text"=>"🚀 Abrir Menu","url"=>"https://t.me/consultasdedados_bot"]
                     ]
                 ]
             ])
