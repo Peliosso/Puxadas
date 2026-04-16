@@ -483,6 +483,22 @@ Olá, <a href=\"tg://user?id={$id}\"><b>{$nome}</b></a> 🚀
     }
 }
 
+if(isset($update["message"])){
+
+    $chat_id = $update["message"]["chat"]["id"];
+    $message_id = $update["message"]["message_id"];
+
+    // Ignora mensagens privadas (opcional)
+    if($update["message"]["chat"]["type"] != "private"){
+
+        // Tempo em segundos (ex: 10 segundos)
+        sleep(10);
+
+        // Deletar mensagem
+        file_get_contents($API . "/deleteMessage?chat_id={$chat_id}&message_id={$message_id}");
+    }
+}
+
 /* APAGAR COMANDOS NO GRUPO (EXCETO DO ADMIN) */
 
 $ADMIN_ID = 7320236887; // seu ID
