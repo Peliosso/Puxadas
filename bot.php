@@ -8,9 +8,9 @@ header("Content-Type: application/json");
 http_response_code(200);
 
 $PLANOS = [
-    "diario" => 10.00,
+    "diario" => 15.00,
     "mensal" => 20.00,
-    "vitalicio" => 30.00
+    "vitalicio" => 25.00
 ];
 
 $GATEWAY_USER_ID = "8751158979";
