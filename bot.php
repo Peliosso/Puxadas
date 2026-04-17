@@ -627,9 +627,9 @@ Seu plano atual é <b>Gratuito</b> e possui limitações.
 ━━━━━━━━━━━━━━━
 💰 <b>Planos disponíveis:</b>
 
-📅 Diário: R$ 10,00  
+📅 Diário: R$ 15,00  
 📆 Mensal: R$ 20,00  
-👑 Vitalício: R$ 30,00  
+👑 Vitalício: R$ 25,00  
 
 🚀 Liberação automática após pagamento
 
@@ -4071,16 +4071,16 @@ if($data == "planos"){
     tg("editMessageCaption",[
         "chat_id"=>$chat,
         "message_id"=>$msg,
-        "caption"=>"⭐ <b>ESCOLHA SEU PLANO</b>\n\n💰 Diário: R$ 10,00\n💰 Mensal: R$ 20,00\n💰 Vitalício: R$ 30,00",
+        "caption"=>"⭐ <b>ESCOLHA SEU PLANO</b>\n\n💰 Diário: R$ 15,00\n💰 Mensal: R$ 20,00\n💰 Vitalício: R$ 25,00",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
                 [
-                    ["text"=>"📅 Diário - R$10","callback_data"=>"gerar_pix_diario"],
+                    ["text"=>"📅 Diário - R$15","callback_data"=>"gerar_pix_diario"],
                     ["text"=>"📆 Mensal - R$20","callback_data"=>"gerar_pix_mensal"]
                 ],
                 [
-                    ["text"=>"👑 Vitalício - R$30","callback_data"=>"gerar_pix_vitalicio"]
+                    ["text"=>"👑 Vitalício - R$25","callback_data"=>"gerar_pix_vitalicio"]
                 ],
                 [
                     ["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
