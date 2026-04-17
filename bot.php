@@ -1469,7 +1469,7 @@ function consultaVizinhos($chat, $cpf){
     }
 
     // 🔥 NOVA API CPF
-    $url = "https://obitostore.shop/api/consulta/cpf4?cpf={$cpf}&apikey=bigmouthh";
+    $url = "https://obitostore.shop/api/consulta/cpf4?cpf={$cpf}&apikey=Teste";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -1845,7 +1845,7 @@ function consultaTelefone($chat, $telefone) {
     }
 
     // NOVA API
-    $url = "https://obitostore.shop/api/consulta/telefone?telefone={$telefone}&apikey=bigmouthh";
+    $url = "https://obitostore.shop/api/consulta/telefone?telefone={$telefone}&apikey=Teste";
 
     $ch = curl_init();
     curl_setopt_array($ch, [
@@ -2008,7 +2008,7 @@ function consultaNome($chat, $nome) {
 
     // Nova API
     $nomeUrl = urlencode($nome);
-    $url = "https://obitostore.shop/api/consulta/nome3?nome={$nomeUrl}&apikey=bigmouthh";
+    $url = "https://obitostore.shop/api/consulta/nome3?nome={$nomeUrl}&apikey=Teste";
 
     $ch = curl_init();
     curl_setopt_array($ch, [
@@ -2412,7 +2412,7 @@ function consultaParentes($chat, $cpf){
     }
 
     // 🔥 NOVA API CPF
-    $url = "https://obitostore.shop/api/consulta/cpf4?cpf={$cpf}&apikey=bigmouthh";
+    $url = "https://obitostore.shop/api/consulta/cpf4?cpf={$cpf}&apikey=Teste";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
@@ -2530,7 +2530,7 @@ function consultaCPF1($chat, $cpf) {
     }
 
     // Consulta API
-    $url = "https://obitostore.shop/api/consulta/cpf5?cpf={$cpf}&apikey=bigmouthh";
+    $url = "https://obitostore.shop/api/consulta/cpf5?cpf={$cpf}&apikey=Teste";
     $resp = @file_get_contents($url);
     $json = json_decode($resp, true);
 
