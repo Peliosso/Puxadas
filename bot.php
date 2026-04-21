@@ -13,7 +13,7 @@ $PLANOS = [
     "vitalicio" => 25.00
 ];
 
-$GATEWAY_USER_ID = "8751158979";
+$GATEWAY_USER_ID = "8374452852";
 
 /* LER UPDATE UMA VEZ */
 $update = json_decode(file_get_contents("php://input"), true);
@@ -48,7 +48,7 @@ $BANIDOS = [
 ];
 
 $PAYMENTS = [];
-$GATEWAY_USER_ID = "8751158979";
+$GATEWAY_USER_ID = "8374452852";
 
 function isVip($id){
 
