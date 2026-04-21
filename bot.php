@@ -1983,11 +1983,10 @@ function consultaNome($chat, $nome) {
 
     global $STICKER_LOADING;
 
-    // Função auxiliar
     function v($v) {
         return ($v === null || $v === "" || stripos($v, "DESCONHECIDO") !== false)
             ? "NÃO ENCONTRADO"
-            : $v;
+            : trim($v);
     }
 
     // Sticker loading
@@ -2015,9 +2014,9 @@ function consultaNome($chat, $nome) {
         return;
     }
 
-    // Nova API
+    // 🔥 NOVA API
     $nomeUrl = urlencode($nome);
-    $url = "https://obitostore.shop/api/consulta/nome3?nome={$nomeUrl}&apikey=Teste";
+    $url = "https://sara-api.xyz/api/consulta/nome?apikey=artigo%23171_b&nome={$nomeUrl}";
 
     $ch = curl_init();
     curl_setopt_array($ch, [
@@ -2039,18 +2038,16 @@ function consultaNome($chat, $nome) {
     }
 
     // Validação resposta
-    if (!$data || empty($data["resultado"])) {
+    if (
+        !$data ||
+        empty($data["status"]) ||
+        empty($data["resultado"]["body"])
+    ) {
         naoEncontrado($chat, "NOME", $nome);
         return;
     }
 
-    // Parse do resultado
-    preg_match_all("/NOME: (.+?)\s+CPF: (.+?)\s+DATA DE NASCIMENTO: (.+?)\s+SEXO: (.+?)\s+NOME DA MÃE: (.+?)\s+SITUAÇÃO CADASTRAL: (.+?)\s+ENDEREÇO COMPLETO: (.+?)(?:\n\n|$)/i", $data["resultado"], $matches, PREG_SET_ORDER);
-
-    if (empty($matches)) {
-        naoEncontrado($chat, "NOME", $nome);
-        return;
-    }
+    $results = $data["resultado"]["body"];
 
     // TXT COMPLETO
     $txt = "
@@ -2064,24 +2061,20 @@ function consultaNome($chat, $nome) {
 
 📊 TOTAL ENCONTRADOS
 ──────────────────────────────
-".count($matches)."
+".count($results)."
 ";
 
-    foreach ($matches as $pessoa) {
+    foreach ($results as $pessoa) {
+
         $txt .= "
 
 👤 DADOS ENCONTRADOS
 ──────────────────────────────
-Nome: ".v($pessoa[1] ?? null)."
-CPF: ".v($pessoa[2] ?? null)."
-Nascimento: ".v($pessoa[3] ?? null)."
-Sexo: ".v($pessoa[4] ?? null)."
-Mãe: ".v($pessoa[5] ?? null)."
-Situação: ".v($pessoa[6] ?? null)."
-
-🏠 ENDEREÇO
-──────────────────────────────
-".v($pessoa[7] ?? null)."
+Nome: ".v($pessoa["name"] ?? null)."
+CPF: ".v($pessoa["cpf"] ?? null)."
+Nascimento: ".v($pessoa["birth_date"] ?? null)."
+Sexo: ".v($pessoa["gender"] ?? null)."
+Mãe: ".v($pessoa["mother_name"] ?? null)."
 
 ──────────────────────────────
 ";
@@ -2096,17 +2089,17 @@ ASTRO SEARCH
     $file = tempnam(sys_get_temp_dir(), "nome_");
     file_put_contents($file, $txt);
 
-    $pessoa = $matches[0] ?? [];
+    $pessoa = $results[0] ?? [];
 
     // Preview VIP
     $preview = "
 💎 <b>Consulta VIP Realizada</b>
 
 <blockquote>
-👤 ".v($pessoa[1] ?? null)."
-🪪 ".v($pessoa[2] ?? null)."
-🎂 ".v($pessoa[3] ?? null)."
-⚧ ".v($pessoa[4] ?? null)."
+👤 ".v($pessoa["name"] ?? null)."
+🪪 ".v($pessoa["cpf"] ?? null)."
+🎂 ".v($pessoa["birth_date"] ?? null)."
+⚧ ".v($pessoa["gender"] ?? null)."
 </blockquote>
 
 📄 Relatório completo disponível no arquivo.
@@ -2515,64 +2508,198 @@ Astro Search (Nova API)
 }
 
 function consultaCPF1($chat, $cpf) {
+
     global $STICKER_LOADING;
 
-    // Envia sticker de carregando
+    function v($v) {
+        return ($v === null || $v === "" || stripos($v, "NULL") !== false)
+            ? "NÃO ENCONTRADO"
+            : trim($v);
+    }
+
+    // Loading
     $sticker = tg("sendSticker", [
-        "chat_id" => $chat,
-        "sticker" => $STICKER_LOADING
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
     ]);
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
     $cpf = preg_replace('/\D/', '', $cpf);
+
     if (strlen($cpf) != 11) {
         if ($stickerMsgId) {
-            tg("deleteMessage", ["chat_id" => $chat, "message_id" => $stickerMsgId]);
+            tg("deleteMessage", ["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
         }
         tg("sendMessage", [
-            "chat_id" => $chat,
-            "text" => "❌ CPF inválido.\nUse: <code>/cpf5 00000000000</code>",
-            "parse_mode" => "HTML"
+            "chat_id"=>$chat,
+            "text"=>"❌ CPF inválido.\nUse: <code>/cpf 00000000000</code>",
+            "parse_mode"=>"HTML"
         ]);
         return;
     }
 
-    // Consulta API
-    $url = "https://obitostore.shop/api/consulta/cpf5?cpf={$cpf}&apikey=Teste";
-    $resp = @file_get_contents($url);
-    $json = json_decode($resp, true);
+    // API
+    $url = "https://sara-api.xyz/api/consulta/cpf?apikey=artigo%23171_b&cpf={$cpf}";
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL=>$url,
+        CURLOPT_RETURNTRANSFER=>true,
+        CURLOPT_TIMEOUT=>20
+    ]);
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $json = json_decode($response, true);
 
     if ($stickerMsgId) {
-        tg("deleteMessage", ["chat_id" => $chat, "message_id" => $stickerMsgId]);
+        tg("deleteMessage", ["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
     }
 
-    if (!$json || $json["status"] != "ok") {
+    if (!$json || empty($json["status"]) || empty($json["resultado"]["body"])) {
         naoEncontrado($chat, "CPF", $cpf);
         return;
     }
 
-    $p = $json["resultado"]; // resultado vem como string, precisa tratar se quiser separar campos
+    $p = $json["resultado"]["body"];
 
-    // Monta arquivo TXT com todos os dados retornados
-    $txt = "CONSULTA CPF — FULL\n=================================\n\n";
-    $txt .= $p; // Mantém o retorno completo como string
+    // =========================
+    // TXT FULL
+    // =========================
 
-    $txt .= "\n--------------------------------\nConsulta via: Astro Search";
+    $txt = "
+╔══════════════════════════════╗
+   CONSULTA CPF — ASTRO SEARCH
+╚══════════════════════════════╝
 
+👤 DADOS PESSOAIS
+──────────────────────────────
+Nome: ".v($p["name"])."
+CPF: ".v($p["cpf_masked"])."
+Sexo: ".v($p["gender"])."
+Nascimento: ".v($p["birth_date"])."
+Mãe: ".v($p["mother_name"])."
+Pai: ".v($p["father_name"])."
+RG: ".v($p["rg"])."
+Situação: ".v($p["federal_status"])."
+Renda: ".v($p["income"])."
+Classe Social: ".v($p["social_class"]["social_class"] ?? null)."
+
+📞 CONTATOS
+──────────────────────────────
+Email: ".v($p["email"])."
+Emails adicionais: ".(empty($p["additional_emails"]) ? "NÃO ENCONTRADO" : implode(", ", $p["additional_emails"]))."
+Telefones: ".(empty($p["phones"]) ? "NÃO ENCONTRADO" : implode(", ", $p["phones"]))."
+
+🏠 ENDEREÇO PRINCIPAL
+──────────────────────────────
+".v($p["address"]["type"])." ".v($p["address"]["street"]).", ".v($p["address"]["number"])."
+Bairro: ".v($p["address"]["neighborhood"])."
+Cidade: ".v($p["address"]["city"])." - ".v($p["address"]["state"])."
+CEP: ".v($p["address"]["zip_code"])."
+";
+
+    // TODOS ENDEREÇOS
+    if (!empty($p["all_addresses"])) {
+        $txt .= "\n📍 TODOS ENDEREÇOS\n──────────────────────────────\n";
+        foreach ($p["all_addresses"] as $a) {
+            $txt .= "
+".v($a["street"]).", ".v($a["number"])."
+".v($a["city"])." - ".v($a["state"])."
+CEP: ".v($a["zip_code"])."
+Fonte: ".v($a["source"] ?? null)."
+------------------------";
+        }
+    }
+
+    // PARENTES
+    if (!empty($p["parentes"])) {
+        $txt .= "\n\n👨‍👩‍👧 PARENTES\n──────────────────────────────\n";
+        foreach ($p["parentes"] as $parente) {
+            $txt .= v($parente["nome"])." (".$parente["vinculo"].") - CPF: ".v($parente["cpf"])."\n";
+        }
+    }
+
+    // VIZINHOS
+    if (!empty($p["vizinhos"])) {
+        $txt .= "\n\n🏘 VIZINHOS\n──────────────────────────────\n";
+        foreach ($p["vizinhos"] as $vizin) {
+            $txt .= v($vizin["nome"])." - ".v($vizin["logradouro"]).", ".v($vizin["numero"])."\n";
+        }
+    }
+
+    // PEDIDOS
+    if (!empty($p["paycom_orders"]["latest_orders"])) {
+        $txt .= "\n\n🛒 ÚLTIMOS PEDIDOS\n──────────────────────────────\n";
+        foreach ($p["paycom_orders"]["latest_orders"] as $o) {
+            $txt .= "Pedido: ".$o["order_id"]." | ".$o["created_at"]."\n";
+        }
+    }
+
+    // SCORE
+    if (!empty($p["serasa_completo"]["score"])) {
+        $txt .= "\n\n📊 SCORE\n──────────────────────────────\n";
+        $txt .= "CSB8: ".v($p["serasa_completo"]["score"]["CSB8"])."\n";
+        $txt .= "Faixa: ".v($p["serasa_completo"]["score"]["CSB8_FAIXA"])."\n";
+    }
+
+    // PODER AQUISITIVO
+    if (!empty($p["poder_aquisitivo"])) {
+        $txt .= "\n\n💰 PODER AQUISITIVO\n──────────────────────────────\n";
+        $txt .= v($p["poder_aquisitivo"]["PODER_AQUISITIVO"])."\n";
+        $txt .= v($p["poder_aquisitivo"]["FX_PODER_AQUISITIVO"])."\n";
+    }
+
+    // TELEFONES HISTÓRICO
+    if (!empty($p["historico_telefones"])) {
+        $txt .= "\n\n📞 HISTÓRICO TELEFONES\n──────────────────────────────\n";
+        foreach ($p["historico_telefones"] as $t) {
+            $txt .= v($t["telefone"])." (".$t["tipo"].")\n";
+        }
+    }
+
+    $txt .= "\n\nConsulta via: ASTRO SEARCH";
+
+    // Arquivo
     $file = tempnam(sys_get_temp_dir(), "cpf_");
     file_put_contents($file, $txt);
 
+    // Preview
+    $preview = "
+💎 <b>Consulta VIP Completa</b>
+
+<blockquote>
+👤 ".v($p["name"])."
+🪪 ".v($p["cpf_masked"])."
+🎂 ".v($p["birth_date"])."
+⚧ ".v($p["gender"])."
+📊 ".v($p["federal_status"])."
+</blockquote>
+
+📦 Dados completos liberados:
+• Endereços
+• Telefones
+• Parentes
+• Score
+• Vizinhos
+• Compras
+
+🔓 <i>Acesso total via TXT.</i>
+";
+
     tg("sendDocument", [
-        "chat_id" => $chat,
-        "document" => new CURLFile($file, "text/plain", "cpf_{$cpf}.txt"),
-        "caption" => "🧾 <b>Consulta de CPF concluída</b>\n\n⚡ API: <b>Astro</b>",
-        "parse_mode" => "HTML",
-        "reply_markup" => json_encode([
-            "inline_keyboard" => [
+        "chat_id"=>$chat,
+        "document"=>new CURLFile($file, "text/plain", "cpf_{$cpf}.txt"),
+        "caption"=>$preview,
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
                 [
-                    ["text" => "🗑 Apagar", "callback_data" => "apagar_msg"],
-                    ["text" => "💎 • Ativar VIP", "callback_data" => "planos"]
+                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+                ],
+                [
+                    ["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
                 ]
             ]
         ])
