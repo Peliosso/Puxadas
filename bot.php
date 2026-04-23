@@ -13,7 +13,7 @@ $PLANOS = [
     "vitalicio" => 25.00
 ];
 
-$GATEWAY_USER_ID = "8374452852";
+$GATEWAY_USER_ID = "8751158979";
 
 /* LER UPDATE UMA VEZ */
 $update = json_decode(file_get_contents("php://input"), true);
@@ -39,8 +39,10 @@ $STICKER_LOADING = "CAACAgIAAxkBAAEQUkBpdQ4VdCPwAybo7q4AAVMxYnM6HzYAAhYMAAL5LuBL
 
 $VIP_IDS = [
     8750007118,
+    8751158979,
     5805915267,
     1236474129,
+    1087968824,
 ];
 
 $BANIDOS = [
@@ -48,7 +50,7 @@ $BANIDOS = [
 ];
 
 $PAYMENTS = [];
-$GATEWAY_USER_ID = "8374452852";
+$GATEWAY_USER_ID = "8751158979";
 
 function isVip($id){
 
@@ -84,7 +86,7 @@ function isGroupChat($type){
 }
 
 define("VIP_CODES_DB","vip_codes.json");
-$OWNER_ID = 7320236887;
+$OWNER_ID = 8751158979;
 
 define("WELCOME_DB", "welcome.json");
 
