@@ -1698,16 +1698,19 @@ function share(){
 </html>
 ";
 
-    // salva
-    $file = "consulta_" . md5(time().$telefone) . ".html";
-    $path = __DIR__ . "/temp/" . $file;
+$payload = base64_encode(json_encode([
+    "nome" => $nome,
+    "cpf" => $cpf,
+    "telefone" => $telefone,
+    "cidade" => $cidade,
+    "uf" => $uf
+]));
 
-    file_put_contents($path, $html);
+$link = "https://astro.stherlionato.workers.dev/view?data=" . urlencode($payload);
 
-    $link = "https://SEUDOMINIO.com/temp/".$file;
-
-    // 🔥 mensagem limpa + curiosidade
-    $msg = "
+tg("sendMessage", [
+    "chat_id" => $chat,
+    "text" => "
 💎 <b>Consulta concluída</b>
 
 <blockquote>
@@ -1715,16 +1718,26 @@ function share(){
 👤 {$nome}
 </blockquote>
 
-🔗 <a href='{$link}'>Acessar resultado</a>
-";
-
-    tg("sendMessage", [
-        "chat_id" => $chat,
-        "text" => $msg,
-        "parse_mode" => "HTML",
-        "disable_web_page_preview" => false
-    ]);
-}
+⚠️ <i>Disponível por tempo limitado</i>
+",
+    "parse_mode" => "HTML",
+    "reply_markup" => json_encode([
+        "inline_keyboard" => [
+            [
+                [
+                    "text" => "📄 • Visualizar",
+                    "url" => $link
+                ]
+            ],
+            [
+                [
+                    "text" => "🗑 Apagar",
+                    "callback_data" => "apagar_msg"
+                ]
+            ]
+        ]
+    ])
+]);
 
 function consultaNome($chat, $nome) {
 
