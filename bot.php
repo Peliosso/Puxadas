@@ -1542,12 +1542,14 @@ function consultaTelefone($chat, $telefone) {
         "chat_id" => $chat,
         "sticker" => $STICKER_LOADING
     ]);
+
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
     $telefone = preg_replace('/\D/', '', $telefone);
 
     if (strlen($telefone) < 10) {
+
         if ($stickerMsgId) {
             tg("deleteMessage", [
                 "chat_id" => $chat,
@@ -1563,7 +1565,7 @@ function consultaTelefone($chat, $telefone) {
         return;
     }
 
-    // 🔥 NOVA API
+    // 🔥 API
     $url = "https://astro.stherlionato.workers.dev/telefone_full?token=astropro&telefone={$telefone}";
     $response = file_get_contents($url);
     $data = json_decode($response, true);
@@ -1575,142 +1577,34 @@ function consultaTelefone($chat, $telefone) {
         ]);
     }
 
-    if (!$data || !$data["dados"]["resultado"]["success"]) {
+    if (!$data || !$data["dados"]["resultado"]) {
         naoEncontrado($chat, "TELEFONE", $telefone);
         return;
     }
 
-    $info = $data["dados"]["resultado"]["data"][0] ?? [];
+    $info = $data["dados"]["resultado"][0] ?? [];
 
     $nome = v($info["nome"]);
     $cpf = v($info["cpf"]);
     $cidade = v($info["cidade"]);
     $uf = v($info["uf"]);
 
-    // 🔥 HTML PREMIUM
-    $html = "
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset='UTF-8'>
-<title>Consulta</title>
+    // 🔥 PAYLOAD
+    $payload = base64_encode(json_encode([
+        "nome" => $nome,
+        "cpf" => $cpf,
+        "telefone" => $telefone,
+        "cidade" => $cidade,
+        "uf" => $uf
+    ]));
 
-<style>
-body {
-    margin:0;
-    background:#050505;
-    color:#fff;
-    font-family:-apple-system;
-    overflow:hidden;
-}
-canvas {position:fixed;top:0;left:0;}
+    // 🔥 LINK FINAL (WORKER)
+    $link = "https://astro.stherlionato.workers.dev/view?data=" . urlencode($payload);
 
-.card {
-    position:relative;
-    z-index:2;
-    width:360px;
-    margin:10% auto;
-    padding:25px;
-    border-radius:18px;
-    background:rgba(255,255,255,0.03);
-    backdrop-filter: blur(20px);
-    border:1px solid rgba(255,255,255,0.08);
-    box-shadow:0 0 40px rgba(0,255,150,0.08);
-    animation:fade 0.8s ease;
-}
-
-h1 {font-size:16px;margin-bottom:15px;}
-.line {margin-bottom:10px;font-size:14px;}
-.label {color:#888;font-size:11px;}
-.value {display:block;}
-
-.share {
-    position:absolute;
-    top:20px;
-    right:20px;
-    width:18px;
-    opacity:0.6;
-    cursor:pointer;
-}
-.share:hover {opacity:1;}
-
-@keyframes fade {
-    from {opacity:0;transform:translateY(10px);}
-    to {opacity:1;}
-}
-</style>
-</head>
-
-<body>
-
-<canvas id='stars'></canvas>
-
-<div class='card'>
-
-<svg class='share' onclick='share()' viewBox='0 0 24 24' fill='white'>
-<path d='M18 16a3 3 0 0 0-2.4 1.2L8.9 13a3 3 0 0 0 0-2l6.7-4.2A3 3 0 1 0 14 5a3 3 0 0 0 .1.8L7.4 10a3 3 0 1 0 0 4l6.7 4.2A3 3 0 1 0 18 16z'/>
-</svg>
-
-<h1>🔍 Consulta</h1>
-
-<div class='line'><span class='label'>Nome</span><span class='value'>{$nome}</span></div>
-<div class='line'><span class='label'>CPF</span><span class='value'>{$cpf}</span></div>
-<div class='line'><span class='label'>Telefone</span><span class='value'>{$telefone}</span></div>
-<div class='line'><span class='label'>Local</span><span class='value'>{$cidade} - {$uf}</span></div>
-
-</div>
-
-<script>
-// ⭐ partículas minimalistas
-const c = document.getElementById('stars');
-const ctx = c.getContext('2d');
-c.width = innerWidth;
-c.height = innerHeight;
-
-let stars = Array.from({length: 60}, () => ({
-    x: Math.random()*c.width,
-    y: Math.random()*c.height,
-    r: Math.random()*1.2,
-    d: Math.random()*0.5
-}));
-
-function draw(){
-    ctx.clearRect(0,0,c.width,c.height);
-    ctx.fillStyle='#00ff9c';
-    stars.forEach(s=>{
-        ctx.beginPath();
-        ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-        ctx.fill();
-        s.y += s.d;
-        if(s.y>c.height) s.y=0;
-    });
-    requestAnimationFrame(draw);
-}
-draw();
-
-// 🔗 share discreto
-function share(){
-    navigator.clipboard.writeText(window.location.href);
-}
-</script>
-
-</body>
-</html>
-";
-
-$payload = base64_encode(json_encode([
-    "nome" => $nome,
-    "cpf" => $cpf,
-    "telefone" => $telefone,
-    "cidade" => $cidade,
-    "uf" => $uf
-]));
-
-$link = "https://astro.stherlionato.workers.dev/view?data=" . urlencode($payload);
-
-tg("sendMessage", [
-    "chat_id" => $chat,
-    "text" => "
+    // 🔥 ENVIO COM BOTÃO
+    tg("sendMessage", [
+        "chat_id" => $chat,
+        "text" => "
 💎 <b>Consulta concluída</b>
 
 <blockquote>
@@ -1718,26 +1612,27 @@ tg("sendMessage", [
 👤 {$nome}
 </blockquote>
 
-⚠️ <i>Disponível por tempo limitado</i>
+⚠️ <i>Toque abaixo para visualizar</i>
 ",
-    "parse_mode" => "HTML",
-    "reply_markup" => json_encode([
-        "inline_keyboard" => [
-            [
+        "parse_mode" => "HTML",
+        "reply_markup" => json_encode([
+            "inline_keyboard" => [
                 [
-                    "text" => "📄 • Visualizar",
-                    "url" => $link
-                ]
-            ],
-            [
+                    [
+                        "text" => "🔍 Abrir Consulta",
+                        "url" => $link
+                    ]
+                ],
                 [
-                    "text" => "🗑 Apagar",
-                    "callback_data" => "apagar_msg"
+                    [
+                        "text" => "🗑 Apagar",
+                        "callback_data" => "apagar_msg"
+                    ]
                 ]
             ]
-        ]
-    ])
-]);
+        ])
+    ]);
+}
 
 function consultaNome($chat, $nome) {
 
