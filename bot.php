@@ -1537,7 +1537,7 @@ function consultaTelefone($chat, $telefone) {
         return ($v === null || $v === "") ? "NÃO ENCONTRADO" : $v;
     }
 
-    // loading
+    // 🔄 LOADING
     $sticker = tg("sendSticker", [
         "chat_id" => $chat,
         "sticker" => $STICKER_LOADING
@@ -1546,6 +1546,7 @@ function consultaTelefone($chat, $telefone) {
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
+    // 🔢 LIMPA TELEFONE
     $telefone = preg_replace('/\D/', '', $telefone);
 
     if (strlen($telefone) < 10) {
@@ -1559,15 +1560,38 @@ function consultaTelefone($chat, $telefone) {
 
         tg("sendMessage", [
             "chat_id" => $chat,
-            "text" => "❌ Telefone inválido.",
-            "parse_mode" => "HTML"
+            "text" => "❌ Telefone inválido."
         ]);
         return;
     }
 
-    // 🔥 API
+    // 🌐 API (COM TIMEOUT E SEGURANÇA)
     $url = "https://astro.stherlionato.workers.dev/telefone_full?token=astropro&telefone={$telefone}";
-    $response = file_get_contents($url);
+
+    $context = stream_context_create([
+        "http" => [
+            "timeout" => 10
+        ]
+    ]);
+
+    $response = @file_get_contents($url, false, $context);
+
+    if ($response === false) {
+
+        if ($stickerMsgId) {
+            tg("deleteMessage", [
+                "chat_id" => $chat,
+                "message_id" => $stickerMsgId
+            ]);
+        }
+
+        tg("sendMessage", [
+            "chat_id" => $chat,
+            "text" => "⚠️ Erro ao consultar. Tente novamente."
+        ]);
+        return;
+    }
+
     $data = json_decode($response, true);
 
     if ($stickerMsgId) {
@@ -1577,19 +1601,26 @@ function consultaTelefone($chat, $telefone) {
         ]);
     }
 
-    if (!$data || !$data["dados"]["resultado"]) {
+    if (!$data || !isset($data["dados"]["resultado"])) {
         naoEncontrado($chat, "TELEFONE", $telefone);
         return;
     }
 
-    $info = $data["dados"]["resultado"][0] ?? [];
+    // 🔥 TRATAMENTO FLEXÍVEL (array ou objeto)
+    $resultado = $data["dados"]["resultado"];
 
-    $nome = v($info["nome"]);
-    $cpf = v($info["cpf"]);
-    $cidade = v($info["cidade"]);
-    $uf = v($info["uf"]);
+    if (isset($resultado[0])) {
+        $info = $resultado[0];
+    } else {
+        $info = $resultado;
+    }
 
-    // 🔥 PAYLOAD
+    $nome = v($info["nome"] ?? null);
+    $cpf = v($info["cpf"] ?? null);
+    $cidade = v($info["cidade"] ?? null);
+    $uf = v($info["uf"] ?? null);
+
+    // 🔐 PAYLOAD
     $payload = base64_encode(json_encode([
         "nome" => $nome,
         "cpf" => $cpf,
@@ -1598,10 +1629,9 @@ function consultaTelefone($chat, $telefone) {
         "uf" => $uf
     ]));
 
-    // 🔥 LINK FINAL (WORKER)
     $link = "https://astro.stherlionato.workers.dev/view?data=" . urlencode($payload);
 
-    // 🔥 ENVIO COM BOTÃO
+    // 🚀 ENVIO COM BOTÃO
     tg("sendMessage", [
         "chat_id" => $chat,
         "text" => "
@@ -1612,7 +1642,7 @@ function consultaTelefone($chat, $telefone) {
 👤 {$nome}
 </blockquote>
 
-⚠️ <i>Toque abaixo para visualizar</i>
+⚠️ <i>Acesso rápido abaixo</i>
 ",
         "parse_mode" => "HTML",
         "reply_markup" => json_encode([
