@@ -212,15 +212,17 @@ if(isset($update["message"])){
 
     $chat_id = $update["message"]["chat"]["id"];
     $message_id = $update["message"]["message_id"];
+    $user_id = $update["message"]["from"]["id"];
 
-    // Ignora mensagens privadas (opcional)
+    // Ignora privado
     if($update["message"]["chat"]["type"] != "private"){
 
-        // Tempo em segundos (ex: 10 segundos)
-        sleep(10);
+        // NÃO apaga dono
+        if($user_id != $OWNER_ID){
 
-        // Deletar mensagem
-        file_get_contents($API . "/deleteMessage?chat_id={$chat_id}&message_id={$message_id}");
+            // roda em paralelo (sem travar bot)
+            exec("php delete.php {$chat_id} {$message_id} > /dev/null 2>&1 &");
+        }
     }
 }
 
