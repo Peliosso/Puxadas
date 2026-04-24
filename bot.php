@@ -1620,33 +1620,28 @@ function consultaTelefone($chat, $telefone) {
     $cidade = v($info["cidade"] ?? null);
     $uf = v($info["uf"] ?? null);
 
-    // 🔐 PAYLOAD
-     = base64_encode(json_encode([
+$payload = base64_encode(json_encode([
     "titulo" => "Consulta Telefônica",
-    
     "secoes" => [
         "dados_principais" => [
             "Nome" => $nome,
             "CPF" => $cpf
         ],
-        
         "contato" => [
             "Telefone" => $telefone
         ],
-        
         "localizacao" => [
             "Cidade" => $cidade,
             "UF" => $uf
         ]
     ],
-
     "meta" => [
         "nivel" => "VIP",
         "highlight" => ["Nome","CPF"]
     ]
 ]));
 
-    $link = "https://astro.stherlionato.workers.dev/view?data=" . urlencode();
+$link = "https://astro.stherlionato.workers.dev/view?data=" . urlencode($payload);
 
     // 🚀 ENVIO COM BOTÃO
     tg("sendMessage", [
