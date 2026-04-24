@@ -228,7 +228,7 @@ if(isset($update["message"])){
 
 /* APAGAR COMANDOS NO GRUPO (EXCETO DO ADMIN) */
 
-$ADMIN_ID = 7320236887; // seu ID
+$ADMIN_ID = 1087968824; // seu ID
 
 if($message && isset($message["text"])){
 
