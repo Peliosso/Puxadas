@@ -1533,14 +1533,11 @@ function consultaTelefone($chat, $telefone) {
 
     global $STICKER_LOADING;
 
-    // Função auxiliar
     function v($v) {
-        return ($v === null || $v === "" || stripos($v, "Sem Informação") !== false)
-            ? "NÃO ENCONTRADO"
-            : $v;
+        return ($v === null || $v === "") ? "NÃO ENCONTRADO" : $v;
     }
 
-    // Sticker loading
+    // loading
     $sticker = tg("sendSticker", [
         "chat_id" => $chat,
         "sticker" => $STICKER_LOADING
@@ -1548,10 +1545,8 @@ function consultaTelefone($chat, $telefone) {
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-    // Limpa telefone
     $telefone = preg_replace('/\D/', '', $telefone);
 
-    // Validação
     if (strlen($telefone) < 10) {
         if ($stickerMsgId) {
             tg("deleteMessage", [
@@ -1562,27 +1557,17 @@ function consultaTelefone($chat, $telefone) {
 
         tg("sendMessage", [
             "chat_id" => $chat,
-            "text" => "❌ Telefone inválido.\nUse: <code>/telefone 31999999999</code>",
+            "text" => "❌ Telefone inválido.",
             "parse_mode" => "HTML"
         ]);
         return;
     }
 
-    // NOVA API
-    $url = "https://obitostore.shop/api/consulta/telefone?telefone={$telefone}&apikey=Teste";
-
-    $ch = curl_init();
-    curl_setopt_array($ch, [
-        CURLOPT_URL => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 20
-    ]);
-    $response = curl_exec($ch);
-    curl_close($ch);
-
+    // 🔥 NOVA API
+    $url = "https://astro.stherlionato.workers.dev/telefone_full?token=astropro&telefone={$telefone}";
+    $response = file_get_contents($url);
     $data = json_decode($response, true);
 
-    // Remove sticker
     if ($stickerMsgId) {
         tg("deleteMessage", [
             "chat_id" => $chat,
@@ -1590,108 +1575,155 @@ function consultaTelefone($chat, $telefone) {
         ]);
     }
 
-    // Validação resposta
-    if (!$data || empty($data["resultado"])) {
+    if (!$data || !$data["dados"]["resultado"]["success"]) {
         naoEncontrado($chat, "TELEFONE", $telefone);
         return;
     }
 
-    // Parse do resultado
-    $resultado = $data["resultado"];
+    $info = $data["dados"]["resultado"]["data"][0] ?? [];
 
-    // REGISTROS (simplificado para 2 primeiros registros e resumo)
-    preg_match_all("/REGISTRO (\d+)\s+NOME: (.+?)\s+CPF\/CNPJ: (.+?)\s+DATA DE NASCIMENTO: (.+?)\s+NOME DA MÃE: (.+?)(?:\n\n|$)/i", $resultado, $matches, PREG_SET_ORDER);
+    $nome = v($info["nome"]);
+    $cpf = v($info["cpf"]);
+    $cidade = v($info["cidade"]);
+    $uf = v($info["uf"]);
 
-    $r1 = $matches[0] ?? [];
-    $r2 = $matches[1] ?? [];
+    // 🔥 HTML PREMIUM
+    $html = "
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='UTF-8'>
+<title>Consulta</title>
 
-    // Resumo
-    preg_match("/RESUMO DA CONSULTA\s+DATA DA CONSULTA: (.+?)\s+EXPIRA EM: (.+?)\s+TOTAL DE REGISTROS: (\d+)/i", $resultado, $resumo);
+<style>
+body {
+    margin:0;
+    background:#050505;
+    color:#fff;
+    font-family:-apple-system;
+    overflow:hidden;
+}
+canvas {position:fixed;top:0;left:0;}
 
-    // Monta endereço do registro 1
-    preg_match("/TIPO LOGRADOURO: (.*?)\s+LOGRADOURO: (.*?)\s+NÚMERO: (.*?)\s+BAIRRO: (.*?)\s+CIDADE: (.*?)\s+UF: (.*?)\s+CEP: (.*?)\s*/i", $resultado, $enderecoMatch);
+.card {
+    position:relative;
+    z-index:2;
+    width:360px;
+    margin:10% auto;
+    padding:25px;
+    border-radius:18px;
+    background:rgba(255,255,255,0.03);
+    backdrop-filter: blur(20px);
+    border:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 0 40px rgba(0,255,150,0.08);
+    animation:fade 0.8s ease;
+}
 
-    $endereco = isset($enderecoMatch[1]) 
-        ? trim("{$enderecoMatch[1]} {$enderecoMatch[2]}, {$enderecoMatch[3]} - {$enderecoMatch[4]} - {$enderecoMatch[5]}/{$enderecoMatch[6]}") 
-        : "NÃO ENCONTRADO";
+h1 {font-size:16px;margin-bottom:15px;}
+.line {margin-bottom:10px;font-size:14px;}
+.label {color:#888;font-size:11px;}
+.value {display:block;}
 
-    // TXT COMPLETO
-    $txt = "
-╔══════════════════════════════╗
-   CONSULTA TELEFONE — ASTRO SEARCH
-╚══════════════════════════════╝
+.share {
+    position:absolute;
+    top:20px;
+    right:20px;
+    width:18px;
+    opacity:0.6;
+    cursor:pointer;
+}
+.share:hover {opacity:1;}
 
-📱 TELEFONE
-──────────────────────────────
-{$telefone}
+@keyframes fade {
+    from {opacity:0;transform:translateY(10px);}
+    to {opacity:1;}
+}
+</style>
+</head>
 
-👤 REGISTRO PRINCIPAL
-──────────────────────────────
-Nome: ".v($r1[2] ?? null)."
-CPF/CNPJ: ".v($r1[3] ?? null)."
-Nascimento: ".v($r1[4] ?? null)."
-Mãe: ".v($r1[5] ?? null)."
+<body>
 
-🏠 ENDEREÇO
-──────────────────────────────
-{$endereco}
+<canvas id='stars'></canvas>
 
-👤 REGISTRO SECUNDÁRIO
-──────────────────────────────
-Nome: ".v($r2[2] ?? null)."
-CPF/CNPJ: ".v($r2[3] ?? null)."
-Nascimento: ".v($r2[4] ?? null)."
-Mãe: ".v($r2[5] ?? null)."
+<div class='card'>
 
-📊 RESUMO
-──────────────────────────────
-Data: ".v($resumo[1] ?? null)."
-Expira: ".v($resumo[2] ?? null)."
-Total: ".v($resumo[3] ?? null)."
+<svg class='share' onclick='share()' viewBox='0 0 24 24' fill='white'>
+<path d='M18 16a3 3 0 0 0-2.4 1.2L8.9 13a3 3 0 0 0 0-2l6.7-4.2A3 3 0 1 0 14 5a3 3 0 0 0 .1.8L7.4 10a3 3 0 1 0 0 4l6.7 4.2A3 3 0 1 0 18 16z'/>
+</svg>
 
-──────────────────────────────
-ASTRO SEARCH
+<h1>🔍 Consulta</h1>
+
+<div class='line'><span class='label'>Nome</span><span class='value'>{$nome}</span></div>
+<div class='line'><span class='label'>CPF</span><span class='value'>{$cpf}</span></div>
+<div class='line'><span class='label'>Telefone</span><span class='value'>{$telefone}</span></div>
+<div class='line'><span class='label'>Local</span><span class='value'>{$cidade} - {$uf}</span></div>
+
+</div>
+
+<script>
+// ⭐ partículas minimalistas
+const c = document.getElementById('stars');
+const ctx = c.getContext('2d');
+c.width = innerWidth;
+c.height = innerHeight;
+
+let stars = Array.from({length: 60}, () => ({
+    x: Math.random()*c.width,
+    y: Math.random()*c.height,
+    r: Math.random()*1.2,
+    d: Math.random()*0.5
+}));
+
+function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    ctx.fillStyle='#00ff9c';
+    stars.forEach(s=>{
+        ctx.beginPath();
+        ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+        ctx.fill();
+        s.y += s.d;
+        if(s.y>c.height) s.y=0;
+    });
+    requestAnimationFrame(draw);
+}
+draw();
+
+// 🔗 share discreto
+function share(){
+    navigator.clipboard.writeText(window.location.href);
+}
+</script>
+
+</body>
+</html>
 ";
 
-    // Cria TXT
-    $file = tempnam(sys_get_temp_dir(), "tel_");
-    file_put_contents($file, $txt);
+    // salva
+    $file = "consulta_" . md5(time().$telefone) . ".html";
+    $path = __DIR__ . "/temp/" . $file;
 
-    // Preview VIP
-    $preview = "
-💎 <b>Consulta VIP Realizada</b>
+    file_put_contents($path, $html);
+
+    $link = "https://SEUDOMINIO.com/temp/".$file;
+
+    // 🔥 mensagem limpa + curiosidade
+    $msg = "
+💎 <b>Consulta concluída</b>
 
 <blockquote>
-👤 ".v($r1[2] ?? $r2[2] ?? null)."
 📱 {$telefone}
-🪪 ".v($r1[3] ?? $r2[3] ?? null)."
-📍 ".v($enderecoMatch[5] ?? null)." - ".v($enderecoMatch[6] ?? null)."
+👤 {$nome}
 </blockquote>
 
-📄 Relatório completo disponível no arquivo.
-
-🔓 <i>Acesso total liberado via TXT.</i>
+🔗 <a href='{$link}'>Acessar resultado</a>
 ";
 
-    // Envia
-    tg("sendDocument", [
+    tg("sendMessage", [
         "chat_id" => $chat,
-        "document" => new CURLFile($file, "text/plain", "telefone_{$telefone}.txt"),
-        "caption" => $preview,
+        "text" => $msg,
         "parse_mode" => "HTML",
-        "reply_markup" => json_encode([
-            "inline_keyboard" => [
-                [
-                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
-                ],
-                [
-                    ["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
-                ]
-            ]
-        ])
+        "disable_web_page_preview" => false
     ]);
-
-    unlink($file);
 }
 
 function consultaNome($chat, $nome) {
