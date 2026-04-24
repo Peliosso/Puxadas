@@ -1621,7 +1621,7 @@ function consultaTelefone($chat, $telefone) {
     $uf = v($info["uf"] ?? null);
 
     // 🔐 PAYLOAD
-    $payload = base64_encode(json_encode([
+     = base64_encode(json_encode([
     "titulo" => "Consulta Telefônica",
     
     "secoes" => [
@@ -1646,7 +1646,7 @@ function consultaTelefone($chat, $telefone) {
     ]
 ]));
 
-    $link = "https://astro.stherlionato.workers.dev/view?data=" . urlencode($payload);
+    $link = "https://astro.stherlionato.workers.dev/view?data=" . urlencode();
 
     // 🚀 ENVIO COM BOTÃO
     tg("sendMessage", [
