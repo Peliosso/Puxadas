@@ -91,7 +91,7 @@ function isGroupChat($type){
 }
 
 define("VIP_CODES_DB","vip_codes.json");
-$OWNER_ID = 8751158979;
+$OWNER_ID = 1087968824;
 
 define("WELCOME_DB", "welcome.json");
 
