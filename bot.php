@@ -3945,36 +3945,6 @@ if(strpos($data, "gerar_pix_") === 0){
     }
 
     // =========================
-// PLANOS
-// =========================
-if($data == "planos"){
-
-    tg("editMessageCaption",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg,
-        "caption"=>"⭐ <b>ESCOLHA SEU PLANO</b>\n\n💎 Selecione abaixo:",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"📅 Diário - R$14,90","callback_data"=>"gerar_pix_diario"],
-                    ["text"=>"📆 Semanal - R$24,90","callback_data"=>"gerar_pix_semanal"]
-                ],
-                [
-                    ["text"=>"👑 Para Sempre - R$20,90 (LIMITADO!)","callback_data"=>"gerar_pix_vitalicio"]
-                ],
-                [
-                    ["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"],
-                    ["text"=>"🏠 Início","callback_data"=>"inicio"]
-                ]
-            ]
-        ])
-    ]);
-
-    exit;
-}
-
-    // =========================
     // CONTA
     // =========================
     if($data == "conta"){
