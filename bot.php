@@ -8,10 +8,12 @@ header("Content-Type: application/json");
 http_response_code(200);
 
 $PLANOS = [
-    "diario" => 15.00,
-    "mensal" => 20.00,
-    "vitalicio" => 25.00
+    "diario" => "14.90",
+    "semanal" => "24.90",
+    "vitalicio" => "30.90"
 ];
+
+$CHAVE_PIX = "de02994d-f391-4b9b-acf8-865b721d3082";
 
 $GATEWAY_USER_ID = "8751158979";
 
@@ -3895,10 +3897,7 @@ if($data == "menu_cep"){
     exit;
 }
 
-    // =========================
-    // PLANOS
-    // =========================
-// =========================
+  // =========================
 // PLANOS
 // =========================
 if($data == "planos"){
@@ -3906,19 +3905,20 @@ if($data == "planos"){
     tg("editMessageCaption",[
         "chat_id"=>$chat,
         "message_id"=>$msg,
-        "caption"=>"⭐ <b>ESCOLHA SEU PLANO</b>\n\n💰 Diário: R$ 15,00\n💰 Mensal: R$ 20,00\n💰 Vitalício: R$ 25,00",
+        "caption"=>"⭐ <b>ESCOLHA SEU PLANO</b>\n\n💎 Selecione abaixo:",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
                 [
-                    ["text"=>"📅 Diário - R$15","callback_data"=>"gerar_pix_diario"],
-                    ["text"=>"📆 Mensal - R$20","callback_data"=>"gerar_pix_mensal"]
+                    ["text"=>"📅 Diário - R$14,90","callback_data"=>"gerar_pix_diario"],
+                    ["text"=>"📆 Semanal - R$24,90","callback_data"=>"gerar_pix_semanal"]
                 ],
                 [
-                    ["text"=>"👑 Vitalício - R$25","callback_data"=>"gerar_pix_vitalicio"]
+                    ["text"=>""👑 Para Sempre - R$30,90","callback_data"=>"gerar_pix_mensal"]
                 ],
                 [
-                    ["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
+                    ["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"],
+                    ["text"=>"🏠 Início","callback_data"=>"inicio"]
                 ]
             ]
         ])
@@ -3926,13 +3926,12 @@ if($data == "planos"){
 
     exit;
 }
-
-    // =========================
-    // GERAR PIX
-    // =========================
+  // =========================
+// GERAR PIX DIRETO
+// =========================
 if(strpos($data, "gerar_pix_") === 0){
 
-    global $PLANOS, $PAYMENTS, $GATEWAY_USER_ID;
+    global $PLANOS, $CHAVE_PIX;
 
     $plano = str_replace("gerar_pix_", "", $data);
 
@@ -3947,83 +3946,22 @@ if(strpos($data, "gerar_pix_") === 0){
 
     $valor = $PLANOS[$plano];
 
-    $url = "https://promstpagamentos.discloud.app/create_payment?user_id={$GATEWAY_USER_ID}&valor={$valor}";
-    $res = json_decode(file_get_contents($url), true);
-
-    $txid = $res["txid"];
-    $pix  = $res["pixCopiaECola"];
-
-    // 🔥 salva relação TXID -> usuário
-    $PAYMENTS[$txid] = [
-        "user_id" => $user_id,
-        "plano" => $plano,
-        "valor" => $valor
-    ];
-
     tg("editMessageCaption",[
         "chat_id"=>$chat,
         "message_id"=>$msg,
-        "caption"=>"💰 Plano: ".strtoupper($plano)."\n\n💸 R$ {$valor}\n\n🔑 TXID:\n<code>{$txid}</code>\n\n📋 PIX:\n<code>{$pix}</code>",
+        "caption"=>"💎 <b>PLANO ".strtoupper($plano)."</b>\n\n💰 Valor: <b>R$ {$valor}</b>\n\n📌 <b>Chave PIX (Copia e Cola):</b>\n<code>{$CHAVE_PIX}</code>\n\n📋 <i>Clique na chave acima para copiar automaticamente</i>\n\n⚠️ Após o pagamento, envie o comprovante clicando no botão abaixo.",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-                [["text"=>"✅ Verificar","callback_data"=>"verificar_{$txid}"]],
-                [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
+                [
+                    ["text"=>"📄 Enviar Comprovante","url"=>"https://t.me/puxadas71"]
+                ],
+                [
+                    ["text"=>"⬅️ Voltar","callback_data"=>"planos"]
+                ]
             ]
         ])
     ]);
-
-    exit;
-}
-    
-if(strpos($data, "verificar_") === 0){
-
-    global $PAYMENTS;
-
-    $txid = str_replace("verificar_", "", $data);
-
-    if(!isset($PAYMENTS[$txid])){
-        tg("answerCallbackQuery",[
-            "callback_query_id"=>$callback["id"],
-            "text"=>"❌ Pagamento não encontrado",
-            "show_alert"=>true
-        ]);
-        exit;
-    }
-
-    $map = $PAYMENTS[$txid];
-
-    $url = "https://promstpagamentos.discloud.app/verify_payment?payment_id={$txid}";
-    $res = json_decode(file_get_contents($url), true);
-
-    if(isset($res["status_pagamento"]) && $res["status_pagamento"] == "CONCLUIDA"){
-
-        $vipUser = $map["user_id"];
-
-        if(!in_array($vipUser, $VIP_IDS)){
-            $VIP_IDS[] = $vipUser;
-        }
-
-        tg("editMessageCaption",[
-            "chat_id"=>$chat,
-            "message_id"=>$msg,
-            "caption"=>"✅ PAGAMENTO CONFIRMADO!\n\n👑 VIP liberado automaticamente 🚀",
-            "parse_mode"=>"HTML",
-            "reply_markup"=>json_encode([
-                "inline_keyboard"=>[
-                    [["text"=>"💬 Suporte","url"=>"https://t.me/jepetosearch"]]
-                ]
-            ])
-        ]);
-
-    } else {
-
-        tg("answerCallbackQuery",[
-            "callback_query_id"=>$callback["id"],
-            "text"=>"⏳ Pagamento ainda não confirmado",
-            "show_alert"=>true
-        ]);
-    }
 
     exit;
 }
