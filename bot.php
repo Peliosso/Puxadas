@@ -4002,23 +4002,6 @@ if(strpos($data, "pix_") === 0){
 
     exit;
 }
-  // =========================
-// GERAR PIX DIRETO
-// =========================
-if(strpos($data, "gerar_pix_") === 0){
-
-    global $PLANOS, $CHAVE_PIX;
-
-    $plano = str_replace("gerar_pix_", "", $data);
-
-    if(!isset($PLANOS[$plano])){
-        tg("answerCallbackQuery",[
-            "callback_query_id"=>$callback["id"],
-            "text"=>"❌ Plano inválido",
-            "show_alert"=>true
-        ]);
-        exit;
-    }
 
     // =========================
     // CONTA
