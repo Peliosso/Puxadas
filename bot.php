@@ -10,7 +10,7 @@ http_response_code(200);
 $PLANOS = [
     "diario" => "14.90",
     "semanal" => "24.90",
-    "vitalicio" => "30.90"
+    "vitalicio" => "20.90"
 ];
 
 $CHAVE_PIX = "de02994d-f391-4b9b-acf8-865b721d3082";
