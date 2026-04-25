@@ -3949,7 +3949,7 @@ if(strpos($data, "gerar_pix_") === 0){
     tg("editMessageCaption",[
         "chat_id"=>$chat,
         "message_id"=>$msg,
-        "caption"=>"💎 <b>PLANO ".strtoupper($plano)."</b>\n\n💰 Valor: <b>R$ {$valor}</b>\n\n📌 <b>Chave PIX (Copia e Cola):</b>\n<code>{$CHAVE_PIX}</code>\n\n📋 <i>Clique na chave acima para copiar automaticamente</i>\n\n⚠️ Após o pagamento, envie o comprovante clicando no botão abaixo.",
+"caption"=>"🚀 <b>LIBERAÇÃO IMEDIATA DO SISTEMA</b>\n\n💎 Acesse agora uma das bases mais completas:\n\n📊 Dados completos de pessoas\n📍 Endereços atualizados\n💳 Score e informações financeiras\n👨‍👩‍👧 Parentes e vínculos\n🚗 Dados veiculares completos\n📁 Benefícios e registros oficiais\n\n⚡ <b>Acesso ilimitado e sem restrições</b>\n\n⏳ <b>Ativação imediata após pagamento</b>\n\n👇 <b>Escolha seu plano abaixo:</b>"",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
