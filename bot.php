@@ -8,9 +8,9 @@ header("Content-Type: application/json");
 http_response_code(200);
 
 $PLANOS = [
-    "diario" => 14.90,
-    "semanal" => 24.90,
-    "vitalicio" => 30.90
+    "diario" => "14.90",
+    "semanal" => "24.90",
+    "vitalicio" => "30.90"
 ];
 
 $CHAVE_PIX = "de02994d-f391-4b9b-acf8-865b721d3082";
@@ -3914,7 +3914,7 @@ if($data == "planos"){
                     ["text"=>"📆 Semanal - R$24,90","callback_data"=>"gerar_pix_semanal"]
                 ],
                 [
-                    ["text"=>"👑 Para Sempre - R$30,90",""callback_data"=>"gerar_pix_vitalicio"]
+                    ["text"=>"👑 Para Sempre - R$30,90","callback_data"=>"gerar_pix_vitalicio"]
                 ],
                 [
                     ["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"],
