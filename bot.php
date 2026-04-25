@@ -3914,7 +3914,7 @@ if($data == "planos"){
                     ["text"=>"📆 Semanal - R$24,90","callback_data"=>"gerar_pix_semanal"]
                 ],
                 [
-                    ["text"=>""👑 Para Sempre - R$30,90","callback_data"=>"gerar_pix_mensal"]
+                    ["text"=>"👑 Para Sempre - R$30,90",""callback_data"=>"gerar_pix_vitalicio"]
                 ],
                 [
                     ["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"],
