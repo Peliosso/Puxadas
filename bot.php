@@ -10,7 +10,7 @@ http_response_code(200);
 $PLANOS = [
     "diario" => "14.90",
     "semanal" => "24.90",
-    "vitalicio" => "25.90"
+    "vitalicio" => "30.90"
 ];
 
 $CHAVE_PIX = "de02994d-f391-4b9b-acf8-865b721d3082";
@@ -3905,7 +3905,7 @@ if($data == "planos"){
     tg("editMessageCaption",[
         "chat_id"=>$chat,
         "message_id"=>$msg,
-        "caption"=>"⭐ <b>ESCOLHA SEU PLANO</b>\n\n💎 Selecione abaixo:",
+"caption"=>"🚀 <b>ACESSO PREMIUM LIBERADO</b>\n\n💎 Tenha acesso completo à nossa base de consultas avançadas:\n\n✅ RG, CPF e CNH\n✅ Endereços e dados completos\n✅ Score e dados financeiros\n✅ Parentes e vínculos\n✅ Veículos (chassi, motor, laudo)\n✅ Benefícios, CADSUS e muito mais...\n\n⚡ <b>Consultas ilimitadas + acesso instantâneo</b>\n\n🔥 <b>Escolha seu plano e comece agora:</b>",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
@@ -3914,7 +3914,7 @@ if($data == "planos"){
                     ["text"=>"📆 Semanal - R$24,90","callback_data"=>"gerar_pix_semanal"]
                 ],
                 [
-                    ["text"=>"👑 Para Sempre - R$25,90 (LIMITADO).","callback_data"=>"gerar_pix_vitalicio"]
+                    ["text"=>"👑 Para Sempre - R$30,90","callback_data"=>"gerar_pix_vitalicio"]
                 ],
                 [
                     ["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"],
@@ -3944,20 +3944,28 @@ if(strpos($data, "gerar_pix_") === 0){
         exit;
     }
 
-    $valor = $PLANOS[$plano];
+    // =========================
+// PLANOS
+// =========================
+if($data == "planos"){
 
     tg("editMessageCaption",[
         "chat_id"=>$chat,
         "message_id"=>$msg,
-"caption"=>"🚀 <b>LIBERAÇÃO IMEDIATA DO SISTEMA</b>\n\n💎 Acesse agora uma das bases mais completas:\n\n📊 Dados completos de pessoas\n📍 Endereços atualizados\n💳 Score e informações financeiras\n👨‍👩‍👧 Parentes e vínculos\n🚗 Dados veiculares completos\n📁 Benefícios e registros oficiais\n\n⚡ <b>Acesso ilimitado e sem restrições</b>\n\n⏳ <b>Ativação imediata após pagamento</b>\n\n👇 <b>Escolha seu plano abaixo:</b>",
+        "caption"=>"⭐ <b>ESCOLHA SEU PLANO</b>\n\n💎 Selecione abaixo:",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
                 [
-                    ["text"=>"📄 Enviar Comprovante","url"=>"https://t.me/puxadas71"]
+                    ["text"=>"📅 Diário - R$14,90","callback_data"=>"gerar_pix_diario"],
+                    ["text"=>"📆 Semanal - R$24,90","callback_data"=>"gerar_pix_semanal"]
                 ],
                 [
-                    ["text"=>"⬅️ Voltar","callback_data"=>"planos"]
+                    ["text"=>"👑 Para Sempre - R$20,90 (LIMITADO!)","callback_data"=>"gerar_pix_vitalicio"]
+                ],
+                [
+                    ["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"],
+                    ["text"=>"🏠 Início","callback_data"=>"inicio"]
                 ]
             ]
         ])
@@ -3965,6 +3973,7 @@ if(strpos($data, "gerar_pix_") === 0){
 
     exit;
 }
+
     // =========================
     // CONTA
     // =========================
