@@ -1605,7 +1605,6 @@ function consultaTelefone($chat, $telefone) {
 ifif (!isset($results[0])) {
     $results = [$results];
 }
-
     $pessoa = $results[0] ?? [];
 
     // =========================
