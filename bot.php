@@ -1602,7 +1602,7 @@ function consultaTelefone($chat, $telefone) {
     $results = $data["resultado"]["data"];
 
 // 🔥 garante array
-ifif (!isset($results[0])) {
+if (!is_array($results) || isset($results["nome"])) {
     $results = [$results];
 }
     $pessoa = $results[0] ?? [];
