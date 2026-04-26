@@ -1600,6 +1600,11 @@ function consultaTelefone($chat, $telefone) {
     }
 
     $results = $data["resultado"]["data"];
+
+// 🔥 garante array
+if (!is_array($results) || isset($results["nome"])) {
+    $results = [$results];
+}
     $pessoa = $results[0] ?? [];
 
     // =========================
