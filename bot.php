@@ -1718,7 +1718,7 @@ function consultaNome($chat, $nome) {
 
     // 🔥 NOVA API
     $nomeUrl = urlencode($nome);
-    $url = "https://sara-api.xyz/api/consulta/nome?apikey=artigo%23171_b&nome={$nomeUrl}";
+    $url = "https://sara-api.xyz/api/consulta/nome?apikey=stherlionato&nome={$nomeUrl}";
 
     $ch = curl_init();
     curl_setopt_array($ch, [
@@ -2242,7 +2242,7 @@ function consultaCPF1($chat, $cpf) {
     }
 
     // API
-    $url = "https://sara-api.xyz/api/consulta/cpf?apikey=artigo%23171_b&cpf={$cpf}";
+    $url = "https://sara-api.xyz/api/consulta/cpf?apikey=stherlionato&cpf={$cpf}";
 
     $ch = curl_init();
     curl_setopt_array($ch, [
