@@ -1539,23 +1539,27 @@ function consultaTelefone($chat, $telefone) {
     global $STICKER_LOADING;
 
     function v($v) {
-        return ($v === null || $v === "") ? "NÃO ENCONTRADO" : $v;
+        return ($v === null || $v === "" || stripos($v, "DESCONHECIDO") !== false)
+            ? "NÃO ENCONTRADO"
+            : trim($v);
     }
 
+    // =========================
     // 🔄 LOADING
+    // =========================
     $sticker = tg("sendSticker", [
         "chat_id" => $chat,
         "sticker" => $STICKER_LOADING
     ]);
-
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-    // 🔢 LIMPA TELEFONE
+    // =========================
+    // 📱 VALIDAÇÃO
+    // =========================
     $telefone = preg_replace('/\D/', '', $telefone);
 
     if (strlen($telefone) < 10) {
-
         if ($stickerMsgId) {
             tg("deleteMessage", [
                 "chat_id" => $chat,
@@ -1565,40 +1569,21 @@ function consultaTelefone($chat, $telefone) {
 
         tg("sendMessage", [
             "chat_id" => $chat,
-            "text" => "❌ Telefone inválido."
+            "text" => "❌ Telefone inválido.\nUse: <code>/tel 31999999999</code>",
+            "parse_mode" => "HTML"
         ]);
         return;
     }
 
-    // 🌐 API (COM TIMEOUT E SEGURANÇA)
-    $url = "https://astro.stherlionato.workers.dev/telefone_full?token=astropro&telefone={$telefone}";
+    // =========================
+    // 🔥 API TELEFONE
+    // =========================
+    $url = "https://sara-api.xyz/api/consulta/telefone-full?apikey=stherlionato&phone={$telefone}";
 
-    $context = stream_context_create([
-        "http" => [
-            "timeout" => 10
-        ]
-    ]);
-
-    $response = @file_get_contents($url, false, $context);
-
-    if ($response === false) {
-
-        if ($stickerMsgId) {
-            tg("deleteMessage", [
-                "chat_id" => $chat,
-                "message_id" => $stickerMsgId
-            ]);
-        }
-
-        tg("sendMessage", [
-            "chat_id" => $chat,
-            "text" => "⚠️ Erro ao consultar. Tente novamente."
-        ]);
-        return;
-    }
-
+    $response = file_get_contents($url);
     $data = json_decode($response, true);
 
+    // Remove loading
     if ($stickerMsgId) {
         tg("deleteMessage", [
             "chat_id" => $chat,
@@ -1606,75 +1591,79 @@ function consultaTelefone($chat, $telefone) {
         ]);
     }
 
-    if (!$data || !isset($data["dados"]["resultado"])) {
+    if (
+        !$data ||
+        empty($data["resultado"]["data"])
+    ) {
         naoEncontrado($chat, "TELEFONE", $telefone);
         return;
     }
 
-    // 🔥 TRATAMENTO FLEXÍVEL (array ou objeto)
-    $resultado = $data["dados"]["resultado"];
+    $results = $data["resultado"]["data"];
+    $pessoa = $results[0] ?? [];
 
-    if (isset($resultado[0])) {
-        $info = $resultado[0];
-    } else {
-        $info = $resultado;
-    }
+    // =========================
+    // 🔐 TOKEN
+    // =========================
+    $token = bin2hex(random_bytes(16));
 
-    $nome = v($info["nome"] ?? null);
-    $cpf = v($info["cpf"] ?? null);
-    $cidade = v($info["cidade"] ?? null);
-    $uf = v($info["uf"] ?? null);
+    // =========================
+    // ☁️ SALVAR NO CLOUDFLARE
+    // =========================
+    $payload = json_encode([
+        "token" => $token,
+        "tipo" => "telefone",
+        "query" => $telefone,
+        "resultado" => $results
+    ]);
 
-$payload = base64_encode(json_encode([
-    "titulo" => "Consulta Telefônica",
-    "secoes" => [
-        "dados_principais" => [
-            "Nome" => $nome,
-            "CPF" => $cpf
-        ],
-        "contato" => [
-            "Telefone" => $telefone
-        ],
-        "localizacao" => [
-            "Cidade" => $cidade,
-            "UF" => $uf
-        ]
-    ],
-    "meta" => [
-        "nivel" => "VIP",
-        "highlight" => ["Nome","CPF"]
-    ]
-]));
+    $api = "https://astro-search.stherlionato.workers.dev";
 
-$link = "https://astro.stherlionato.workers.dev/view?data=" . urlencode($payload);
+    $ch = curl_init($api . "/api/save");
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => ["Content-Type: application/json"],
+        CURLOPT_POSTFIELDS => $payload
+    ]);
+    curl_exec($ch);
+    curl_close($ch);
 
-    // 🚀 ENVIO COM BOTÃO
-    tg("sendMessage", [
-        "chat_id" => $chat,
-        "text" => "
-💎 <b>Consulta concluída</b>
+    // =========================
+    // 🔗 LINK
+    // =========================
+    $link = $api . "/r/" . $token;
+
+    // =========================
+    // 💎 PREVIEW
+    // =========================
+    $msg = "
+💎 <b>Consulta por Telefone</b>
 
 <blockquote>
-📱 {$telefone}
-👤 {$nome}
+📱 ".v($pessoa["telefone"] ?? null)."
+👤 ".v($pessoa["nome"] ?? null)."
+🪪 ".v($pessoa["cpf"] ?? null)."
+📍 ".v($pessoa["cidade"] ?? null)." - ".v($pessoa["uf"] ?? null)."
 </blockquote>
 
-⚠️ <i>Acesso rápido abaixo</i>
-",
+🔗 <i>Clique abaixo para ver o relatório completo</i>
+";
+
+    // =========================
+    // 📲 ENVIO
+    // =========================
+    tg("sendMessage", [
+        "chat_id" => $chat,
+        "text" => $msg,
         "parse_mode" => "HTML",
         "reply_markup" => json_encode([
             "inline_keyboard" => [
                 [
-                    [
-                        "text" => "🔍 Abrir Consulta",
-                        "url" => $link
-                    ]
+                    ["text"=>"🔍 Ver Resultado","url"=>$link]
                 ],
                 [
-                    [
-                        "text" => "🗑 Apagar",
-                        "callback_data" => "apagar_msg"
-                    ]
+                    ["text"=>"💎 Ativar VIP","callback_data"=>"planos"]
                 ]
             ]
         ])
