@@ -1691,7 +1691,7 @@ function consultaNome($chat, $nome) {
             : trim($v);
     }
 
-    // Sticker loading
+    // Loading
     $sticker = tg("sendSticker", [
         "chat_id" => $chat,
         "sticker" => $STICKER_LOADING
@@ -1716,22 +1716,14 @@ function consultaNome($chat, $nome) {
         return;
     }
 
-    // 🔥 NOVA API
+    // 🔥 SUA API
     $nomeUrl = urlencode($nome);
     $url = "https://sara-api.xyz/api/consulta/nome?apikey=stherlionato&nome={$nomeUrl}";
 
-    $ch = curl_init();
-    curl_setopt_array($ch, [
-        CURLOPT_URL => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 20
-    ]);
-    $response = curl_exec($ch);
-    curl_close($ch);
-
+    $response = file_get_contents($url);
     $data = json_decode($response, true);
 
-    // Remove sticker
+    // Remove loading
     if ($stickerMsgId) {
         tg("deleteMessage", [
             "chat_id" => $chat,
@@ -1739,62 +1731,50 @@ function consultaNome($chat, $nome) {
         ]);
     }
 
-    // Validação resposta
-    if (
-        !$data ||
-        empty($data["status"]) ||
-        empty($data["resultado"]["body"])
-    ) {
+    if (!$data || empty($data["resultado"]["body"])) {
         naoEncontrado($chat, "NOME", $nome);
         return;
     }
 
     $results = $data["resultado"]["body"];
-
-    // TXT COMPLETO
-    $txt = "
-╔══════════════════════════════╗
-   CONSULTA POR NOME — ASTRO SEARCH
-╚══════════════════════════════╝
-
-🔎 NOME PESQUISADO
-──────────────────────────────
-{$nome}
-
-📊 TOTAL ENCONTRADOS
-──────────────────────────────
-".count($results)."
-";
-
-    foreach ($results as $pessoa) {
-
-        $txt .= "
-
-👤 DADOS ENCONTRADOS
-──────────────────────────────
-Nome: ".v($pessoa["name"] ?? null)."
-CPF: ".v($pessoa["cpf"] ?? null)."
-Nascimento: ".v($pessoa["birth_date"] ?? null)."
-Sexo: ".v($pessoa["gender"] ?? null)."
-Mãe: ".v($pessoa["mother_name"] ?? null)."
-
-──────────────────────────────
-";
-    }
-
-    $txt .= "
-Consulta realizada via:
-ASTRO SEARCH
-";
-
-    // Cria TXT
-    $file = tempnam(sys_get_temp_dir(), "nome_");
-    file_put_contents($file, $txt);
-
     $pessoa = $results[0] ?? [];
 
-    // Preview VIP
-    $preview = "
+    // =========================
+    // 🔐 GERAR TOKEN
+    // =========================
+    $token = bin2hex(random_bytes(16));
+
+    // =========================
+    // ☁️ ENVIAR PARA CLOUDFLARE
+    // =========================
+    $payload = json_encode([
+        "token" => $token,
+        "tipo" => "nome",
+        "query" => $nome,
+        "resultado" => $results
+    ]);
+
+    $api = "https://astro-search.stherlionato.workers.dev";
+
+    $ch = curl_init($api . "/api/save");
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => ["Content-Type: application/json"],
+        CURLOPT_POSTFIELDS => $payload
+    ]);
+    curl_exec($ch);
+    curl_close($ch);
+
+    // =========================
+    // 🔗 LINK FINAL
+    // =========================
+    $link = $api . "/r/" . $token;
+
+    // =========================
+    // 💎 PREVIEW PREMIUM
+    // =========================
+    $msg = "
 💎 <b>Consulta VIP Realizada</b>
 
 <blockquote>
@@ -1804,30 +1784,27 @@ ASTRO SEARCH
 ⚧ ".v($pessoa["gender"] ?? null)."
 </blockquote>
 
-📄 Relatório completo disponível no arquivo.
-
-🔓 <i>Acesso total liberado via TXT.</i>
+🔗 <i>Clique abaixo para ver o relatório completo</i>
 ";
 
-    // Envia
-    tg("sendDocument", [
+    // =========================
+    // 📲 ENVIO FINAL
+    // =========================
+    tg("sendMessage", [
         "chat_id" => $chat,
-        "document" => new CURLFile($file, "text/plain", "nome.txt"),
-        "caption" => $preview,
+        "text" => $msg,
         "parse_mode" => "HTML",
         "reply_markup" => json_encode([
             "inline_keyboard" => [
                 [
-                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+                    ["text"=>"🔍 Ver Resultado","url"=>$link]
                 ],
                 [
-                    ["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
+                    ["text"=>"💎 Ativar VIP","callback_data"=>"planos"]
                 ]
             ]
         ])
     ]);
-
-    unlink($file);
 }
 
 function consultaCpf4($chat,$cpf){
