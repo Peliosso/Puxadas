@@ -45,6 +45,7 @@ $VIP_IDS = [
     5805915267,
     1236474129,
     1749162814,
+    8336817408,
     5622054961,
     1087968824,
     7073604499,
@@ -396,10 +397,10 @@ $kb = [
 ],
 [
 ["text"=>"⭐ Planos","callback_data"=>"planos"],
-["text"=>"🛠 Suporte","url"=>"https://t.me/jepetosearch"]
+["text"=>"🛠 Suporte","url"=>"https://t.me/puxadas71"]
 ],
 [
-["text"=>"📢 Canal Oficial","url"=>"https://t.me/astrosearch"]
+["text"=>"📢 Canal Oficial","url"=>"https://t.me/consultas24"]
 ]
 ]
 ];
