@@ -117,7 +117,8 @@ function ativarFreeGrupo($chat){
         $data = json_decode(file_get_contents(FREE_DB), true);
     }
 
-    $data[$chat] = time() + (60*60);
+    // Apenas marca como ativo (sem tempo)
+    $data[$chat] = true;
 
     file_put_contents(FREE_DB, json_encode($data));
 }
@@ -130,19 +131,8 @@ function isFreeGroup($chat){
 
     $data = json_decode(file_get_contents(FREE_DB), true);
 
-    if(!isset($data[$chat])){
-        return false;
-    }
-
-    if(time() > $data[$chat]){
-
-        unset($data[$chat]);
-        file_put_contents(FREE_DB, json_encode($data));
-
-        return false;
-    }
-
-    return true;
+    // Só verifica se existe e está ativo
+    return isset($data[$chat]) && $data[$chat] === true;
 }
 
 function setWelcome($chat,$status){
@@ -3555,7 +3545,7 @@ if($cmd === "/freevip"){
         "chat_id"=>$chat,
         "text"=>"🚀 <b>VIP LIBERADO NO GRUPO</b>
 
-Todas consultas VIP liberadas por 1 hora.",
+Todas consultas VIP liberadas.",
         "parse_mode"=>"HTML"
     ]);
 
