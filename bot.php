@@ -1776,18 +1776,30 @@ function consultaNome($chat, $nome) {
     // 💎 PREVIEW PREMIUM
     // =========================
     $msg = "
-💎 <b>Consulta VIP Realizada</b>
+<b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
 
 <blockquote>
-👤 ".v($pessoa["name"] ?? null)."
-🪪 ".v($pessoa["cpf"] ?? null)."
-🎂 ".v($pessoa["birth_date"] ?? null)."
-⚧ ".v($pessoa["gender"] ?? null)."
+🔎 <b>Base:</b> NOME • COMPLETO
 </blockquote>
 
-🔗 <i>Clique abaixo para ver o relatório completo</i>
-";
+Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resultado.
 
+⏳ <i>O resultado ficará disponível por tempo limitado</i>
+
+<blockquote>
+👤 <b>Usuário:</b> ".v($p["name"])."
+</blockquote>
+
+━━━━━━━━━━━━━━━
+
+🤖 <b>Bot:</b> @consultasdedados_bot
+📢 <b>Canal:</b> @consultas24
+
+<blockquote>
+<b>Astro Search</b>
+Plataforma premium de consultas com alta precisão, velocidade e dados completos.
+</blockquote>
+";
     // =========================
     // 📲 ENVIO FINAL
     // =========================
@@ -2324,28 +2336,40 @@ function consultaCPF1($chat, $cpf) {
     // 💎 PREVIEW
     // =========================
     $msg = "
-💎 <b>Consulta por CPF</b>
+<b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
 
 <blockquote>
-👤 ".v($p["name"])."
-🪪 ".v($p["cpf_masked"])."
-🎂 ".v($p["birth_date"])."
-⚧ ".v($p["gender"])."
-📊 ".v($p["federal_status"])."
+🔎 <b>Base:</b> CPF • COMPLETO
 </blockquote>
 
-🔗 <i>Toque abaixo para visualizar o relatório completo</i>
+Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resultado.
+
+⏳ <i>O resultado ficará disponível por tempo limitado</i>
+
+<blockquote>
+👤 <b>Usuário:</b> ".v($p["name"])."
+</blockquote>
+
+━━━━━━━━━━━━━━━
+
+🤖 <b>Bot:</b> @consultasdedados_bot
+📢 <b>Canal:</b> @consultas24
+
+<blockquote>
+<b>Astro Search</b>
+Plataforma premium de consultas com alta precisão, velocidade e dados completos.
+</blockquote>
 ";
 
     // =========================
-    // 📲 ENVIO
+    // 📲 ENVIO FINAL
     // =========================
     tg("sendMessage", [
-        "chat_id"=>$chat,
-        "text"=>$msg,
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
+        "chat_id" => $chat,
+        "text" => $msg,
+        "parse_mode" => "HTML",
+        "reply_markup" => json_encode([
+            "inline_keyboard" => [
                 [
                     ["text"=>"🔍 Ver Resultado","url"=>$link]
                 ],
