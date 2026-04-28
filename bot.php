@@ -1778,17 +1778,13 @@ function consultaNome($chat, $nome) {
     $msg = "
 <b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
 
-<blockquote>
-🔎 <b>Base:</b> NOME • COMPLETO
-</blockquote>
+<blockquote>🔎 <b>Base:</b> NOME • COMPLETO</blockquote>
 
 Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resultado.
 
 ⏳ <i>O resultado ficará disponível por tempo limitado</i>
 
-<blockquote>
-👤 <b>Usuário:</b> ".v($p["name"])."
-</blockquote>
+<blockquote>👤 <b>Usuário:</b> {$user_nome}</blockquote>
 
 ━━━━━━━━━━━━━━━
 
@@ -1813,7 +1809,7 @@ Plataforma premium de consultas com alta precisão, velocidade e dados completos
                     ["text"=>"🔍 Ver Resultado","url"=>$link]
                 ],
                 [
-                    ["text"=>"💎 Ativar VIP","callback_data"=>"planos"]
+                    ["text"=>"💎 • Ativar VIP","callback_data"=>$PLANOS]
                 ]
             ]
         ])
@@ -2338,17 +2334,13 @@ function consultaCPF1($chat, $cpf) {
     $msg = "
 <b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
 
-<blockquote>
-🔎 <b>Base:</b> CPF • COMPLETO
-</blockquote>
+<blockquote>🔎 <b>Base:</b> CPF • COMPLETO</blockquote>
 
 Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resultado.
 
 ⏳ <i>O resultado ficará disponível por tempo limitado</i>
 
-<blockquote>
-👤 <b>Usuário:</b> ".v($p["name"])."
-</blockquote>
+<blockquote>👤 <b>Usuário:</b> {$user_nome}</blockquote>
 
 ━━━━━━━━━━━━━━━
 
