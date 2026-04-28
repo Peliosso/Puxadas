@@ -1804,14 +1804,17 @@ Plataforma premium de consultas com alta precisão, velocidade e dados completos
         "text" => $msg,
         "parse_mode" => "HTML",
         "reply_markup" => json_encode([
-            "inline_keyboard" => [
-                [
-                    ["text"=>"🔍 Ver Resultado","url"=>$link]
-                ],
-                [
-                    ["text"=>"💎 • Ativar VIP","callback_data"=>$PLANOS]
-                ]
-            ]
+"inline_keyboard"=>[
+    [
+        ["text"=>"🔍 Ver Resultado","url"=>$link]
+    ],
+    [
+        ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+    ],
+    [
+        ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
+    ]
+]
         ])
     ]);
 }
