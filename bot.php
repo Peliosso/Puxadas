@@ -3221,253 +3221,184 @@ tg("sendPhoto",[
 
 }
 
-function consultaCPF($chat,$cpf){
+function consultaCPF($chat, $cpf) {
 
-global $STICKER_LOADING;
+    global $STICKER_LOADING;
 
-function v($v){
-return ($v === null || $v === "" || $v === "NULL") ? "NÃO ENCONTRADO" : $v;
-}
+    function v($v) {
+        return ($v === null || $v === "" || stripos($v, "NULL") !== false)
+            ? "NÃO ENCONTRADO"
+            : trim($v);
+    }
 
-/* LOADING */
-$sticker = tg("sendSticker",[
-"chat_id"=>$chat,
-"sticker"=>$STICKER_LOADING
-]);
+    // =========================
+    // 🔄 LOADING
+    // =========================
+    $sticker = tg("sendSticker", [
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-$stickerData = json_decode($sticker,true);
-$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+    // =========================
+    // 📄 VALIDAÇÃO
+    // =========================
+    $cpf = preg_replace('/\D/', '', $cpf);
 
-/* LIMPA CPF */
-$cpf = preg_replace('/[^0-9]/','',$cpf);
+    if (strlen($cpf) != 11) {
+        if ($stickerMsgId) {
+            tg("deleteMessage", ["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
+        }
 
-if(strlen($cpf) != 11){
+        tg("sendMessage", [
+            "chat_id"=>$chat,
+            "text"=>"❌ CPF inválido.\nUse: <code>/cpf 00000000000</code>",
+            "parse_mode"=>"HTML"
+        ]);
+        return;
+    }
 
-if($stickerMsgId){
-tg("deleteMessage",[
-"chat_id"=>$chat,
-"message_id"=>$stickerMsgId
-]);
-}
+    // =========================
+    // 🔥 API CPF
+    // =========================
+    $url = "https://sara-api.xyz/api/consulta/cpf?apikey=stherlionato&cpf={$cpf}";
 
-tg("sendMessage",[
-"chat_id"=>$chat,
-"text"=>"❌ CPF inválido.\nUse: <code>/cpf 00000000000</code>",
-"parse_mode"=>"HTML"
-]);
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL=>$url,
+        CURLOPT_RETURNTRANSFER=>true,
+        CURLOPT_TIMEOUT=>20
+    ]);
 
-return;
-}
+    $response = curl_exec($ch);
+    curl_close($ch);
 
-/* API */
-$url = "https://sara-api.xyz/api/consulta/cpf?apikey=bigmouth&cpf={$cpf}";
+    $json = json_decode($response, true);
 
-$ch = curl_init();
-curl_setopt_array($ch,[
-CURLOPT_URL => $url,
-CURLOPT_RETURNTRANSFER => true,
-CURLOPT_TIMEOUT => 25
-]);
+    // remove loading
+    if ($stickerMsgId) {
+        tg("deleteMessage", ["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
+    }
 
-$response = curl_exec($ch);
-$data = json_decode($response,true);
-curl_close($ch);
+    if (
+        !$json ||
+        empty($json["resultado"]["body"])
+    ) {
+        naoEncontrado($chat, "CPF", $cpf);
+        return;
+    }
 
-/* REMOVE LOADING */
-if($stickerMsgId){
-tg("deleteMessage",[
-"chat_id"=>$chat,
-"message_id"=>$stickerMsgId
-]);
-}
+    $p = $json["resultado"]["body"];
 
-if(!$data || !$data["status"]){
-tg("sendMessage",[
-"chat_id"=>$chat,
-"text"=>"❌ CPF não encontrado."
-]);
-return;
-}
+    // =========================
+    // 🧠 NORMALIZA (IMPORTANTE)
+    // =========================
+    $resultado = [
+        [
+            "nome" => $p["name"] ?? null,
+            "cpf" => $p["cpf_masked"] ?? null,
+            "sexo" => $p["gender"] ?? null,
+            "nascimento" => $p["birth_date"] ?? null,
+            "mae" => $p["mother_name"] ?? null,
+            "pai" => $p["father_name"] ?? null,
+            "rg" => $p["rg"] ?? null,
+            "situacao" => $p["federal_status"] ?? null,
+            "renda" => $p["income"] ?? null,
+            "classe_social" => $p["social_class"]["social_class"] ?? null,
 
-$body = $data["resultado"]["body"];
+            "email" => $p["email"] ?? null,
+            "emails_adicionais" => $p["additional_emails"] ?? [],
+            "telefones" => $p["phones"] ?? [],
 
-/* ===== DADOS BASE ===== */
-$nome = v($body["name"]);
-$cpf_mask = v($body["cpf_masked"]);
-$sexo = v($body["gender"]);
-$nascimento = v($body["birth_date"]);
-$mae = v($body["mother_name"]);
-$pai = v($body["father_name"]);
-$email = v($body["email"]);
-$status = v($body["federal_status"]);
-$renda = v($body["income"]);
+            "endereco" => $p["address"] ?? [],
+            "todos_enderecos" => $p["all_addresses"] ?? [],
+            "parentes" => $p["parentes"] ?? [],
+            "vizinhos" => $p["vizinhos"] ?? [],
+            "pedidos" => $p["paycom_orders"]["latest_orders"] ?? [],
+            "score" => $p["serasa_completo"]["score"] ?? [],
+            "poder_aquisitivo" => $p["poder_aquisitivo"] ?? [],
+            "historico_telefones" => $p["historico_telefones"] ?? []
+        ]
+    ];
 
-/* ENDEREÇO PRINCIPAL */
-$end = $body["address"] ?? [];
-$endereco = v($end["street"]).", ".v($end["number"])." - ".v($end["neighborhood"])." - ".v($end["city"])."/".v($end["state"])." - CEP: ".v($end["zip_code"]);
+    // =========================
+    // 🔐 TOKEN
+    // =========================
+    $token = bin2hex(random_bytes(16));
 
-/* TELEFONES */
-$telefones = "";
-if(!empty($body["phones"])){
-foreach($body["phones"] as $t){
-$telefones .= "• {$t}\n";
-}
-}else{
-$telefones = "NÃO ENCONTRADO";
-}
+    // =========================
+    // ☁️ SALVAR
+    // =========================
+    $payload = json_encode([
+        "token" => $token,
+        "tipo" => "cpf",
+        "query" => $cpf,
+        "resultado" => $resultado
+    ]);
 
-/* EMAILS */
-$emails = "";
-if(!empty($body["additional_emails"])){
-foreach($body["additional_emails"] as $e){
-$emails .= "• {$e}\n";
-}
-}else{
-$emails = $email;
-}
+    $api = "https://astro-search.stherlionato.workers.dev";
 
-/* ENDEREÇOS SECUNDÁRIOS */
-$enderecos2 = "";
-if(!empty($body["all_addresses"])){
-foreach($body["all_addresses"] as $e){
-$enderecos2 .= "• ".v($e["street"]).", ".v($e["number"])." - ".v($e["city"])."/".v($e["state"])."\n";
-}
-}else{
-$enderecos2 = "NÃO ENCONTRADO";
-}
+    $ch = curl_init($api . "/api/save");
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => ["Content-Type: application/json"],
+        CURLOPT_POSTFIELDS => $payload
+    ]);
+    curl_exec($ch);
+    curl_close($ch);
 
-/* PARENTES */
-$parentes = "";
-if(!empty($body["parentes"])){
-foreach($body["parentes"] as $p){
-$parentes .= "• {$p["nome"]} ({$p["vinculo"]})\n";
-}
-}else{
-$parentes = "NÃO ENCONTRADO";
-}
+    // =========================
+    // 🔗 LINK
+    // =========================
+    $link = $api . "/r/" . $token;
 
-/* VIZINHOS */
-$vizinhos = "";
-if(!empty($body["vizinhos"])){
-foreach($body["vizinhos"] as $v){
-$vizinhos .= "• {$v["nome"]} - {$v["logradouro"]}, {$v["numero"]}\n";
-}
-}else{
-$vizinhos = "NÃO ENCONTRADO";
-}
+    // =========================
+    // 💎 PREVIEW
+    // =========================
+    $msg = "
+<b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
 
-/* SCORE */
-$score = v($body["serasa_completo"]["score"]["CSBA"] ?? null);
+<blockquote>🔎 <b>Base:</b> CPF • COMPLETO</blockquote>
 
-/* CLASSE SOCIAL */
-$classe = v($body["social_class"]["social_class"] ?? null);
+Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resultado.
 
-/* PEDIDOS */
-$pedidos = "";
-if(!empty($body["paycom_orders"]["latest_orders"])){
-foreach($body["paycom_orders"]["latest_orders"] as $o){
-$pedidos .= "• Pedido {$o["order_id"]} ({$o["created_at"]})\n";
-}
-}else{
-$pedidos = "NÃO ENCONTRADO";
-}
+⏳ <i>O resultado ficará disponível por tempo limitado</i>
 
-/* TXT */
+<blockquote>👤 <b>Usuário:</b> {$nome}</blockquote>
 
-$txt = "
-╔══════════════════════════════╗
-   CONSULTA CPF ULTRA — ASTRO
-╚══════════════════════════════╝
+━━━━━━━━━━━━━━━
 
-👤 DADOS PESSOAIS
-──────────────────────────────
-Nome: {$nome}
-CPF: {$cpf_mask}
-Sexo: {$sexo}
-Nascimento: {$nascimento}
-
-👪 FILIAÇÃO
-──────────────────────────────
-Mãe: {$mae}
-Pai: {$pai}
-
-📞 CONTATO
-──────────────────────────────
-Telefones:
-{$telefones}
-
-Emails:
-{$emails}
-
-🏠 ENDEREÇO PRINCIPAL
-──────────────────────────────
-{$endereco}
-
-📍 ENDEREÇOS SECUNDÁRIOS
-──────────────────────────────
-{$enderecos2}
-
-💰 FINANCEIRO
-──────────────────────────────
-Renda: {$renda}
-Status: {$status}
-Score: {$score}
-Classe Social: {$classe}
-
-🛒 ATIVIDADE (PAYCOM)
-──────────────────────────────
-{$pedidos}
-
-👨‍👩‍👧 PARENTES
-──────────────────────────────
-{$parentes}
-
-🏘 VIZINHOS
-──────────────────────────────
-{$vizinhos}
-
-──────────────────────────────
-";
-
-/* FILE */
-$file = tempnam(sys_get_temp_dir(),"cpf_");
-file_put_contents($file,$txt);
-
-/* PREVIEW */
-$preview = "
-💎 <b>Consulta CPF ULTRA</b>
+🤖 <b>Bot:</b> @consultasdedados_bot
+📢 <b>Canal:</b> @consultas24
 
 <blockquote>
-👤 {$nome}
-📄 {$cpf_mask}
-🎂 {$nascimento}
-⚖️ {$status}
-💰 R$ {$renda}
+<b>Astro Search</b>
+Plataforma premium de consultas com alta precisão, velocidade e dados completos.
 </blockquote>
-
-📄 Relatório completo no TXT.
 ";
-
-/* ENVIA */
-tg("sendDocument",[
-"chat_id"=>$chat,
-"document"=>new CURLFile($file,"text/plain","cpf_{$cpf}.txt"),
-"caption"=>$preview,
-"parse_mode"=>"HTML",
-"reply_markup"=>json_encode([
+    // =========================
+    // 📲 ENVIO FINAL
+    // =========================
+    tg("sendMessage", [
+        "chat_id" => $chat,
+        "text" => $msg,
+        "parse_mode" => "HTML",
+        "reply_markup" => json_encode([
 "inline_keyboard"=>[
-[
-["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
-],
-[
-["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
+    [
+        ["text"=>"🔍 Ver Resultado","url"=>$link]
+    ],
+    [
+        ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+    ],
+    [
+        ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
+    ]
 ]
-]
-])
-]);
-
-unlink($file);
-
+        ])
+    ]);
 }
 
 /* ================= START ================= */
