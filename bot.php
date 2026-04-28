@@ -1649,35 +1649,46 @@ if (!isset($results[0])) {
     // =========================
     // 💎 PREVIEW
     // =========================
-    $msg = "
-💎 <b>Consulta por Telefone</b>
+$msg = "
+<b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
+
+<blockquote>🔎 <b>Base:</b> TELEFONE • COMPLETO</blockquote>
+
+Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resultado.
+
+⏳ <i>O resultado ficará disponível por tempo limitado</i>
+
+<blockquote>👤 <b>Usuário:</b> {$nome}</blockquote>
+
+━━━━━━━━━━━━━━━
+
+🤖 <b>Bot:</b> @consultasdedados_bot
+📢 <b>Canal:</b> @consultas24
 
 <blockquote>
-📱 ".v($pessoa["telefone"] ?? null)."
-👤 ".v($pessoa["nome"] ?? null)."
-🪪 ".v($pessoa["cpf"] ?? null)."
-📍 ".v($pessoa["cidade"] ?? null)." - ".v($pessoa["uf"] ?? null)."
+<b>Astro Search</b>
+Plataforma premium de consultas com alta precisão, velocidade e dados completos.
 </blockquote>
-
-🔗 <i>Clique abaixo para ver o relatório completo</i>
 ";
-
     // =========================
-    // 📲 ENVIO
+    // 📲 ENVIO FINAL
     // =========================
     tg("sendMessage", [
         "chat_id" => $chat,
         "text" => $msg,
         "parse_mode" => "HTML",
         "reply_markup" => json_encode([
-            "inline_keyboard" => [
-                [
-                    ["text"=>"🔍 Ver Resultado","url"=>$link]
-                ],
-                [
-                    ["text"=>"💎 Ativar VIP","callback_data"=>"planos"]
-                ]
-            ]
+"inline_keyboard"=>[
+    [
+        ["text"=>"🔍 Ver Resultado","url"=>$link]
+    ],
+    [
+        ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+    ],
+    [
+        ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
+    ]
+]
         ])
     ]);
 }
@@ -1784,7 +1795,7 @@ Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resu
 
 ⏳ <i>O resultado ficará disponível por tempo limitado</i>
 
-<blockquote>👤 <b>Usuário:</b> {$user_nome}</blockquote>
+<blockquote>👤 <b>Usuário:</b> {$nome}</blockquote>
 
 ━━━━━━━━━━━━━━━
 
@@ -2343,7 +2354,7 @@ Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resu
 
 ⏳ <i>O resultado ficará disponível por tempo limitado</i>
 
-<blockquote>👤 <b>Usuário:</b> {$user_nome}</blockquote>
+<blockquote>👤 <b>Usuário:</b> {$nome}</blockquote>
 
 ━━━━━━━━━━━━━━━
 
@@ -2355,7 +2366,6 @@ Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resu
 Plataforma premium de consultas com alta precisão, velocidade e dados completos.
 </blockquote>
 ";
-
     // =========================
     // 📲 ENVIO FINAL
     // =========================
@@ -2364,17 +2374,21 @@ Plataforma premium de consultas com alta precisão, velocidade e dados completos
         "text" => $msg,
         "parse_mode" => "HTML",
         "reply_markup" => json_encode([
-            "inline_keyboard" => [
-                [
-                    ["text"=>"🔍 Ver Resultado","url"=>$link]
-                ],
-                [
-                    ["text"=>"💎 Ativar VIP","callback_data"=>"planos"]
-                ]
-            ]
+"inline_keyboard"=>[
+    [
+        ["text"=>"🔍 Ver Resultado","url"=>$link]
+    ],
+    [
+        ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+    ],
+    [
+        ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
+    ]
+]
         ])
     ]);
 }
+
 
 function consultaCPF2($chat,$cpf){
 
