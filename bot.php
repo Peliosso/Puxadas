@@ -3821,7 +3821,7 @@ if($data == "planos"){
                     ["text"=>"📆 Semanal - R$24,90","callback_data"=>"plano_semanal"]
                 ],
                 [
-                    ["text"=>"👑 Para Sempre - R$20,90 - 3 vagas.","callback_data"=>"plano_vitalicio"]
+                    ["text"=>"👑 Para Sempre - R$20,90 - 1 vaga.","callback_data"=>"plano_vitalicio"]
                 ],
                 [
                     ["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"],
