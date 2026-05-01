@@ -252,6 +252,28 @@ tg("deleteMessage",[
 
 }
 
+if($message && isset($message["chat"])){
+
+    $chat_id = $message["chat"]["id"];
+    $type = $message["chat"]["type"];
+
+    if($type == "group" || $type == "supergroup"){
+
+        $file = "grupos.json";
+
+        if(!file_exists($file)){
+            file_put_contents($file, json_encode([]));
+        }
+
+        $data = json_decode(file_get_contents($file), true);
+
+        if(!isset($data[$chat_id])){
+            $data[$chat_id] = true;
+            file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT));
+        }
+    }
+}
+
 /* ====== BLOQUEIO GLOBAL ====== */
 
 $userId = $message["from"]["id"] ?? $callback["from"]["id"] ?? null;
