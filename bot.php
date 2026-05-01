@@ -399,6 +399,81 @@ Seu plano atual é <b>Gratuito</b> e possui limitações.
 
 }
 
+if($message && isset($message["text"])){
+
+    $text = $message["text"];
+
+    if($text == "/plano"){
+
+        $nome = $message["from"]["first_name"];
+        $id   = $message["from"]["id"];
+
+        // verifica VIP
+        if(isVip($id)){
+
+            $msgPlano =
+"💎 <b>SEU PLANO ATUAL</b>
+
+━━━━━━━━━━━━━━━
+👤 Usuário: <a href=\"tg://user?id={$id}\">{$nome}</a>
+
+💎 Status: <b>VIP ATIVO</b>
+
+━━━━━━━━━━━━━━━
+🔥 Benefícios:
+
+• Consultas ilimitadas  
+• Dados completos  
+• Prioridade no sistema  
+• Acesso total  
+
+━━━━━━━━━━━━━━━
+🚀 Aproveite ao máximo seu acesso!";
+
+        } else {
+
+            $msgPlano =
+"🔓 <b>PLANO GRATUITO</b>
+
+━━━━━━━━━━━━━━━
+👤 Usuário: <a href=\"tg://user?id={$id}\">{$nome}</a>
+
+📉 Status: <b>Limitado</b>
+
+━━━━━━━━━━━━━━━
+⚠️ Limitações:
+
+• Consultas restritas  
+• Dados incompletos  
+• Sem prioridade  
+
+━━━━━━━━━━━━━━━
+💎 <b>Ative o VIP agora:</b>
+
+• Consultas ilimitadas  
+• Acesso completo  
+• Respostas rápidas  
+
+👇 Clique abaixo para ver os planos";
+        }
+
+        tg("sendPhoto",[
+            "chat_id"=>$chat_id,
+            "photo"=>$START_PHOTO,
+            "caption"=>$msgPlano,
+            "parse_mode"=>"HTML",
+            "reply_markup"=>json_encode([
+                "inline_keyboard"=>[
+                    [
+                        ["text"=>"💎 Ver Planos","callback_data"=>"planos"]
+                    ]
+                ]
+            ])
+        ]);
+
+        return;
+    }
+}
 
 /* ================= MENU ================= */
 
