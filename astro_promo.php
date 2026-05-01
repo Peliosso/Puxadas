@@ -4,7 +4,7 @@ ignore_user_abort(true);
 set_time_limit(0);
 
 // ================= CONFIG =================
-$TOKEN = "SEU_TOKEN_AQUI";
+$TOKEN = "8669340911:AAHgt35G_2PN_uFJV1xfSpjgxjaIrbsbx3I";
 $API   = "https://api.telegram.org/bot{$TOKEN}";
 
 // ================= FUNÇÃO BOT =================
