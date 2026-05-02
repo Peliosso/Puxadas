@@ -239,7 +239,7 @@ if(isset($update["message"])){
 
 /* APAGAR COMANDOS NO GRUPO (EXCETO DO ADMIN) */
 
-$ADMIN_ID = 1087968824; // seu ID
+$ADMIN_ID = 8751158979; // seu ID
 
 if($message && isset($message["text"])){
 
@@ -386,9 +386,9 @@ Seu plano atual é <b>Gratuito</b> e possui limitações.
 ━━━━━━━━━━━━━━━
 💰 <b>Planos disponíveis:</b>
 
-📅 Diário: R$ 15,00  
-📆 Mensal: R$ 20,00  
-👑 Vitalício: R$ 25,00  
+📅 Diário: R$ 14,90
+📆 Semanal: R$ 24,90
+👑 Para Sempre: R$ 20,90 - <b>1 Vaga</b> 
 
 🚀 Liberação automática após pagamento
 
