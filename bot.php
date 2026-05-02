@@ -497,7 +497,7 @@ $kb = [
 ],
 [
 ["text"=>"⭐ Planos","callback_data"=>"planos"],
-["text"=>"🛠 Suporte","url"=>"https://t.me/puxadas71"]
+["text"=>"🛠 Suporte","url"=>"https://t.me/puxardados5"]
 ],
 [
 ["text"=>"📢 Canal Oficial","url"=>"https://t.me/consultas24"]
@@ -3997,7 +3997,7 @@ if(strpos($data, "pix_") === 0){
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
                 [
-                    ["text"=>"📄 Enviar Comprovante","url"=>"https://t.me/puxadas71"]
+                    ["text"=>"📄 Enviar Comprovante","url"=>"https://t.me/puxardados5"]
                 ],
                 [
                     ["text"=>"⬅️ Voltar","callback_data"=>"planos"]
