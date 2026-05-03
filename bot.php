@@ -114,7 +114,7 @@ function isGroupChat($type){
 }
 
 define("VIP_CODES_DB","vip_codes.json");
-$OWNER_ID = 8751158979;
+$OWNER_ID = [8751158979, 7320236887];
 
 define("WELCOME_DB", "welcome.json");
 
@@ -241,7 +241,7 @@ if(isset($update["message"])){
 
 /* APAGAR COMANDOS NO GRUPO (EXCETO DO ADMIN) */
 
-$ADMIN_ID = 8751158979; // seu ID
+$ADMIN_ID = [8751158979, 7320236887]; // seu ID
 
 if($message && isset($message["text"])){
 
