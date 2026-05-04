@@ -56,63 +56,61 @@ function mensagemPromo(){
 
     $msgs = [
 
-"🚨 <b>CONSULTAS LIBERADAS (LIMITADO)</b>
-
-━━━━━━━━━━━━━━━
-🔎 <b>Disponível agora:</b>
-
-• Telefone  
-• CPF  
-• Nome completo  
-• RG  
-• Placa de veículo  
-• Endereço  
-• Parentes e vínculos  
-
-━━━━━━━━━━━━━━━
-💎 <b>VIP destrava tudo sem limite</b>
-
-⚠️ Quem não ativa, fica travado.
-
-👇 Toque abaixo antes que bloqueie:",
-
-"🔒 <b>ACESSO RESTRITO</b>
-
-Você tentou acessar dados completos…
-mas está bloqueado.
+"💎 <b>ATIVE AS CONSULTAS ILIMITADAS</b>
 
 ━━━━━━━━━━━━━━━
 📊 <b>Consultas disponíveis:</b>
 
+• Telefone  
+• Nome completo  
+• CPF  
+• RG  
+• Placa de veículo  
+• Endereço  
+• Parentes e vínculos  
+• E muito mais...
+
+━━━━━━━━━━━━━━━
+⚡ <b>Acesso completo + sem limites</b>
+
+⏳ Liberação imediata
+
+👇 Toque abaixo para ativar:",
+
+"🚀 <b>ACESSO COMPLETO EM SEGUNDOS</b>
+
+━━━━━━━━━━━━━━━
+📊 <b>Você poderá consultar:</b>
+
 ✔ Telefone  
-✔ CPF  
 ✔ Nome  
+✔ CPF  
 ✔ RG  
 ✔ Placa  
 ✔ Dados completos  
 
 ━━━━━━━━━━━━━━━
-💎 VIP = acesso total + ilimitado
+💎 <b>Consultas ilimitadas sem bloqueio</b>
 
-⏳ Liberação por tempo limitado
+🔥 Ativação rápida
 
 👇 Ative agora:",
 
-"💰 <b>DADOS REAIS NÃO SÃO PÚBLICOS</b>
+"🔒 <b>LIBERE TODAS AS CONSULTAS</b>
 
 ━━━━━━━━━━━━━━━
-📊 Aqui você consegue:
+📊 <b>Disponível no VIP:</b>
 
 • CPF e RG  
-• Telefones ocultos  
+• Telefones  
 • Placas e veículos  
 • Endereços completos  
 • Histórico e vínculos  
 
 ━━━━━━━━━━━━━━━
-💎 VIP libera tudo em segundos
+💎 <b>Acesso total sem limites</b>
 
-🔥 Últimas ativações disponíveis
+⚡ Liberação instantânea
 
 👇 Garanta seu acesso:"
 
