@@ -7,7 +7,7 @@ set_time_limit(30);
 $TOKEN = "8669340911:AAHgt35G_2PN_uFJV1xfSpjgxjaIrbsbx3I";
 $API   = "https://api.telegram.org/bot{$TOKEN}";
 
-// ===== FUNÇÃO =====
+// ===== REQUEST =====
 function bot($method, $data){
     global $API;
 
@@ -39,82 +39,127 @@ function getGrupos(){
     return is_array($data) ? $data : [];
 }
 
-// ===== MENSAGENS =====
+// ===== CONTROLE (APAGAR MSG ANTIGA) =====
+function getControle(){
+    if(!file_exists("controle.json")){
+        file_put_contents("controle.json", json_encode([]));
+    }
+    return json_decode(file_get_contents("controle.json"), true);
+}
+
+function saveControle($data){
+    file_put_contents("controle.json", json_encode($data, JSON_PRETTY_PRINT));
+}
+
+// ===== COPY PESADA =====
 function mensagemPromo(){
 
     $msgs = [
 
-"💎 <b>LIBERE O ACESSO VIP</b>
+"🚨 <b>CONSULTAS LIBERADAS (LIMITADO)</b>
 
 ━━━━━━━━━━━━━━━
-🔎 Consultas completas  
-📊 Dados atualizados  
-⚡ Respostas instantâneas  
+🔎 <b>Disponível agora:</b>
+
+• Telefone  
+• CPF  
+• Nome completo  
+• RG  
+• Placa de veículo  
+• Endereço  
+• Parentes e vínculos  
 
 ━━━━━━━━━━━━━━━
-💰 <b>Planos:</b>
+💎 <b>VIP destrava tudo sem limite</b>
 
-• Diário: R$14,90  
-• Semanal: R$24,90  
-• Vitalício: R$20,90  
+⚠️ Quem não ativa, fica travado.
 
-🚀 Ative agora: /plano",
+👇 Toque abaixo antes que bloqueie:",
 
-"🔒 <b>VOCÊ ESTÁ PERDENDO INFORMAÇÕES</b>
+"🔒 <b>ACESSO RESTRITO</b>
 
-━━━━━━━━━━━━━━━
-💎 VIP libera:
-
-• Telefones  
-• Endereços  
-• Dados completos  
+Você tentou acessar dados completos…
+mas está bloqueado.
 
 ━━━━━━━━━━━━━━━
-🔥 Acesso total sem limites
+📊 <b>Consultas disponíveis:</b>
 
-👉 Use /plano",
-
-"🚀 <b>MAIS DE 100 CONSULTAS HOJE</b>
-
-━━━━━━━━━━━━━━━
-💎 Não fique de fora
-
-Tenha acesso completo agora  
-Sem limites e com prioridade  
+✔ Telefone  
+✔ CPF  
+✔ Nome  
+✔ RG  
+✔ Placa  
+✔ Dados completos  
 
 ━━━━━━━━━━━━━━━
-👉 /plano"
+💎 VIP = acesso total + ilimitado
+
+⏳ Liberação por tempo limitado
+
+👇 Ative agora:",
+
+"💰 <b>DADOS REAIS NÃO SÃO PÚBLICOS</b>
+
+━━━━━━━━━━━━━━━
+📊 Aqui você consegue:
+
+• CPF e RG  
+• Telefones ocultos  
+• Placas e veículos  
+• Endereços completos  
+• Histórico e vínculos  
+
+━━━━━━━━━━━━━━━
+💎 VIP libera tudo em segundos
+
+🔥 Últimas ativações disponíveis
+
+👇 Garanta seu acesso:"
 
     ];
 
     return $msgs[array_rand($msgs)];
 }
 
-// ===== FIXAÇÃO =====
-function podeFixar(){
-    return rand(1, 10) <= 3;
-}
-
 // ===== EXECUÇÃO =====
 $grupos = getGrupos();
+$controle = getControle();
 
 foreach($grupos as $chat_id => $v){
 
+    // 🧹 APAGA MSG ANTERIOR
+    if(isset($controle[$chat_id])){
+        bot("deleteMessage", [
+            "chat_id" => $chat_id,
+            "message_id" => $controle[$chat_id]
+        ]);
+    }
+
+    // 🔘 BOTÃO INLINE
+    $keyboard = json_encode([
+        "inline_keyboard"=>[
+            [
+                ["text"=>"💎 ATIVAR VIP AGORA","callback_data"=>"planos"]
+            ]
+        ]
+    ]);
+
+    // 📤 ENVIA MSG
     $msg = bot("sendMessage", [
         "chat_id" => $chat_id,
         "text" => mensagemPromo(),
-        "parse_mode" => "HTML"
+        "parse_mode" => "HTML",
+        "reply_markup" => $keyboard
     ]);
 
-    // delay pra não parecer spam
-    sleep(rand(2,5));
-
-    if(isset($msg['result']['message_id']) && podeFixar()){
-        bot("pinChatMessage", [
-            "chat_id" => $chat_id,
-            "message_id" => $msg['result']['message_id']
-        ]);
+    // 💾 SALVA ID
+    if(isset($msg['result']['message_id'])){
+        $controle[$chat_id] = $msg['result']['message_id'];
+        saveControle($controle);
     }
+
+    // ⏱️ delay anti-spam
+    sleep(rand(2,5));
 }
 
 echo "OK";
