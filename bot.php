@@ -3569,6 +3569,36 @@ if(strpos($text, "/setwelcome") === 0){
 }
 }
 
+// =========================
+// FUNÇÃO UNIVERSAL DE EDIÇÃO
+// =========================
+function editarMsg($callback, $chat, $msg, $texto, $markup){
+
+    if(isset($callback["message"]["caption"])){
+
+        // mensagem com FOTO
+        tg("editMessageCaption",[
+            "chat_id"=>$chat,
+            "message_id"=>$msg,
+            "caption"=>$texto,
+            "parse_mode"=>"HTML",
+            "reply_markup"=>$markup
+        ]);
+
+    } else {
+
+        // mensagem de TEXTO
+        tg("editMessageText",[
+            "chat_id"=>$chat,
+            "message_id"=>$msg,
+            "text"=>$texto,
+            "parse_mode"=>"HTML",
+            "reply_markup"=>$markup
+        ]);
+
+    }
+}
+
 /* ================= COMANDOS ================= */
 
 if($message && isset($message["text"]) && str_starts_with($message["text"], "/")){
@@ -3928,27 +3958,25 @@ if($data == "menu_cep"){
 // =========================
 if($data == "planos"){
 
-    tg("editMessageCaption",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg,
-        "caption"=>"🚀 <b>ACESSO PREMIUM LIBERADO</b>\n\n💎 Tenha acesso completo à nossa base de consultas avançadas:\n\n✅ RG, CPF e CNH\n✅ Endereços e dados completos\n✅ Score e dados financeiros\n✅ Parentes e vínculos\n✅ Veículos (chassi, motor, laudo)\n✅ Benefícios, CADSUS e muito mais...\n\n⚡ <b>Consultas ilimitadas + acesso instantâneo</b>\n\n👇 <b>Escolha seu plano:</b>",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"📅 Diário - R$14,90","callback_data"=>"plano_diario"],
-                    ["text"=>"📆 Semanal - R$24,90","callback_data"=>"plano_semanal"]
-                ],
-                [
-                    ["text"=>"👑 Para Sempre - R$20,90 - 1 vaga.","callback_data"=>"plano_vitalicio"]
-                ],
-                [
-                    ["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"],
-                    ["text"=>"🏠 Início","callback_data"=>"inicio"]
-                ]
+    $texto = "🚀 <b>ACESSO PREMIUM LIBERADO</b>\n\n💎 Tenha acesso completo à nossa base de consultas avançadas:\n\n✅ RG, CPF e CNH\n✅ Endereços e dados completos\n✅ Score e dados financeiros\n✅ Parentes e vínculos\n✅ Veículos (chassi, motor, laudo)\n✅ Benefícios, CADSUS e muito mais...\n\n⚡ <b>Consultas ilimitadas + acesso instantâneo</b>\n\n👇 <b>Escolha seu plano:</b>";
+
+    $markup = json_encode([
+        "inline_keyboard"=>[
+            [
+                ["text"=>"📅 Diário - R$14,90","callback_data"=>"plano_diario"],
+                ["text"=>"📆 Semanal - R$24,90","callback_data"=>"plano_semanal"]
+            ],
+            [
+                ["text"=>"👑 Para Sempre - R$20,90 - 1 vaga.","callback_data"=>"plano_vitalicio"]
+            ],
+            [
+                ["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"],
+                ["text"=>"🏠 Início","callback_data"=>"inicio"]
             ]
-        ])
+        ]
     ]);
+
+    editarMsg($callback, $chat, $msg, $texto, $markup);
 
     exit;
 }
@@ -3961,22 +3989,20 @@ if(strpos($data, "plano_") === 0){
 
     $plano = str_replace("plano_", "", $data);
 
-    tg("editMessageCaption",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg,
-        "caption"=>"💎 <b>Plano ".strtoupper($plano)."</b>\n\n💰 Clique abaixo para ver a chave PIX e realizar o pagamento.",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"💳 Chave Pix","callback_data"=>"pix_{$plano}"]
-                ],
-                [
-                    ["text"=>"⬅️ Voltar","callback_data"=>"planos"]
-                ]
+    $texto = "💎 <b>Plano ".strtoupper($plano)."</b>\n\n💰 Clique abaixo para ver a chave PIX e realizar o pagamento.";
+
+    $markup = json_encode([
+        "inline_keyboard"=>[
+            [
+                ["text"=>"💳 Chave Pix","callback_data"=>"pix_{$plano}"]
+            ],
+            [
+                ["text"=>"⬅️ Voltar","callback_data"=>"planos"]
             ]
-        ])
+        ]
     ]);
+
+    editarMsg($callback, $chat, $msg, $texto, $markup);
 
     exit;
 }
@@ -4002,29 +4028,26 @@ if(strpos($data, "pix_") === 0){
 
     $valor = $PLANOS[$plano];
 
-    // alerta pequeno ao clicar
     tg("answerCallbackQuery",[
         "callback_query_id"=>$callback["id"],
         "text"=>"📋 Copie a chave e faça o pagamento",
         "show_alert"=>false
     ]);
 
-    tg("editMessageCaption",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg,
-        "caption"=>"💎 <b>PLANO ".strtoupper($plano)."</b>\n\n💰 Valor: <b>R$ {$valor}</b>\n\n📌 <b>Chave PIX:</b>\n<code>{$CHAVE_PIX}</code>\n\n📋 <i>Clique na chave acima para copiar automaticamente</i>\n\n⚠️ <b>IMPORTANTE:</b>\n⏳ Envie o comprovante para liberação imediata",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"📄 Enviar Comprovante","url"=>"https://t.me/puxardados5"]
-                ],
-                [
-                    ["text"=>"⬅️ Voltar","callback_data"=>"planos"]
-                ]
+    $texto = "💎 <b>PLANO ".strtoupper($plano)."</b>\n\n💰 Valor: <b>R$ {$valor}</b>\n\n📌 <b>Chave PIX:</b>\n<code>{$CHAVE_PIX}</code>\n\n📋 <i>Clique na chave acima para copiar automaticamente</i>\n\n⚠️ <b>IMPORTANTE:</b>\n⏳ Envie o comprovante para liberação imediata";
+
+    $markup = json_encode([
+        "inline_keyboard"=>[
+            [
+                ["text"=>"📄 Enviar Comprovante","url"=>"https://t.me/puxardados5"]
+            ],
+            [
+                ["text"=>"⬅️ Voltar","callback_data"=>"planos"]
             ]
-        ])
+        ]
     ]);
+
+    editarMsg($callback, $chat, $msg, $texto, $markup);
 
     exit;
 }
