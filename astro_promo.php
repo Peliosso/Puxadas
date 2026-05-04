@@ -142,19 +142,30 @@ foreach($grupos as $chat_id => $v){
         ]
     ]);
 
-    // 📤 ENVIA MSG
-    $msg = bot("sendMessage", [
-        "chat_id" => $chat_id,
-        "text" => mensagemPromo(),
-        "parse_mode" => "HTML",
-        "reply_markup" => $keyboard
-    ]);
+// 📤 ENVIA MSG
+$msg = bot("sendMessage", [
+    "chat_id" => $chat_id,
+    "text" => mensagemPromo(),
+    "parse_mode" => "HTML",
+    "reply_markup" => $keyboard
+]);
 
-    // 💾 SALVA ID
-    if(isset($msg['result']['message_id'])){
-        $controle[$chat_id] = $msg['result']['message_id'];
-        saveControle($controle);
-    }
+// 💾 SALVA ID + 📌 FIXA
+if(isset($msg['result']['message_id'])){
+
+    $message_id = $msg['result']['message_id'];
+
+    // salva controle
+    $controle[$chat_id] = $message_id;
+    saveControle($controle);
+
+    // 📌 fixa mensagem nova
+    bot("pinChatMessage", [
+        "chat_id" => $chat_id,
+        "message_id" => $message_id,
+        "disable_notification" => false
+    ]);
+}
 
     // ⏱️ delay anti-spam
     sleep(rand(2,5));
