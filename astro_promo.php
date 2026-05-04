@@ -1,13 +1,13 @@
 <?php
 
 ignore_user_abort(true);
-set_time_limit(0);
+set_time_limit(30);
 
-// ================= CONFIG =================
+// ===== CONFIG =====
 $TOKEN = "8669340911:AAHgt35G_2PN_uFJV1xfSpjgxjaIrbsbx3I";
 $API   = "https://api.telegram.org/bot{$TOKEN}";
 
-// ================= FUNÇÃO BOT =================
+// ===== FUNÇÃO =====
 function bot($method, $data){
     global $API;
 
@@ -19,24 +19,27 @@ function bot($method, $data){
     ]);
 
     $res = curl_exec($ch);
+
+    if($res === false){
+        die(curl_error($ch));
+    }
+
     curl_close($ch);
 
     return json_decode($res, true);
 }
 
-// ================= GRUPOS =================
+// ===== GRUPOS =====
 function getGrupos(){
-
     if(!file_exists("grupos.json")){
         file_put_contents("grupos.json", json_encode([]));
     }
 
     $data = json_decode(file_get_contents("grupos.json"), true);
-
     return is_array($data) ? $data : [];
 }
 
-// ================= MENSAGENS VARIADAS (OPÇÃO 4) =================
+// ===== MENSAGENS =====
 function mensagemPromo(){
 
     $msgs = [
@@ -87,36 +90,31 @@ Sem limites e com prioridade
     return $msgs[array_rand($msgs)];
 }
 
-// ================= CONTROLE DE FIXAÇÃO (OPÇÃO 6) =================
+// ===== FIXAÇÃO =====
 function podeFixar(){
-
-    // 30% de chance de fixar
     return rand(1, 10) <= 3;
 }
 
-// ================= LOOP =================
-while(true){
+// ===== EXECUÇÃO =====
+$grupos = getGrupos();
 
-    $grupos = getGrupos();
+foreach($grupos as $chat_id => $v){
 
-    foreach($grupos as $chat_id => $v){
+    $msg = bot("sendMessage", [
+        "chat_id" => $chat_id,
+        "text" => mensagemPromo(),
+        "parse_mode" => "HTML"
+    ]);
 
-        $msg = bot("sendMessage", [
+    // delay pra não parecer spam
+    sleep(rand(2,5));
+
+    if(isset($msg['result']['message_id']) && podeFixar()){
+        bot("pinChatMessage", [
             "chat_id" => $chat_id,
-            "text" => mensagemPromo(),
-            "parse_mode" => "HTML"
+            "message_id" => $msg['result']['message_id']
         ]);
-
-        if(isset($msg['result']['message_id']) && podeFixar()){
-
-            bot("pinChatMessage", [
-                "chat_id" => $chat_id,
-                "message_id" => $msg['result']['message_id'],
-                "disable_notification" => false
-            ]);
-        }
     }
-
-    // ⏱️ 10 minutos
-    sleep(600);
 }
+
+echo "OK";
