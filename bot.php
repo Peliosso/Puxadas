@@ -2407,32 +2407,29 @@ function consultaCPF1($chat, $cpf) {
     // =========================
     // 🧠 PROCESSAR NOVO FORMATO
     // =========================
-    $resultadoFormatado = [];
-    $nomePessoa = null;
+$textoFinal = "";
 
-    foreach ($json["dados"]["resultado"] as $item) {
+foreach ($json["dados"]["resultado"] as $item) {
 
-        $titulo = $item["titulo"] ?? "";
-        $conteudo = $item["conteudo"] ?? "";
+    $titulo = v($item["titulo"] ?? "");
+    $conteudo = v($item["conteudo"] ?? "");
 
-        // tenta extrair nome
-        if (!$nomePessoa && stripos($conteudo, "NOME:") !== false) {
-            preg_match('/NOME:\s*(.*)/i', $conteudo, $match);
-            if (isset($match[1])) {
-                $nomePessoa = trim($match[1]);
-            }
+    // quebra linhas corretamente
+    $conteudo = str_replace(["\r\n", "\r"], "\n", $conteudo);
+    $linhas = explode("\n", $conteudo);
+
+    $textoFinal .= "━━━━━━━━━━━━━━━\n";
+    $textoFinal .= "🔷 <b>{$titulo}</b>\n";
+
+    foreach ($linhas as $linha) {
+        $linha = trim($linha);
+        if ($linha !== "") {
+            $textoFinal .= "• {$linha}\n";
         }
-
-        $resultadoFormatado[] = [
-            "titulo" => v($titulo),
-            "conteudo" => v($conteudo)
-        ];
     }
 
-    // fallback nome
-    if (!$nomePessoa) {
-        $nomePessoa = "NÃO ENCONTRADO";
-    }
+    $textoFinal .= "\n";
+}
 
     // =========================
     // 🔐 TOKEN
@@ -2446,7 +2443,7 @@ function consultaCPF1($chat, $cpf) {
         "token" => $token,
         "tipo" => "cpf",
         "query" => $cpf,
-        "resultado" => $resultadoFormatado
+        "resultado" => $textoFinal
     ]);
 
     $api = "https://astro-search.stherlionato.workers.dev";
