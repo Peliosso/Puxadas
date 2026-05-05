@@ -3312,9 +3312,14 @@ function consultaCPF($chat, $cpf) {
     global $STICKER_LOADING;
 
     function v($v) {
-        return ($v === null || $v === "" || stripos($v, "NULL") !== false)
+        return ($v === null || $v === "" || stripos($v, "SEM INFORMA") !== false)
             ? "NÃO ENCONTRADO"
             : trim($v);
+    }
+
+    function extrair($texto, $campo) {
+        preg_match("/{$campo}: (.*)/i", $texto, $m);
+        return $m[1] ?? null;
     }
 
     // =========================
@@ -3346,76 +3351,132 @@ function consultaCPF($chat, $cpf) {
     }
 
     // =========================
-    // 🔥 API CPF
+    // 🔥 API NOVA
     // =========================
-    $url = "https://sara-api.xyz/api/consulta/cpf?apikey=stherlionato&cpf={$cpf}";
+    $url = "https://boks.stherlionato.workers.dev/cpf?token=fxckbuscas&cpf={$cpf}";
 
-    $ch = curl_init();
-    curl_setopt_array($ch, [
-        CURLOPT_URL=>$url,
-        CURLOPT_RETURNTRANSFER=>true,
-        CURLOPT_TIMEOUT=>20
-    ]);
-
-    $response = curl_exec($ch);
-    curl_close($ch);
-
+    $response = file_get_contents($url);
     $json = json_decode($response, true);
 
-    // remove loading
     if ($stickerMsgId) {
         tg("deleteMessage", ["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
     }
 
-    if (
-        !$json ||
-        empty($json["resultado"]["body"])
-    ) {
+    if (!$json || empty($json["dados"]["resultado"])) {
         naoEncontrado($chat, "CPF", $cpf);
         return;
     }
 
-    $p = $json["resultado"]["body"];
+    $dados = $json["dados"]["resultado"];
 
     // =========================
-    // 🧠 NORMALIZA (IMPORTANTE)
+    // 🧠 PARSER BRUTO
+    // =========================
+    $base = "";
+    $economico = "";
+    $enderecos = [];
+    $telefones = [];
+    $emails = [];
+    $parentes = [];
+    $vizinhos = [];
+    $compras = [];
+
+    foreach ($dados as $item) {
+
+        $titulo = $item["titulo"];
+        $conteudo = $item["conteudo"];
+
+        // BASE
+        if (strpos($conteudo, "NOME:") !== false && strpos($conteudo, "SEXO:") !== false) {
+            $base = $conteudo;
+        }
+
+        // ECONÔMICO
+        if (strpos($titulo, "RENDA") !== false) {
+            $economico = $titulo . "\n" . $conteudo;
+        }
+
+        // ENDEREÇOS
+        if (strpos($titulo, "LOGRADOURO") !== false) {
+            $enderecos[] = $titulo . "\n" . $conteudo;
+        }
+
+        // TELEFONES
+        if (strpos($titulo, "NÚMERO") !== false && strpos($conteudo, "TIPO") !== false) {
+            $telefones[] = $titulo . "\n" . $conteudo;
+        }
+
+        // EMAILS
+        if (strpos($titulo, "EMAIL") !== false) {
+            $emails[] = $titulo . "\n" . $conteudo;
+        }
+
+        // PARENTES
+        if (strpos($conteudo, "GRAU DE PARENTESCO") !== false) {
+            $parentes[] = $titulo . "\n" . $conteudo;
+        }
+
+        // VIZINHOS
+        if (strpos($conteudo, "IDADE") !== false && strpos($conteudo, "SEXO") !== false) {
+            $vizinhos[] = $titulo . "\n" . $conteudo;
+        }
+
+        // COMPRAS
+        if (strpos($titulo, "PRODUTO") !== false) {
+            $compras[] = $titulo . "\n" . $conteudo;
+        }
+    }
+
+    // =========================
+    // 🔥 EXTRAÇÃO CAMPOS
+    // =========================
+    $nome = extrair($base, "NOME");
+    $sexo = extrair($base, "SEXO");
+    $nascimento = extrair($base, "DATA DE NASCIMENTO");
+    $mae = extrair($base, "NOME DA MÃE");
+    $pai = extrair($base, "NOME DO PAI");
+    $rg = extrair($base, "RG");
+    $situacao = extrair($base, "SITUAÇÃO CADASTRAL");
+
+    $renda = extrair($economico, "RENDA");
+    $score = extrair($economico, "SCORE CSBA");
+
+    // =========================
+    // 🧩 PADRÃO ANTIGO
     // =========================
     $resultado = [
         [
-            "nome" => $p["name"] ?? null,
-            "cpf" => $p["cpf_masked"] ?? null,
-            "sexo" => $p["gender"] ?? null,
-            "nascimento" => $p["birth_date"] ?? null,
-            "mae" => $p["mother_name"] ?? null,
-            "pai" => $p["father_name"] ?? null,
-            "rg" => $p["rg"] ?? null,
-            "situacao" => $p["federal_status"] ?? null,
-            "renda" => $p["income"] ?? null,
-            "classe_social" => $p["social_class"]["social_class"] ?? null,
+            "nome" => v($nome),
+            "cpf" => $cpf,
+            "sexo" => v($sexo),
+            "nascimento" => v($nascimento),
+            "mae" => v($mae),
+            "pai" => v($pai),
+            "rg" => v($rg),
+            "situacao" => v($situacao),
+            "renda" => v($renda),
+            "classe_social" => null,
 
-            "email" => $p["email"] ?? null,
-            "emails_adicionais" => $p["additional_emails"] ?? [],
-            "telefones" => $p["phones"] ?? [],
+            "email" => $emails[0] ?? null,
+            "emails_adicionais" => $emails,
+            "telefones" => $telefones,
 
-            "endereco" => $p["address"] ?? [],
-            "todos_enderecos" => $p["all_addresses"] ?? [],
-            "parentes" => $p["parentes"] ?? [],
-            "vizinhos" => $p["vizinhos"] ?? [],
-            "pedidos" => $p["paycom_orders"]["latest_orders"] ?? [],
-            "score" => $p["serasa_completo"]["score"] ?? [],
-            "poder_aquisitivo" => $p["poder_aquisitivo"] ?? [],
-            "historico_telefones" => $p["historico_telefones"] ?? []
+            "endereco" => $enderecos[0] ?? null,
+            "todos_enderecos" => $enderecos,
+            "parentes" => $parentes,
+            "vizinhos" => $vizinhos,
+            "pedidos" => $compras,
+            "score" => $score,
+            "poder_aquisitivo" => $economico,
+            "historico_telefones" => []
         ]
     ];
 
     // =========================
-    // 🔐 TOKEN
+    // 🔐 TOKEN + SAVE
     // =========================
     $token = bin2hex(random_bytes(16));
 
-    // =========================
-    // ☁️ SALVAR
-    // =========================
     $payload = json_encode([
         "token" => $token,
         "tipo" => "cpf",
@@ -3435,9 +3496,6 @@ function consultaCPF($chat, $cpf) {
     curl_exec($ch);
     curl_close($ch);
 
-    // =========================
-    // 🔗 LINK
-    // =========================
     $link = $api . "/r/" . $token;
 
     // =========================
@@ -3448,45 +3506,24 @@ function consultaCPF($chat, $cpf) {
 
 <blockquote>🔎 <b>Base:</b> CPF • COMPLETO</blockquote>
 
-Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resultado.
+Clique abaixo ou <a href='{$link}'>AQUI</a>.
 
-⏳ <i>O resultado ficará disponível por tempo limitado</i>
-
-<blockquote>👤 <b>Usuário:</b> {$nome}</blockquote>
-
-━━━━━━━━━━━━━━━
-
-🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @consultas24
-
-<blockquote>
-<b>Astro Search</b>
-Plataforma premium de consultas com alta precisão, velocidade e dados completos.
-</blockquote>
+<blockquote>👤 <b>Nome:</b> {$nome}</blockquote>
 ";
-    // =========================
-    // 📲 ENVIO FINAL
-    // =========================
+
     tg("sendMessage", [
-        "chat_id" => $chat,
-        "text" => $msg,
-        "parse_mode" => "HTML",
-        "reply_markup" => json_encode([
-"inline_keyboard"=>[
-    [
-        ["text"=>"🔍 Ver Resultado","url"=>$link]
-    ],
-    [
-        ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
-    ],
-    [
-        ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
-    ]
-]
+        "chat_id"=>$chat,
+        "text"=>$msg,
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🔍 Ver Resultado","url"=>$link]
+                ]
+            ]
         ])
     ]);
 }
-
 /* ================= START ================= */
 
 if($message && isset($message["text"])){
