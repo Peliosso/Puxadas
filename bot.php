@@ -3047,209 +3047,166 @@ unlink($file);
 
 }
 
-function consultaPlaca($chat,$placa){
+function consultaPlaca($chat, $placa) {
 
-global $STICKER_LOADING;
+    global $STICKER_LOADING;
 
-function v($v){
-return ($v === null || $v === "" || stripos($v,"Sem Informação") !== false) ? "NÃO ENCONTRADO" : $v;
-}
+    function v($v) {
+        return ($v === null || $v === "" || stripos($v, "NULL") !== false)
+            ? "NÃO ENCONTRADO"
+            : trim($v);
+    }
 
-/* LOADING */
-$sticker = tg("sendSticker",[
-"chat_id"=>$chat,
-"sticker"=>$STICKER_LOADING
-]);
+    // =========================
+    // 🔄 LOADING
+    // =========================
+    $sticker = tg("sendSticker", [
+        "chat_id"=>$chat,
+        "sticker"=>$STICKER_LOADING
+    ]);
+    $stickerData = json_decode($sticker, true);
+    $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-$stickerData = json_decode($sticker,true);
-$stickerMsgId = $stickerData["result"]["message_id"] ?? null;
+    // =========================
+    // 📄 VALIDAÇÃO
+    // =========================
+    $placa = strtoupper(preg_replace('/[^A-Z0-9]/', '', $placa));
 
-/* LIMPA PLACA */
-$placa = strtoupper(preg_replace('/[^A-Za-z0-9]/','',$placa));
+    if (strlen($placa) < 7) {
+        if ($stickerMsgId) {
+            tg("deleteMessage", ["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
+        }
 
-if(strlen($placa) != 7){
+        tg("sendMessage", [
+            "chat_id"=>$chat,
+            "text"=>"❌ Placa inválida.\nUse: <code>/placa ABC1234</code>",
+            "parse_mode"=>"HTML"
+        ]);
+        return;
+    }
 
-if($stickerMsgId){
-tg("deleteMessage",[
-"chat_id"=>$chat,
-"message_id"=>$stickerMsgId
-]);
-}
+    // =========================
+    // 🔥 API PLACA
+    // =========================
+    $url = "https://boks.stherlionato.workers.dev/placa?token=fxckbuscas&placa={$placa}";
 
-tg("sendMessage",[
-"chat_id"=>$chat,
-"text"=>"❌ Placa inválida.\nUse: <code>/placa ABC1234</code>",
-"parse_mode"=>"HTML",
-"reply_markup"=>json_encode([
-"inline_keyboard"=>[
-[
-["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
-]
-]
-])
-]);
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL=>$url,
+        CURLOPT_RETURNTRANSFER=>true,
+        CURLOPT_TIMEOUT=>20
+    ]);
 
-return;
-}
+    $response = curl_exec($ch);
+    curl_close($ch);
 
-/* 🔥 NOVA API */
-$url = "https://astro.stherlionato.workers.dev/placa?token=astropro&placa={$placa}";
+    $json = json_decode($response, true);
 
-$ch = curl_init();
-curl_setopt_array($ch,[
-CURLOPT_URL => $url,
-CURLOPT_RETURNTRANSFER => true,
-CURLOPT_TIMEOUT => 20
-]);
+    // remove loading
+    if ($stickerMsgId) {
+        tg("deleteMessage", ["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
+    }
 
-$response = curl_exec($ch);
-$data = json_decode($response,true);
-curl_close($ch);
+    if (
+        !$json ||
+        empty($json["dados"]["resultado"])
+    ) {
+        naoEncontrado($chat, "PLACA", $placa);
+        return;
+    }
 
-/* REMOVE LOADING */
-if($stickerMsgId){
-tg("deleteMessage",[
-"chat_id"=>$chat,
-"message_id"=>$stickerMsgId
-]);
-}
+    $dados = $json["dados"]["resultado"];
 
-/* ERRO */
-if(!$data || !$data["status"]){
+    // =========================
+    // 🧠 NORMALIZA
+    // =========================
+    $resultado = [];
 
-tg("sendMessage",[
-"chat_id"=>$chat,
-"text"=>"❌ Placa não encontrada.",
-"reply_markup"=>json_encode([
-"inline_keyboard"=>[
-[
-["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"]
-]
-]
-])
-]);
+    foreach ($dados as $item) {
+        $resultado[] = [
+            "titulo" => $item["titulo"] ?? null,
+            "conteudo" => $item["conteudo"] ?? null
+        ];
+    }
 
-return;
-}
+    // =========================
+    // 🔐 TOKEN
+    // =========================
+    $token = bin2hex(random_bytes(16));
 
-/* 🔥 PROCESSA NOVO FORMATO */
-$resultados = $data["dados"]["resultado"] ?? [];
+    // =========================
+    // ☁️ SALVAR
+    // =========================
+    $payload = json_encode([
+        "token" => $token,
+        "tipo" => "placa",
+        "query" => $placa,
+        "resultado" => $resultado
+    ]);
 
-$textoBruto = "";
-foreach($resultados as $item){
-$textoBruto .= $item["titulo"]."\n".$item["conteudo"]."\n\n";
-}
+    $api = "https://astro-search.stherlionato.workers.dev";
 
-/* FUNÇÃO PRA PEGAR DADO */
-function pegar($texto,$campo){
-preg_match("/{$campo}: (.*)/i",$texto,$m);
-return $m[1] ?? "NÃO ENCONTRADO";
-}
+    $ch = curl_init($api . "/api/save");
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => ["Content-Type: application/json"],
+        CURLOPT_POSTFIELDS => $payload
+    ]);
+    curl_exec($ch);
+    curl_close($ch);
 
-/* EXTRAÇÃO */
-$placa_v = pegar($textoBruto,"PLACA");
-$cor = pegar($textoBruto,"COR");
-$ano_fab = pegar($textoBruto,"ANO FABRICAÇÃO");
-$ano_mod = pegar($textoBruto,"ANO MODELO");
-$combustivel = pegar($textoBruto,"COMBUSTÍVEL");
-$potencia = pegar($textoBruto,"POTÊNCIA");
-$cilindradas = pegar($textoBruto,"CILINDRADAS");
-$tipo = pegar($textoBruto,"TIPO VEÍCULO");
-$especie = pegar($textoBruto,"ESPÉCIE");
-$chassi = pegar($textoBruto,"CHASSI");
-$renavam = pegar($textoBruto,"RENAVAM");
-$motor = pegar($textoBruto,"NÚMERO MOTOR");
-$origem = pegar($textoBruto,"PROCEDÊNCIA");
-$situacao = pegar($textoBruto,"SITUAÇÃO");
-$cidade = pegar($textoBruto,"MUNICÍPIO EMPLACAMENTO");
-$uf = pegar($textoBruto,"UF");
-$nome = pegar($textoBruto,"NOME");
-$doc = pegar($textoBruto,"DOCUMENTO");
+    // =========================
+    // 🔗 LINK
+    // =========================
+    $link = $api . "/r/" . $token;
 
-/* TXT */
+    // =========================
+    // 💎 PREVIEW
+    // =========================
+    $msg = "
+<b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
 
-$txt = "
-╔══════════════════════════════╗
-   CONSULTA PLACA ULTRA — ASTRO SEARCH
-╚══════════════════════════════╝
+<blockquote>🚗 <b>Base:</b> PLACA • COMPLETO</blockquote>
 
-🚗 DADOS DO VEÍCULO
-──────────────────────────────
-Placa: ".v($placa_v)."
-Cor: ".v($cor)."
-Ano Fabricação: ".v($ano_fab)."
-Ano Modelo: ".v($ano_mod)."
-Combustível: ".v($combustivel)."
-Potência: ".v($potencia)."
-Cilindradas: ".v($cilindradas)."
-Tipo: ".v($tipo)."
-Espécie: ".v($especie)."
+Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resultado.
 
-🔎 IDENTIFICADORES
-──────────────────────────────
-Chassi: ".v($chassi)."
-Renavam: ".v($renavam)."
-Motor: ".v($motor)."
-Origem: ".v($origem)."
+⏳ <i>O resultado ficará disponível por tempo limitado</i>
 
-🌍 LOCALIZAÇÃO
-──────────────────────────────
-Cidade: ".v($cidade)."
-UF: ".v($uf)."
+<blockquote>🔎 <b>Consulta:</b> {$placa}</blockquote>
 
-⚖️ SITUAÇÃO
-──────────────────────────────
-Situação: ".v($situacao)."
+━━━━━━━━━━━━━━━
 
-👤 PROPRIETÁRIO
-──────────────────────────────
-Nome: ".v($nome)."
-Documento: ".v($doc)."
-
-──────────────────────────────
-Consulta via ASTRO ULTRA
-";
-
-/* ARQUIVO */
-$file = tempnam(sys_get_temp_dir(),"placa_");
-file_put_contents($file,$txt);
-
-/* PREVIEW */
-
-$preview = "
-💎 <b>Consulta VIP Realizada</b>
+🤖 <b>Bot:</b> @consultasdedados_bot
+📢 <b>Canal:</b> @consultas24
 
 <blockquote>
-🚗 Placa: ".v($placa_v)."
-🎨 Cor: ".v($cor)."
-📅 ".v($ano_mod)."
-⚖️ Situação: ".v($situacao)."
-📍 ".v($cidade)." - ".v($uf)."
+<b>Astro Search</b>
+Plataforma premium de consultas com alta precisão, velocidade e dados completos.
 </blockquote>
-
-📄 Relatório completo no TXT.
 ";
 
-/* ENVIA */
-tg("sendDocument",[
-"chat_id"=>$chat,
-"document"=>new CURLFile($file,"text/plain","placa_{$placa}.txt"),
-"caption"=>$preview,
-"parse_mode"=>"HTML",
-"reply_markup"=>json_encode([
-"inline_keyboard"=>[
-[
-["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
-],
-[
-["text"=>"🗑 • Apagar","callback_data"=>"apagar_msg"]
-]
-]
-])
-]);
-
-unlink($file);
-
+    // =========================
+    // 📲 ENVIO FINAL
+    // =========================
+    tg("sendMessage", [
+        "chat_id" => $chat,
+        "text" => $msg,
+        "parse_mode" => "HTML",
+        "reply_markup" => json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🔍 Ver Resultado","url"=>$link]
+                ],
+                [
+                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+                ],
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"del_{$chat}"]
+                ]
+            ]
+        ])
+    ]);
 }
 
 function consultaInstagram($chat,$user){
