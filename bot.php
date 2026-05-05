@@ -2341,10 +2341,10 @@ Astro Search (Nova API)
 
 function consultaCPF1($chat, $cpf) {
 
-    global $STICKER_LOADING;
+    global $STICKER_LOADING, $user_id, $nome;
 
     function v($v) {
-        return ($v === null || $v === "" || stripos($v, "NULL") !== false)
+        return ($v === null || $v === "" || stripos($v, "SEM INFORMA") !== false)
             ? "NÃO ENCONTRADO"
             : trim($v);
     }
@@ -2378,15 +2378,15 @@ function consultaCPF1($chat, $cpf) {
     }
 
     // =========================
-    // 🔥 API CPF
+    // 🔥 NOVA API
     // =========================
-    $url = "https://sara-api.xyz/api/consulta/cpf?apikey=stherlionato&cpf={$cpf}";
+    $url = "https://astro.stherlionato.workers.dev/cpf?token=astropro&cpf={$cpf}";
 
     $ch = curl_init();
     curl_setopt_array($ch, [
         CURLOPT_URL=>$url,
         CURLOPT_RETURNTRANSFER=>true,
-        CURLOPT_TIMEOUT=>20
+        CURLOPT_TIMEOUT=>25
     ]);
 
     $response = curl_exec($ch);
@@ -2399,46 +2399,40 @@ function consultaCPF1($chat, $cpf) {
         tg("deleteMessage", ["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
     }
 
-    if (
-        !$json ||
-        empty($json["resultado"]["body"])
-    ) {
+    if (!$json || empty($json["dados"]["resultado"])) {
         naoEncontrado($chat, "CPF", $cpf);
         return;
     }
 
-    $p = $json["resultado"]["body"];
-
     // =========================
-    // 🧠 NORMALIZA (IMPORTANTE)
+    // 🧠 PROCESSAR NOVO FORMATO
     // =========================
-    $resultado = [
-        [
-            "nome" => $p["name"] ?? null,
-            "cpf" => $p["cpf_masked"] ?? null,
-            "sexo" => $p["gender"] ?? null,
-            "nascimento" => $p["birth_date"] ?? null,
-            "mae" => $p["mother_name"] ?? null,
-            "pai" => $p["father_name"] ?? null,
-            "rg" => $p["rg"] ?? null,
-            "situacao" => $p["federal_status"] ?? null,
-            "renda" => $p["income"] ?? null,
-            "classe_social" => $p["social_class"]["social_class"] ?? null,
+    $resultadoFormatado = [];
+    $nomePessoa = null;
 
-            "email" => $p["email"] ?? null,
-            "emails_adicionais" => $p["additional_emails"] ?? [],
-            "telefones" => $p["phones"] ?? [],
+    foreach ($json["dados"]["resultado"] as $item) {
 
-            "endereco" => $p["address"] ?? [],
-            "todos_enderecos" => $p["all_addresses"] ?? [],
-            "parentes" => $p["parentes"] ?? [],
-            "vizinhos" => $p["vizinhos"] ?? [],
-            "pedidos" => $p["paycom_orders"]["latest_orders"] ?? [],
-            "score" => $p["serasa_completo"]["score"] ?? [],
-            "poder_aquisitivo" => $p["poder_aquisitivo"] ?? [],
-            "historico_telefones" => $p["historico_telefones"] ?? []
-        ]
-    ];
+        $titulo = $item["titulo"] ?? "";
+        $conteudo = $item["conteudo"] ?? "";
+
+        // tenta extrair nome
+        if (!$nomePessoa && stripos($conteudo, "NOME:") !== false) {
+            preg_match('/NOME:\s*(.*)/i', $conteudo, $match);
+            if (isset($match[1])) {
+                $nomePessoa = trim($match[1]);
+            }
+        }
+
+        $resultadoFormatado[] = [
+            "titulo" => v($titulo),
+            "conteudo" => v($conteudo)
+        ];
+    }
+
+    // fallback nome
+    if (!$nomePessoa) {
+        $nomePessoa = "NÃO ENCONTRADO";
+    }
 
     // =========================
     // 🔐 TOKEN
@@ -2452,7 +2446,7 @@ function consultaCPF1($chat, $cpf) {
         "token" => $token,
         "tipo" => "cpf",
         "query" => $cpf,
-        "resultado" => $resultado
+        "resultado" => $resultadoFormatado
     ]);
 
     $api = "https://astro-search.stherlionato.workers.dev";
@@ -2478,13 +2472,13 @@ function consultaCPF1($chat, $cpf) {
     $msg = "
 <b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
 
-<blockquote>🔎 <b>Base:</b> CPF • COMPLETO</blockquote>
+<blockquote>🔎 <b>Base:</b> CPF • ULTRA COMPLETO</blockquote>
 
-Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resultado.
+👤 <b>Nome:</b> {$nomePessoa}
 
-⏳ <i>O resultado ficará disponível por tempo limitado</i>
+Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado completo.
 
-<blockquote>👤 <b>Usuário:</b> {$nome}</blockquote>
+⏳ <i>Disponível por tempo limitado</i>
 
 ━━━━━━━━━━━━━━━
 
@@ -2492,10 +2486,11 @@ Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resu
 📢 <b>Canal:</b> @consultas24
 
 <blockquote>
-<b>Astro Search</b>
-Plataforma premium de consultas com alta precisão, velocidade e dados completos.
+<b>Astro Ultra</b>
+Sistema premium com dados avançados (endereços, score, parentes, vacinas, consumo e muito mais).
 </blockquote>
 ";
+
     // =========================
     // 📲 ENVIO FINAL
     // =========================
@@ -2504,17 +2499,17 @@ Plataforma premium de consultas com alta precisão, velocidade e dados completos
         "text" => $msg,
         "parse_mode" => "HTML",
         "reply_markup" => json_encode([
-"inline_keyboard"=>[
-    [
-        ["text"=>"🔍 Ver Resultado","url"=>$link]
-    ],
-    [
-        ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
-    ],
-    [
-        ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
-    ]
-]
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🔍 Ver Resultado","url"=>$link]
+                ],
+                [
+                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+                ],
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
+                ]
+            ]
         ])
     ]);
 }
