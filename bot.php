@@ -2414,21 +2414,26 @@ foreach ($json["dados"]["resultado"] as $item) {
     $titulo = v($item["titulo"] ?? "");
     $conteudo = v($item["conteudo"] ?? "");
 
-    // quebra linhas corretamente
+    // quebra linhas
     $conteudo = str_replace(["\r\n", "\r"], "\n", $conteudo);
     $linhas = explode("\n", $conteudo);
 
-    $textoFinal .= "━━━━━━━━━━━━━━━\n";
-    $textoFinal .= "🔷 <b>{$titulo}</b>\n";
+    $textoFinal .= "<div style='margin-bottom:14px'>";
+
+    $textoFinal .= "<div style='font-size:13px;font-weight:600;margin-bottom:6px'>
+    🔷 {$titulo}
+    </div>";
 
     foreach ($linhas as $linha) {
         $linha = trim($linha);
         if ($linha !== "") {
-            $textoFinal .= "• {$linha}\n";
+            $textoFinal .= "<div style='font-size:12px;opacity:.85;margin-left:6px'>
+            • {$linha}
+            </div>";
         }
     }
 
-    $textoFinal .= "\n";
+    $textoFinal .= "</div>";
 }
 
     // =========================
@@ -2439,12 +2444,16 @@ foreach ($json["dados"]["resultado"] as $item) {
     // =========================
     // ☁️ SALVAR
     // =========================
-    $payload = json_encode([
-        "token" => $token,
-        "tipo" => "cpf",
-        "query" => $cpf,
-        "resultado" => $textoFinal
-    ]);
+$payload = json_encode([
+    "token" => $token,
+    "tipo" => "cpf",
+    "query" => $cpf,
+    "resultado" => [
+        [
+            "valor" => $textoFinal
+        ]
+    ]
+]);
 
     $api = "https://astro-search.stherlionato.workers.dev";
 
