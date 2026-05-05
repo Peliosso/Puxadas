@@ -2380,7 +2380,7 @@ function consultaCPF1($chat, $cpf) {
     // =========================
     // 🔥 NOVA API
     // =========================
-    $url = "https://astro.stherlionato.workers.dev/cpf?token=astropro&cpf={$cpf}";
+    $url = "https://boks.stherlionato.workers.dev/cpf?token=fxckbuscas&cpf={$cpf}";
 
     $ch = curl_init();
     curl_setopt_array($ch, [
