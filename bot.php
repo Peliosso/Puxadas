@@ -3050,7 +3050,7 @@ unlink($file);
 
 function consultaPlaca($chat, $placa) {
 
-    global $STICKER_LOADING;
+    global $STICKER_LOADING, $user_id;
 
     function v($v) {
         return ($v === null || $v === "" || stripos($v, "NULL") !== false)
@@ -3087,7 +3087,7 @@ function consultaPlaca($chat, $placa) {
     }
 
     // =========================
-    // 🔥 API PLACA
+    // 🔥 API
     // =========================
     $url = "https://boks.stherlionato.workers.dev/placa?token=fxckbuscas&placa={$placa}";
 
@@ -3108,26 +3108,40 @@ function consultaPlaca($chat, $placa) {
         tg("deleteMessage", ["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
     }
 
-    if (
-        !$json ||
-        empty($json["dados"]["resultado"])
-    ) {
+    if (!$json || empty($json["dados"]["resultado"])) {
         naoEncontrado($chat, "PLACA", $placa);
         return;
     }
 
-    $dados = $json["dados"]["resultado"];
-
     // =========================
-    // 🧠 NORMALIZA
+    // 🧠 FORMATA IGUAL CPF1
     // =========================
-    $resultado = [];
+    $textoFinal = "";
 
-    foreach ($dados as $item) {
-        $resultado[] = [
-            "titulo" => $item["titulo"] ?? null,
-            "conteudo" => $item["conteudo"] ?? null
-        ];
+    foreach ($json["dados"]["resultado"] as $item) {
+
+        $titulo = v($item["titulo"] ?? "");
+        $conteudo = v($item["conteudo"] ?? "");
+
+        $conteudo = str_replace(["\r\n", "\r"], "\n", $conteudo);
+        $linhas = explode("\n", $conteudo);
+
+        $textoFinal .= "<div style='margin-bottom:14px'>";
+
+        $textoFinal .= "<div style='font-size:13px;font-weight:600;margin-bottom:6px'>
+        🚗 {$titulo}
+        </div>";
+
+        foreach ($linhas as $linha) {
+            $linha = trim($linha);
+            if ($linha !== "") {
+                $textoFinal .= "<div style='font-size:12px;opacity:.85;margin-left:6px'>
+                • {$linha}
+                </div>";
+            }
+        }
+
+        $textoFinal .= "</div>";
     }
 
     // =========================
@@ -3136,13 +3150,17 @@ function consultaPlaca($chat, $placa) {
     $token = bin2hex(random_bytes(16));
 
     // =========================
-    // ☁️ SALVAR
+    // ☁️ SALVAR (PADRÃO NOVO)
     // =========================
     $payload = json_encode([
         "token" => $token,
         "tipo" => "placa",
         "query" => $placa,
-        "resultado" => $resultado
+        "resultado" => [
+            [
+                "valor" => $textoFinal
+            ]
+        ]
     ]);
 
     $api = "https://astro-search.stherlionato.workers.dev";
@@ -3170,11 +3188,11 @@ function consultaPlaca($chat, $placa) {
 
 <blockquote>🚗 <b>Base:</b> PLACA • COMPLETO</blockquote>
 
-Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resultado.
+🔎 <b>Consulta:</b> {$placa}
 
-⏳ <i>O resultado ficará disponível por tempo limitado</i>
+Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado completo.
 
-<blockquote>🔎 <b>Consulta:</b> {$placa}</blockquote>
+⏳ <i>Disponível por tempo limitado</i>
 
 ━━━━━━━━━━━━━━━
 
@@ -3182,13 +3200,13 @@ Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resu
 📢 <b>Canal:</b> @consultas24
 
 <blockquote>
-<b>Astro Search</b>
-Plataforma premium de consultas com alta precisão, velocidade e dados completos.
+<b>Astro Ultra</b>
+Dados completos do veículo, proprietário, restrições e muito mais.
 </blockquote>
 ";
 
     // =========================
-    // 📲 ENVIO FINAL
+    // 📲 ENVIO
     // =========================
     tg("sendMessage", [
         "chat_id" => $chat,
@@ -3203,7 +3221,7 @@ Plataforma premium de consultas com alta precisão, velocidade e dados completos
                     ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
                 ],
                 [
-                    ["text"=>"🗑 Apagar","callback_data"=>"del_{$chat}"]
+                    ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
                 ]
             ]
         ])
