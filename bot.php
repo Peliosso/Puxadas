@@ -29,7 +29,7 @@ $TOKEN = "8669340911:AAHgt35G_2PN_uFJV1xfSpjgxjaIrbsbx3I";
 $API   = "https://api.telegram.org/bot{$TOKEN}";
 
 /* IMAGEM */
-$START_PHOTO = "https://conventional-magenta-fxkyikrbqe.edgeone.app/E8D6A8B8-36F3-4AE0-8493-E2C66DF18EF3.png";
+$START_PHOTO = "https://www.image2url.com/r2/default/images/1778124626770-6ba419b8-a49f-4da8-a3f4-9a3ebc920e06.png";
 
 /* PIX */
 $PIX_VALOR = "20.00"; // ponto, não vírgula
@@ -47,6 +47,10 @@ $VIP_IDS = [
     6248181605,
     6885652108,
     7455932359,
+    7907538026,
+    8352795914,
+    8259061762,
+    6757273515,
     7792311413,
     2055451956,
     7422690728,
