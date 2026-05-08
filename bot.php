@@ -69,6 +69,10 @@ $VIP_IDS = [
     7397253532,
     1143087851,
     8554927341,
+    5883599738,
+    8629031700,
+    2022738933,
+    8352881138,
     1853541807,
     8741164962,
     8309549091,
@@ -532,7 +536,7 @@ $kb = [
 ["text"=>"🛠 Suporte","url"=>"https://t.me/puxardados5"]
 ],
 [
-["text"=>"📢 Canal Oficial","url"=>"https://t.me/consultas24"]
+["text"=>"📢 Canal Oficial","url"=>"https://t.me/astrosearch"]
 ]
 ]
 ];
