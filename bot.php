@@ -177,17 +177,28 @@ function isFreeGroup($chat){
     return isset($data[$chat]) && $data[$chat] === true;
 }
 
-function setWelcome($chat,$status){
+function setWelcome($chat, $status){
 
     $data = [];
 
     if(file_exists(WELCOME_DB)){
-        $data = json_decode(file_get_contents(WELCOME_DB), true);
+
+        $json = file_get_contents(WELCOME_DB);
+
+        $decode = json_decode($json, true);
+
+        if(is_array($decode)){
+            $data = $decode;
+        }
     }
 
-    $data[$chat] = $status;
+    $data[(string)$chat] = (int)$status;
 
-    file_put_contents(WELCOME_DB, json_encode($data));
+    file_put_contents(
+        WELCOME_DB,
+        json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+        LOCK_EX
+    );
 }
 
 function isWelcome($chat){
@@ -196,9 +207,15 @@ function isWelcome($chat){
         return false;
     }
 
-    $data = json_decode(file_get_contents(WELCOME_DB), true);
+    $json = file_get_contents(WELCOME_DB);
 
-    return isset($data[$chat]) && $data[$chat] == 1;
+    $data = json_decode($json, true);
+
+    if(!is_array($data)){
+        return false;
+    }
+
+    return isset($data[(string)$chat]) && $data[(string)$chat] === 1;
 }
 
 /* ================= UPDATE ================= */
@@ -398,7 +415,7 @@ function bloquearConsulta($chat){
 
     tg("sendPhoto",[
         "chat_id"=>$chat,
-        "photo"=>"https://www.image2url.com/r2/default/images/1778124626770-6ba419b8-a49f-4da8-a3f4-9a3ebc920e06.png",
+        "photo"=>"https://conventional-magenta-fxkyikrbqe.edgeone.app/E8D6A8B8-36F3-4AE0-8493-E2C66DF18EF3.png",
         "caption"=>
 "🔒 <b>ACESSO RESTRITO</b>
 
@@ -419,7 +436,7 @@ Seu plano atual é <b>Gratuito</b> e possui limitações.
 
 📅 Diário: R$ 14,90
 📆 Semanal: R$ 24,90
-👑 Para Sempre: R$ 20,90 - <b>7 Vagas disponíveis.</b> 
+👑 Para Sempre: R$ 20,90 - <b>1 Vaga</b> 
 
 🚀 Liberação automática após pagamento
 
