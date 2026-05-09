@@ -2692,11 +2692,12 @@ $payload = json_encode([
     "tipo" => "cpf",
     "query" => $cpf,
     "plano" => "vip",
-"resultado" => [
-    [
-        "consulta" => "CPF",
-        "documento" => $cpf,
-        "resultado" => $resultadoFormatado
+    "resultado" => [
+        [
+            "consulta" => "CPF",
+            "documento" => $cpf,
+            "resultado" => $resultadoFormatado
+        ]
     ]
 ]);
 
