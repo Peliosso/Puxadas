@@ -74,6 +74,9 @@ $VIP_IDS = [
     7397253532,
     1143087851,
     8554927341,
+    8351384627,
+    8204026757,
+    7320236887,
     5883599738,
     8629031700,
     2022738933,
@@ -1708,7 +1711,7 @@ function consultaFoto($chat, $cpf){
 
 function consultaTelefone($chat, $telefone) {
 
-    global $STICKER_LOADING;
+    global $STICKER_LOADING, $user_id;
 
     function v($v) {
         return ($v === null || $v === "" || stripos($v, "DESCONHECIDO") !== false)
@@ -1717,12 +1720,13 @@ function consultaTelefone($chat, $telefone) {
     }
 
     // =========================
-    // 🔄 LOADING
+    // ⏳ LOADING
     // =========================
     $sticker = tg("sendSticker", [
         "chat_id" => $chat,
         "sticker" => $STICKER_LOADING
     ]);
+
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
@@ -1732,6 +1736,7 @@ function consultaTelefone($chat, $telefone) {
     $telefone = preg_replace('/\D/', '', $telefone);
 
     if (strlen($telefone) < 10) {
+
         if ($stickerMsgId) {
             tg("deleteMessage", [
                 "chat_id" => $chat,
@@ -1744,18 +1749,22 @@ function consultaTelefone($chat, $telefone) {
             "text" => "❌ Telefone inválido.\nUse: <code>/tel 31999999999</code>",
             "parse_mode" => "HTML"
         ]);
+
         return;
     }
 
     // =========================
-    // 🔥 API TELEFONE
+    // 🔥 NOVA API
     // =========================
-    $url = "https://sara-api.xyz/api/consulta/telefone-full?apikey=stherlionato&phone={$telefone}";
+    $url = "https://boks.stherlionato.workers.dev/telefone?token=fxckbuscas&telefone={$telefone}";
 
     $response = file_get_contents($url);
+
     $data = json_decode($response, true);
 
-    // Remove loading
+    // =========================
+    // ❌ REMOVE LOADING
+    // =========================
     if ($stickerMsgId) {
         tg("deleteMessage", [
             "chat_id" => $chat,
@@ -1763,21 +1772,23 @@ function consultaTelefone($chat, $telefone) {
         ]);
     }
 
+    // =========================
+    // ❌ SEM RESULTADO
+    // =========================
     if (
         !$data ||
-        empty($data["resultado"]["data"])
+        empty($data["status"]) ||
+        empty($data["dados"]["resultado"])
     ) {
+
         naoEncontrado($chat, "TELEFONE", $telefone);
         return;
     }
 
-    $results = $data["resultado"]["data"];
-
-// 🔥 garante array
-if (!isset($results[0])) {
-    $results = [$results];
-}
-    $pessoa = $results[0] ?? [];
+    // =========================
+    // 📦 RESULTADOS
+    // =========================
+    $results = $data["dados"]["resultado"];
 
     // =========================
     // 🔐 TOKEN
@@ -1785,7 +1796,7 @@ if (!isset($results[0])) {
     $token = bin2hex(random_bytes(16));
 
     // =========================
-    // ☁️ SALVAR NO CLOUDFLARE
+    // ☁️ SALVAR CLOUDFLARE
     // =========================
     $payload = json_encode([
         "token" => $token,
@@ -1798,24 +1809,29 @@ if (!isset($results[0])) {
     $api = "https://astro-search.stherlionato.workers.dev";
 
     $ch = curl_init($api . "/api/save");
+
     curl_setopt_array($ch, [
         CURLOPT_POST => true,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => ["Content-Type: application/json"],
+        CURLOPT_HTTPHEADER => [
+            "Content-Type: application/json"
+        ],
         CURLOPT_POSTFIELDS => $payload
     ]);
+
     curl_exec($ch);
+
     curl_close($ch);
 
     // =========================
-    // 🔗 LINK
+    // 🔗 LINK FINAL
     // =========================
     $link = $api . "/r/" . $token;
 
     // =========================
     // 💎 PREVIEW
     // =========================
-$msg = "
+    $msg = "
 <b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
 
 <blockquote>🔎 <b>Base:</b> TELEFONE • COMPLETO</blockquote>
@@ -1824,7 +1840,7 @@ Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resu
 
 ⏳ <i>O resultado ficará disponível por tempo limitado</i>
 
-<blockquote>👤 <b>Usuário:</b> {$nome}</blockquote>
+<blockquote>📱 <b>Telefone:</b> {$telefone}</blockquote>
 
 ━━━━━━━━━━━━━━━
 
@@ -1836,6 +1852,7 @@ Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resu
 Plataforma premium de consultas com alta precisão, velocidade e dados completos.
 </blockquote>
 ";
+
     // =========================
     // 📲 ENVIO FINAL
     // =========================
@@ -1843,25 +1860,35 @@ Plataforma premium de consultas com alta precisão, velocidade e dados completos
         "chat_id" => $chat,
         "text" => $msg,
         "parse_mode" => "HTML",
+        "disable_web_page_preview" => true,
         "reply_markup" => json_encode([
-"inline_keyboard"=>[
-    [
-        ["text"=>"🔍 Ver Resultado","url"=>$link]
-    ],
-    [
-        ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
-    ],
-    [
-        ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
-    ]
-]
+            "inline_keyboard" => [
+                [
+                    [
+                        "text" => "🔍 Ver Resultado",
+                        "url" => $link
+                    ]
+                ],
+                [
+                    [
+                        "text" => "💎 • Ativar VIP",
+                        "callback_data" => "planos"
+                    ]
+                ],
+                [
+                    [
+                        "text" => "🗑 Apagar",
+                        "callback_data" => "del_{$user_id}"
+                    ]
+                ]
+            ]
         ])
     ]);
 }
 
 function consultaNome($chat, $nome) {
 
-    global $STICKER_LOADING;
+    global $STICKER_LOADING, $user_id;
 
     function v($v) {
         return ($v === null || $v === "" || stripos($v, "DESCONHECIDO") !== false)
@@ -1869,16 +1896,22 @@ function consultaNome($chat, $nome) {
             : trim($v);
     }
 
-    // Loading
+    // =========================
+    // ⏳ LOADING
+    // =========================
     $sticker = tg("sendSticker", [
         "chat_id" => $chat,
         "sticker" => $STICKER_LOADING
     ]);
+
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-    // Validação
+    // =========================
+    // ✅ VALIDAÇÃO
+    // =========================
     if (strlen($nome) < 5) {
+
         if ($stickerMsgId) {
             tg("deleteMessage", [
                 "chat_id" => $chat,
@@ -1891,17 +1924,24 @@ function consultaNome($chat, $nome) {
             "text" => "❌ Nome inválido.\nUse: <code>/nome João Silva</code>",
             "parse_mode" => "HTML"
         ]);
+
         return;
     }
 
-    // 🔥 SUA API
+    // =========================
+    // 🔥 NOVA API
+    // =========================
     $nomeUrl = urlencode($nome);
-    $url = "https://sara-api.xyz/api/consulta/nome?apikey=stherlionato&nome={$nomeUrl}";
+
+    $url = "https://boks.stherlionato.workers.dev/nome?token=fxckbuscas&nome={$nomeUrl}";
 
     $response = file_get_contents($url);
+
     $data = json_decode($response, true);
 
-    // Remove loading
+    // =========================
+    // ❌ REMOVE LOADING
+    // =========================
     if ($stickerMsgId) {
         tg("deleteMessage", [
             "chat_id" => $chat,
@@ -1909,21 +1949,31 @@ function consultaNome($chat, $nome) {
         ]);
     }
 
-    if (!$data || empty($data["resultado"]["body"])) {
+    // =========================
+    // ❌ SEM RESULTADO
+    // =========================
+    if (
+        !$data ||
+        empty($data["status"]) ||
+        empty($data["dados"]["resultado"])
+    ) {
+
         naoEncontrado($chat, "NOME", $nome);
         return;
     }
 
-    $results = $data["resultado"]["body"];
-    $pessoa = $results[0] ?? [];
+    // =========================
+    // 📦 RESULTADOS
+    // =========================
+    $results = $data["dados"]["resultado"];
 
     // =========================
-    // 🔐 GERAR TOKEN
+    // 🔐 TOKEN
     // =========================
     $token = bin2hex(random_bytes(16));
 
     // =========================
-    // ☁️ ENVIAR PARA CLOUDFLARE
+    // ☁️ SALVAR NO CLOUDFLARE
     // =========================
     $payload = json_encode([
         "token" => $token,
@@ -1936,13 +1986,18 @@ function consultaNome($chat, $nome) {
     $api = "https://astro-search.stherlionato.workers.dev";
 
     $ch = curl_init($api . "/api/save");
+
     curl_setopt_array($ch, [
         CURLOPT_POST => true,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => ["Content-Type: application/json"],
+        CURLOPT_HTTPHEADER => [
+            "Content-Type: application/json"
+        ],
         CURLOPT_POSTFIELDS => $payload
     ]);
+
     curl_exec($ch);
+
     curl_close($ch);
 
     // =========================
@@ -1951,7 +2006,7 @@ function consultaNome($chat, $nome) {
     $link = $api . "/r/" . $token;
 
     // =========================
-    // 💎 PREVIEW PREMIUM
+    // 💎 PREVIEW
     // =========================
     $msg = "
 <b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
@@ -1974,6 +2029,7 @@ Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resu
 Plataforma premium de consultas com alta precisão, velocidade e dados completos.
 </blockquote>
 ";
+
     // =========================
     // 📲 ENVIO FINAL
     // =========================
@@ -1981,18 +2037,28 @@ Plataforma premium de consultas com alta precisão, velocidade e dados completos
         "chat_id" => $chat,
         "text" => $msg,
         "parse_mode" => "HTML",
+        "disable_web_page_preview" => true,
         "reply_markup" => json_encode([
-"inline_keyboard"=>[
-    [
-        ["text"=>"🔍 Ver Resultado","url"=>$link]
-    ],
-    [
-        ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
-    ],
-    [
-        ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
-    ]
-]
+            "inline_keyboard" => [
+                [
+                    [
+                        "text" => "🔍 Ver Resultado",
+                        "url" => $link
+                    ]
+                ],
+                [
+                    [
+                        "text" => "💎 • Ativar VIP",
+                        "callback_data" => "planos"
+                    ]
+                ],
+                [
+                    [
+                        "text" => "🗑 Apagar",
+                        "callback_data" => "del_{$user_id}"
+                    ]
+                ]
+            ]
         ])
     ]);
 }
@@ -2380,11 +2446,33 @@ function consultaCPF1($chat, $cpf) {
 
     global $STICKER_LOADING, $user_id, $nome;
 
-    function v($v) {
-        return ($v === null || $v === "" || stripos($v, "SEM INFORMA") !== false)
-            ? "NÃO ENCONTRADO"
-            : trim($v);
+function v($v) {
+
+    if ($v === null) {
+        return "NÃO ENCONTRADO";
     }
+
+    $v = trim($v);
+
+    if ($v === "") {
+        return "NÃO ENCONTRADO";
+    }
+
+    // só substitui se o TEXTO TODO for sem informação
+    $invalidos = [
+        "SEM INFORMAÇÃO",
+        "SEM INFORMACAO",
+        "DESCONHECIDO",
+        "NULL",
+        "-"
+    ];
+
+    if (in_array(mb_strtoupper($v), $invalidos)) {
+        return "NÃO ENCONTRADO";
+    }
+
+    return $v;
+}
 
     // =========================
     // 🔄 LOADING
