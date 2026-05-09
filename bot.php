@@ -2628,36 +2628,55 @@ function v($v) {
         return;
     }
 
-    // =========================
-    // 🧠 PROCESSAR NOVO FORMATO
-    // =========================
-$textoFinal = "";
+// =========================
+// 🧠 FORMATAR RESULTADO
+// =========================
+$resultadoFormatado = [];
 
 foreach ($json["dados"]["resultado"] as $item) {
 
-    $titulo = v($item["titulo"] ?? "");
-    $conteudo = v($item["conteudo"] ?? "");
+    $titulo = trim($item["titulo"] ?? "");
+    $conteudo = trim($item["conteudo"] ?? "");
+
+    if (!$titulo && !$conteudo) {
+        continue;
+    }
+
+    // cria seção
+    $secao = [
+        "secao" => $titulo,
+        "dados" => []
+    ];
 
     // quebra linhas
     $conteudo = str_replace(["\r\n", "\r"], "\n", $conteudo);
-    $linhas = explode("\n", $conteudo);
 
-    $textoFinal .= "<div style='margin-bottom:14px'>";
+    foreach (explode("\n", $conteudo) as $linha) {
 
-    $textoFinal .= "<div style='font-size:13px;font-weight:600;margin-bottom:6px'>
-    🔷 {$titulo}
-    </div>";
-
-    foreach ($linhas as $linha) {
         $linha = trim($linha);
-        if ($linha !== "") {
-            $textoFinal .= "<div style='font-size:12px;opacity:.85;margin-left:6px'>
-            • {$linha}
-            </div>";
+
+        if (!$linha) continue;
+
+        // separa chave : valor
+        if (strpos($linha, ":") !== false) {
+
+            [$k, $v2] = explode(":", $linha, 2);
+
+            $secao["dados"][] = [
+                "campo" => trim($k),
+                "valor" => v(trim($v2))
+            ];
+
+        } else {
+
+            $secao["dados"][] = [
+                "campo" => "INFO",
+                "valor" => $linha
+            ];
         }
     }
 
-    $textoFinal .= "</div>";
+    $resultadoFormatado[] = $secao;
 }
 
     // =========================
@@ -2673,7 +2692,12 @@ $payload = json_encode([
     "tipo" => "cpf",
     "query" => $cpf,
     "plano" => "vip",
-    "resultado" => $json["dados"]["resultado"]
+"resultado" => [
+    [
+        "consulta" => "CPF",
+        "documento" => $cpf,
+        "resultado" => $resultadoFormatado
+    ]
 ]);
 
     $api = "https://astro-search.stherlionato.workers.dev";
