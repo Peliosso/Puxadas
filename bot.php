@@ -1011,6 +1011,7 @@ function consultaCNPJ($chat, $cnpj){
         "token"=>$token,
         "tipo"=>"cnpj",
         "query"=>$cnpj,
+        "plano"=>"free",
         "resultado"=>$resultado
     ]);
 
@@ -1119,6 +1120,7 @@ function consultaIP($chat, $ip){
         "token"=>$token,
         "tipo"=>"ip",
         "query"=>$ip,
+        "plano"=>"free",
         "resultado"=>$resultado
     ]);
 
@@ -1212,6 +1214,7 @@ function consultaCEP($chat, $cep){
         "token"=>$token,
         "tipo"=>"cep",
         "query"=>$cep,
+        "plano"=>"free",
         "resultado"=>$resultado
     ]);
 
@@ -1787,6 +1790,7 @@ if (!isset($results[0])) {
         "token" => $token,
         "tipo" => "telefone",
         "query" => $telefone,
+        "plano" => "vip",
         "resultado" => $results
     ]);
 
@@ -1924,6 +1928,7 @@ function consultaNome($chat, $nome) {
         "token" => $token,
         "tipo" => "nome",
         "query" => $nome,
+        "plano" => "vip",
         "resultado" => $results
     ]);
 
@@ -2479,6 +2484,7 @@ $payload = json_encode([
     "token" => $token,
     "tipo" => "cpf",
     "query" => $cpf,
+    "plano" => "vip",
     "resultado" => [
         [
             "valor" => $textoFinal
@@ -3187,6 +3193,7 @@ function consultaPlaca($chat, $placa) {
         "token" => $token,
         "tipo" => "placa",
         "query" => $placa,
+        "plano" => "vip",
         "resultado" => [
             [
                 "valor" => $textoFinal
@@ -3470,6 +3477,7 @@ function consultaCPF($chat, $cpf) {
         "token" => $token,
         "tipo" => "cpf",
         "query" => $cpf,
+        "plano" => "vip",
         "resultado" => $resultado
     ]);
 
