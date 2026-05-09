@@ -1930,12 +1930,32 @@ function consultaNome($chat, $nome) {
 
     global $STICKER_LOADING, $user_id;
 
-    function v($v) {
-        return ($v === null || $v === "" || stripos($v, "DESCONHECIDO") !== false)
-            ? "NÃO ENCONTRADO"
-            : trim($v);
+function v($v) {
+
+    if ($v === null) {
+        return "NÃO ENCONTRADO";
     }
 
+    $v = trim($v);
+
+    if ($v === "") {
+        return "NÃO ENCONTRADO";
+    }
+
+    $invalidos = [
+        "SEM INFORMAÇÃO",
+        "SEM INFORMACAO",
+        "DESCONHECIDO",
+        "NULL",
+        "-"
+    ];
+
+    if (in_array(mb_strtoupper($v), $invalidos)) {
+        return "NÃO ENCONTRADO";
+    }
+
+    return $v;
+}
     // =========================
     // ⏳ LOADING
     // =========================
