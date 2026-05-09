@@ -2673,11 +2673,7 @@ $payload = json_encode([
     "tipo" => "cpf",
     "query" => $cpf,
     "plano" => "vip",
-    "resultado" => [
-        [
-            "valor" => $textoFinal
-        ]
-    ]
+    "resultado" => $json["dados"]["resultado"]
 ]);
 
     $api = "https://astro-search.stherlionato.workers.dev";
