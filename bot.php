@@ -1714,6 +1714,34 @@ function consultaTelefone($chat, $telefone) {
 
     global $STICKER_LOADING, $user_id;
 
+function v($v) {
+
+    if ($v === null) {
+        return "NÃO ENCONTRADO";
+    }
+
+    $v = trim($v);
+
+    if ($v === "") {
+        return "NÃO ENCONTRADO";
+    }
+
+    // só substitui se o TEXTO TODO for sem informação
+    $invalidos = [
+        "SEM INFORMAÇÃO",
+        "SEM INFORMACAO",
+        "DESCONHECIDO",
+        "NULL",
+        "-"
+    ];
+
+    if (in_array(mb_strtoupper($v), $invalidos)) {
+        return "NÃO ENCONTRADO";
+    }
+
+    return $v;
+}
+
     // =========================
     // ⏳ LOADING
     // =========================
@@ -1749,7 +1777,7 @@ function consultaTelefone($chat, $telefone) {
     }
 
     // =========================
-    // 🔥 API
+    // 🔥 NOVA API
     // =========================
     $url = "https://boks.stherlionato.workers.dev/telefone?token=fxckbuscas&telefone={$telefone}";
 
@@ -1772,6 +1800,7 @@ function consultaTelefone($chat, $telefone) {
     // =========================
     if (
         !$data ||
+        empty($data["status"]) ||
         empty($data["dados"]["resultado"])
     ) {
 
@@ -1779,33 +1808,56 @@ function consultaTelefone($chat, $telefone) {
         return;
     }
 
-    // =========================
-    // 🧠 FORMATAR RESULTADO
-    // =========================
-    $resultadoFinal = [];
+// =========================
+// 🧠 FORMATAR RESULTADO
+// =========================
+$resultadoFormatado = [];
 
-    foreach ($data["dados"]["resultado"] as $pessoa) {
+foreach ($json["dados"]["resultado"] as $item) {
 
-        $dadosFormatados = [];
+    $titulo = trim($item["titulo"] ?? "");
+    $conteudo = trim($item["conteudo"] ?? "");
 
-        foreach ($pessoa as $key => $value) {
+    if (!$titulo && !$conteudo) {
+        continue;
+    }
 
-            if (is_array($value) || is_object($value)) {
-                continue;
-            }
+    // cria seção
+    $secao = [
+        "secao" => $titulo,
+        "dados" => []
+    ];
 
-            $dadosFormatados[] = [
-                "campo" => strtoupper(
-                    str_replace("_", " ", $key)
-                ),
-                "valor" => v($value)
+    // quebra linhas
+    $conteudo = str_replace(["\r\n", "\r"], "\n", $conteudo);
+
+    foreach (explode("\n", $conteudo) as $linha) {
+
+        $linha = trim($linha);
+
+        if (!$linha) continue;
+
+        // separa chave : valor
+        if (strpos($linha, ":") !== false) {
+
+            [$k, $v2] = explode(":", $linha, 2);
+
+            $secao["dados"][] = [
+                "campo" => trim($k),
+                "valor" => v(trim($v2))
+            ];
+
+        } else {
+
+            $secao["dados"][] = [
+                "campo" => "INFO",
+                "valor" => $linha
             ];
         }
+    }
 
-$resultadoFinal[] = [
-    "secao" => "DADOS ENCONTRADOS",
-    "dados" => $dadosFormatados
-];
+    $resultadoFormatado[] = $secao;
+}
 
     // =========================
     // 🔐 TOKEN
@@ -1813,14 +1865,19 @@ $resultadoFinal[] = [
     $token = bin2hex(random_bytes(16));
 
     // =========================
-    // ☁️ SALVAR
-    // =========================
+    // ☁️ SALVAR CLOUDFLARE
 $payload = json_encode([
     "token" => $token,
     "tipo" => "telefone",
     "query" => $telefone,
     "plano" => "vip",
-    "resultado" => $resultadoFinal
+    "resultado" => [
+        [
+            "consulta" => "TELEFONE",
+            "documento" => $telefone,
+            "resultado" => $resultadoFormatado
+        ]
+    ]
 ]);
 
     $api = "https://astro-search.stherlionato.workers.dev";
@@ -1841,7 +1898,7 @@ $payload = json_encode([
     curl_close($ch);
 
     // =========================
-    // 🔗 LINK
+    // 🔗 LINK FINAL
     // =========================
     $link = $api . "/r/" . $token;
 
@@ -1855,7 +1912,7 @@ $payload = json_encode([
 
 Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resultado.
 
-⏳ <i>Disponível por tempo limitado</i>
+⏳ <i>O resultado ficará disponível por tempo limitado</i>
 
 <blockquote>📱 <b>Telefone:</b> {$telefone}</blockquote>
 
@@ -1871,7 +1928,7 @@ Plataforma premium de consultas com alta precisão, velocidade e dados completos
 ";
 
     // =========================
-    // 📲 ENVIO
+    // 📲 ENVIO FINAL
     // =========================
     tg("sendMessage", [
         "chat_id" => $chat,
@@ -1907,6 +1964,33 @@ function consultaNome($chat, $nome) {
 
     global $STICKER_LOADING, $user_id;
 
+function v($v) {
+
+    if ($v === null) {
+        return "NÃO ENCONTRADO";
+    }
+
+    $v = trim($v);
+
+    if ($v === "") {
+        return "NÃO ENCONTRADO";
+    }
+
+    // só substitui se o TEXTO TODO for sem informação
+    $invalidos = [
+        "SEM INFORMAÇÃO",
+        "SEM INFORMACAO",
+        "DESCONHECIDO",
+        "NULL",
+        "-"
+    ];
+
+    if (in_array(mb_strtoupper($v), $invalidos)) {
+        return "NÃO ENCONTRADO";
+    }
+
+    return $v;
+}
     // =========================
     // ⏳ LOADING
     // =========================
@@ -1978,7 +2062,7 @@ function consultaNome($chat, $nome) {
 // =========================
 $resultadoFormatado = [];
 
-foreach ($data["dados"]["resultado"] as $item) {
+foreach ($json["dados"]["resultado"] as $item) {
 
     $titulo = trim($item["titulo"] ?? "");
     $conteudo = trim($item["conteudo"] ?? "");
@@ -1987,9 +2071,10 @@ foreach ($data["dados"]["resultado"] as $item) {
         continue;
     }
 
+    // cria seção
     $secao = [
-        "titulo" => $titulo,
-        "conteudo" => []
+        "secao" => $titulo,
+        "dados" => []
     ];
 
     // quebra linhas
@@ -1999,25 +2084,23 @@ foreach ($data["dados"]["resultado"] as $item) {
 
         $linha = trim($linha);
 
-        if (!$linha) {
-            continue;
-        }
+        if (!$linha) continue;
 
-        // chave : valor
+        // separa chave : valor
         if (strpos($linha, ":") !== false) {
 
-            [$campo, $valor] = explode(":", $linha, 2);
+            [$k, $v2] = explode(":", $linha, 2);
 
-            $secao["conteudo"][] = [
-                "campo" => trim($campo),
-                "valor" => v(trim($valor))
+            $secao["dados"][] = [
+                "campo" => trim($k),
+                "valor" => v(trim($v2))
             ];
 
         } else {
 
-            $secao["conteudo"][] = [
+            $secao["dados"][] = [
                 "campo" => "INFO",
-                "valor" => v($linha)
+                "valor" => $linha
             ];
         }
     }
@@ -2038,7 +2121,13 @@ $payload = json_encode([
     "tipo" => "nome",
     "query" => $nome,
     "plano" => "vip",
-    "resultado" => $resultadoFormatado
+    "resultado" => [
+        [
+            "consulta" => "NOME",
+            "documento" => $nome,
+            "resultado" => $resultadoFormatado
+        ]
+    ]
 ]);
 
     $api = "https://astro-search.stherlionato.workers.dev";
@@ -2119,33 +2208,6 @@ Plataforma premium de consultas com alta precisão, velocidade e dados completos
             ]
         ])
     ]);
-}
-
-function v($v) {
-
-    if ($v === null) {
-        return "NÃO ENCONTRADO";
-    }
-
-    $v = trim($v);
-
-    if ($v === "") {
-        return "NÃO ENCONTRADO";
-    }
-
-    $invalidos = [
-        "SEM INFORMAÇÃO",
-        "SEM INFORMACAO",
-        "DESCONHECIDO",
-        "NULL",
-        "-"
-    ];
-
-    if (in_array(mb_strtoupper($v), $invalidos)) {
-        return "NÃO ENCONTRADO";
-    }
-
-    return $v;
 }
 
 function consultaCpf4($chat,$cpf){
@@ -2531,6 +2593,33 @@ function consultaCPF1($chat, $cpf) {
 
     global $STICKER_LOADING, $user_id, $nome;
 
+function v($v) {
+
+    if ($v === null) {
+        return "NÃO ENCONTRADO";
+    }
+
+    $v = trim($v);
+
+    if ($v === "") {
+        return "NÃO ENCONTRADO";
+    }
+
+    // só substitui se o TEXTO TODO for sem informação
+    $invalidos = [
+        "SEM INFORMAÇÃO",
+        "SEM INFORMACAO",
+        "DESCONHECIDO",
+        "NULL",
+        "-"
+    ];
+
+    if (in_array(mb_strtoupper($v), $invalidos)) {
+        return "NÃO ENCONTRADO";
+    }
+
+    return $v;
+}
 
     // =========================
     // 🔄 LOADING
