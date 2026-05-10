@@ -2749,11 +2749,41 @@ unlink($file);
 
 }
 
-function consultaParentes($chat, $cpf){
-    global $STICKER_LOADING;
+function consultaParentes($chat, $cpf) {
 
-    // 🎬 Sticker loading
-    $sticker = tg("sendSticker",[
+    global $STICKER_LOADING, $user_id;
+
+    function v($v) {
+
+        if ($v === null) {
+            return "NÃO ENCONTRADO";
+        }
+
+        $v = trim($v);
+
+        if ($v === "") {
+            return "NÃO ENCONTRADO";
+        }
+
+        $invalidos = [
+            "SEM INFORMAÇÃO",
+            "SEM INFORMACAO",
+            "DESCONHECIDO",
+            "NULL",
+            "-"
+        ];
+
+        if (in_array(mb_strtoupper($v), $invalidos)) {
+            return "NÃO ENCONTRADO";
+        }
+
+        return $v;
+    }
+
+    // =========================
+    // 🔄 LOADING
+    // =========================
+    $sticker = tg("sendSticker", [
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
     ]);
@@ -2761,117 +2791,239 @@ function consultaParentes($chat, $cpf){
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-    // limpa cpf
-    $cpf = preg_replace('/\D/','',$cpf);
+    // =========================
+    // 📄 VALIDAÇÃO
+    // =========================
+    $cpf = preg_replace('/\D/', '', $cpf);
 
-    if(strlen($cpf) != 11){
-        if($stickerMsgId){
-            tg("deleteMessage",[
+    if (strlen($cpf) != 11) {
+
+        if ($stickerMsgId) {
+            tg("deleteMessage", [
                 "chat_id"=>$chat,
                 "message_id"=>$stickerMsgId
             ]);
         }
 
-        tg("sendMessage",[
+        tg("sendMessage", [
             "chat_id"=>$chat,
             "text"=>"❌ CPF inválido.\nUse: <code>/parentes 00000000000</code>",
             "parse_mode"=>"HTML"
         ]);
+
         return;
     }
 
-    // 🔥 NOVA API CPF
-    $url = "https://obitostore.shop/api/consulta/cpf4?cpf={$cpf}&apikey=Teste";
-    $resp = @file_get_contents($url);
-    $json = json_decode($resp, true);
+    // =========================
+    // 🔥 API
+    // =========================
+    $url = "https://boks.stherlionato.workers.dev/cpf?token=fxckbuscas&cpf={$cpf}";
 
-    // remove sticker
-    if($stickerMsgId){
-        tg("deleteMessage",[
+    $ch = curl_init();
+
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 25
+    ]);
+
+    $response = curl_exec($ch);
+
+    curl_close($ch);
+
+    $json = json_decode($response, true);
+
+    // remove loading
+    if ($stickerMsgId) {
+
+        tg("deleteMessage", [
             "chat_id"=>$chat,
             "message_id"=>$stickerMsgId
         ]);
     }
 
-    if(!$json || $json["status"] != "ok"){
-        naoEncontrado($chat,"PARENTES",$cpf);
+    if (
+        !$json ||
+        empty($json["dados"]["resultado"])
+    ) {
+        naoEncontrado($chat, "PARENTES", $cpf);
         return;
     }
 
-    $resultado = $json["resultado"];
+    // =========================
+    // 👤 NOME TITULAR
+    // =========================
+    $nomeTitular = "NÃO ENCONTRADO";
 
-    // 🔥 EXTRAIR BLOCO DE PARENTES
-    preg_match('/PARENTES(.*?)EMPRESAS/s', $resultado, $match);
+    foreach ($json["dados"]["resultado"] as $item) {
 
-    if(!isset($match[1])){
-        naoEncontrado($chat,"PARENTES",$cpf);
+        $titulo = $item["titulo"] ?? "";
+        $conteudo = $item["conteudo"] ?? "";
+
+        if (strpos($titulo, "CPF: {$cpf}") !== false) {
+
+            preg_match('/NOME:\s*(.*)/i', $conteudo, $m);
+
+            if (!empty($m[1])) {
+                $nomeTitular = trim($m[1]);
+            }
+        }
+    }
+
+    // =========================
+    // 👨‍👩‍👧 EXTRAIR PARENTES
+    // =========================
+    $parentes = [];
+
+    foreach ($json["dados"]["resultado"] as $item) {
+
+        $titulo = trim($item["titulo"] ?? "");
+        $conteudo = trim($item["conteudo"] ?? "");
+
+        if (
+            strpos($titulo, "NOME:") === 0 &&
+            strpos($conteudo, "GRAU DE PARENTESCO:") !== false
+        ) {
+
+            $nome = trim(str_replace("NOME:", "", $titulo));
+
+            preg_match('/CPF:\s*(.*)/i', $conteudo, $cpfMatch);
+            preg_match('/GRAU DE PARENTESCO:\s*(.*)/i', $conteudo, $grauMatch);
+
+            $parentes[] = [
+                "nome" => v($nome),
+                "cpf" => v($cpfMatch[1] ?? ""),
+                "grau" => v($grauMatch[1] ?? "")
+            ];
+        }
+    }
+
+    if (empty($parentes)) {
+        naoEncontrado($chat, "PARENTES", $cpf);
         return;
     }
 
-    $parentesRaw = trim($match[1]);
+    // =========================
+    // 🧠 FORMATAR
+    // =========================
+    $resultadoFormatado = [];
 
-    // 🔥 PEGAR NOME / CPF / GRAU
-    preg_match_all('/NOME:\s*(.*?)\nCPF:\s*(.*?)\nGRAU DE PARENTESCO:\s*(.*?)\n/', $parentesRaw, $matches, PREG_SET_ORDER);
+    foreach ($parentes as $p) {
 
-    if(!$matches){
-        naoEncontrado($chat,"PARENTES",$cpf);
-        return;
-    }
-
-    // 🔥 PEGAR NOME DO TITULAR
-    preg_match('/NOME:\s*(.*?)\n/', $resultado, $titularMatch);
-    $titular = $titularMatch[1] ?? "Não encontrado";
-
-    $txt =
-"CONSULTA DE PARENTES — ASTRO SEARCH
-================================
-
-CPF Consultado: {$cpf}
-Titular: {$titular}
-Total de vínculos: ".count($matches)."
-
-================================
-";
-
-    foreach($matches as $p){
-
-        $nome = trim($p[1]);
-        $cpfParente = trim($p[2]);
-        $grau = trim($p[3]);
-
-        $txt .= "
-Nome: {$nome}
-CPF: {$cpfParente}
-Vínculo: {$grau}
-
---------------------------------
-";
-    }
-
-    $txt .= "
-Consulta via:
-Astro Search (Nova API)
-";
-
-    $file = tempnam(sys_get_temp_dir(), "parentes_");
-    file_put_contents($file, $txt);
-
-    tg("sendDocument",[
-        "chat_id"=>$chat,
-        "document"=>new CURLFile($file, "text/plain", "parentes_{$cpf}.txt"),
-        "caption"=>"👨‍👩‍👧‍👦 <b>Consulta de Parentes concluída</b>\n\nCréditos: <b>Astro Search</b>",
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode([
-            "inline_keyboard"=>[
+        $resultadoFormatado[] = [
+            "secao" => $p["nome"],
+            "dados" => [
                 [
-                    ["text"=>"🗑 Apagar","callback_data"=>"apagar_msg"],
-                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+                    "campo" => "CPF",
+                    "valor" => $p["cpf"]
+                ],
+                [
+                    "campo" => "PARENTESCO",
+                    "valor" => $p["grau"]
+                ]
+            ]
+        ];
+    }
+
+    // =========================
+    // 🔐 TOKEN
+    // =========================
+    $token = bin2hex(random_bytes(16));
+
+    // =========================
+    // ☁️ SALVAR
+    // =========================
+    $payload = json_encode([
+        "token" => $token,
+        "tipo" => "parentes",
+        "query" => $cpf,
+        "plano" => "vip",
+        "resultado" => [
+            [
+                "consulta" => "PARENTES",
+                "documento" => $cpf,
+                "resultado" => $resultadoFormatado
+            ]
+        ]
+    ]);
+
+    $api = "https://astro-search.stherlionato.workers.dev";
+
+    $ch = curl_init($api . "/api/save");
+
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            "Content-Type: application/json"
+        ],
+        CURLOPT_POSTFIELDS => $payload
+    ]);
+
+    curl_exec($ch);
+
+    curl_close($ch);
+
+    // =========================
+    // 🔗 LINK
+    // =========================
+    $link = $api . "/r/" . $token;
+
+    // =========================
+    // 📲 MENSAGEM
+    // =========================
+    $msg = "
+<b>👨‍👩‍👧 CONSULTA DE PARENTES FINALIZADA</b>
+
+<blockquote>📂 Base: Parentes • Nacional</blockquote>
+
+👤 <b>Titular:</b> {$nomeTitular}
+🪪 <b>CPF:</b> {$cpf}
+🔗 <b>Total de vínculos:</b> ".count($parentes)."
+
+Clique no botão abaixo para acessar o resultado completo.
+
+━━━━━━━━━━━━━━━
+
+🤖 <b>Bot:</b> @consultasdedados_bot
+📢 <b>Canal:</b> @consultas24
+
+<blockquote>
+<b>Astro Ultra</b>
+Sistema premium com parentes, vizinhos, score, compras, telefones e vínculos completos.
+</blockquote>
+";
+
+    // =========================
+    // 📤 ENVIO
+    // =========================
+    tg("sendMessage", [
+        "chat_id" => $chat,
+        "text" => $msg,
+        "parse_mode" => "HTML",
+        "reply_markup" => json_encode([
+            "inline_keyboard" => [
+                [
+                    [
+                        "text"=>"🔍 Ver Resultado",
+                        "url"=>$link
+                    ]
+                ],
+                [
+                    [
+                        "text"=>"💎 • Ativar VIP",
+                        "callback_data"=>"planos"
+                    ]
+                ],
+                [
+                    [
+                        "text"=>"🗑 Apagar",
+                        "callback_data"=>"del_{$user_id}"
+                    ]
                 ]
             ]
         ])
     ]);
-
-    unlink($file);
 }
 
 function consultaCPF1($chat, $cpf) {
