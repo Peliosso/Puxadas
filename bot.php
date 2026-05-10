@@ -1829,17 +1829,10 @@ function consultaTelefone($chat, $telefone) {
             ];
         }
 
-        $resultadoFinal[] = [
-            "consulta" => "TELEFONE",
-            "documento" => $telefone,
-            "resultado" => [
-                [
-                    "secao" => "DADOS ENCONTRADOS",
-                    "dados" => $dadosFormatados
-                ]
-            ]
-        ];
-    }
+$resultadoFinal[] = [
+    "secao" => "DADOS ENCONTRADOS",
+    "dados" => $dadosFormatados
+];
 
     // =========================
     // 🔐 TOKEN
@@ -1849,13 +1842,13 @@ function consultaTelefone($chat, $telefone) {
     // =========================
     // ☁️ SALVAR
     // =========================
-    $payload = json_encode([
-        "token" => $token,
-        "tipo" => "telefone",
-        "query" => $telefone,
-        "plano" => "vip",
-        "resultado" => $resultadoFinal
-    ]);
+$payload = json_encode([
+    "token" => $token,
+    "tipo" => "telefone",
+    "query" => $telefone,
+    "plano" => "vip",
+    "resultado" => $resultadoFinal
+]);
 
     $api = "https://astro-search.stherlionato.workers.dev";
 
@@ -2039,7 +2032,7 @@ function v($v) {
 // =========================
 $resultadoFormatado = [];
 
-foreach ($data["dados"]["resultado"] as $item)
+foreach ($data["dados"]["resultado"] as $item) {
 
     $titulo = trim($item["titulo"] ?? "");
     $conteudo = trim($item["conteudo"] ?? "");
@@ -2048,10 +2041,9 @@ foreach ($data["dados"]["resultado"] as $item)
         continue;
     }
 
-    // cria seção
     $secao = [
-        "secao" => $titulo,
-        "dados" => []
+        "titulo" => $titulo,
+        "conteudo" => []
     ];
 
     // quebra linhas
@@ -2061,23 +2053,25 @@ foreach ($data["dados"]["resultado"] as $item)
 
         $linha = trim($linha);
 
-        if (!$linha) continue;
+        if (!$linha) {
+            continue;
+        }
 
-        // separa chave : valor
+        // chave : valor
         if (strpos($linha, ":") !== false) {
 
-            [$k, $v2] = explode(":", $linha, 2);
+            [$campo, $valor] = explode(":", $linha, 2);
 
-            $secao["dados"][] = [
-                "campo" => trim($k),
-                "valor" => v(trim($v2))
+            $secao["conteudo"][] = [
+                "campo" => trim($campo),
+                "valor" => v(trim($valor))
             ];
 
         } else {
 
-            $secao["dados"][] = [
+            $secao["conteudo"][] = [
                 "campo" => "INFO",
-                "valor" => $linha
+                "valor" => v($linha)
             ];
         }
     }
@@ -2098,13 +2092,7 @@ $payload = json_encode([
     "tipo" => "nome",
     "query" => $nome,
     "plano" => "vip",
-    "resultado" => [
-        [
-            "consulta" => "NOME",
-            "documento" => $nome,
-            "resultado" => $resultadoFormatado
-        ]
-    ]
+    "resultado" => $resultadoFormatado
 ]);
 
     $api = "https://astro-search.stherlionato.workers.dev";
