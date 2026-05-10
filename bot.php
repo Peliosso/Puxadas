@@ -552,17 +552,22 @@ Escolha uma opção abaixo:";
 
 $kb = [
 "inline_keyboard"=>[
+
 [
 ["text"=>"📂 Consultas","callback_data"=>"catalogo_1"],
-["text"=>"👤 Minha conta","callback_data"=>"conta"]
+["text"=>"👤 Conta","callback_data"=>"conta"]
 ],
+
 [
-["text"=>"⭐ Planos","callback_data"=>"planos"],
+["text"=>"⭐ Planos VIP","callback_data"=>"planos"],
+["text"=>"🌐 Site Premium","url"=>"https://astro-search.stherlionato.workers.dev"]
+],
+
+[
+["text"=>"📢 Canal Oficial","url"=>"https://t.me/astrosearch"],
 ["text"=>"🛠 Suporte","url"=>"https://t.me/puxardados5"]
-],
-[
-["text"=>"📢 Canal Oficial","url"=>"https://t.me/astrosearch"]
 ]
+
 ]
 ];
 
