@@ -1783,7 +1783,7 @@ function v($v) {
 
     $response = file_get_contents($url);
 
-    $data = json_decode($response, true);
+foreach ($data["dados"]["resultado"] as $item)
 
     // =========================
     // ❌ REMOVE LOADING
@@ -2062,7 +2062,7 @@ function v($v) {
 // =========================
 $resultadoFormatado = [];
 
-foreach ($json["dados"]["resultado"] as $item) {
+foreach ($data["dados"]["resultado"] as $item)
 
     $titulo = trim($item["titulo"] ?? "");
     $conteudo = trim($item["conteudo"] ?? "");
