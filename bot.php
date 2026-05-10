@@ -1714,33 +1714,6 @@ function consultaTelefone($chat, $telefone) {
 
     global $STICKER_LOADING, $user_id;
 
-    function v($v) {
-
-        if ($v === null) {
-            return "NÃO ENCONTRADO";
-        }
-
-        $v = trim($v);
-
-        if ($v === "") {
-            return "NÃO ENCONTRADO";
-        }
-
-        $invalidos = [
-            "SEM INFORMAÇÃO",
-            "SEM INFORMACAO",
-            "DESCONHECIDO",
-            "NULL",
-            "-"
-        ];
-
-        if (in_array(mb_strtoupper($v), $invalidos)) {
-            return "NÃO ENCONTRADO";
-        }
-
-        return $v;
-    }
-
     // =========================
     // ⏳ LOADING
     // =========================
@@ -1934,33 +1907,6 @@ function consultaNome($chat, $nome) {
 
     global $STICKER_LOADING, $user_id;
 
-function v($v) {
-
-    if ($v === null) {
-        return "NÃO ENCONTRADO";
-    }
-
-    $v = trim($v);
-
-    if ($v === "") {
-        return "NÃO ENCONTRADO";
-    }
-
-    // só substitui se o TEXTO TODO for sem informação
-    $invalidos = [
-        "SEM INFORMAÇÃO",
-        "SEM INFORMACAO",
-        "DESCONHECIDO",
-        "NULL",
-        "-"
-    ];
-
-    if (in_array(mb_strtoupper($v), $invalidos)) {
-        return "NÃO ENCONTRADO";
-    }
-
-    return $v;
-}
     // =========================
     // ⏳ LOADING
     // =========================
@@ -2173,6 +2119,33 @@ Plataforma premium de consultas com alta precisão, velocidade e dados completos
             ]
         ])
     ]);
+}
+
+function v($v) {
+
+    if ($v === null) {
+        return "NÃO ENCONTRADO";
+    }
+
+    $v = trim($v);
+
+    if ($v === "") {
+        return "NÃO ENCONTRADO";
+    }
+
+    $invalidos = [
+        "SEM INFORMAÇÃO",
+        "SEM INFORMACAO",
+        "DESCONHECIDO",
+        "NULL",
+        "-"
+    ];
+
+    if (in_array(mb_strtoupper($v), $invalidos)) {
+        return "NÃO ENCONTRADO";
+    }
+
+    return $v;
 }
 
 function consultaCpf4($chat,$cpf){
@@ -2558,33 +2531,6 @@ function consultaCPF1($chat, $cpf) {
 
     global $STICKER_LOADING, $user_id, $nome;
 
-function v($v) {
-
-    if ($v === null) {
-        return "NÃO ENCONTRADO";
-    }
-
-    $v = trim($v);
-
-    if ($v === "") {
-        return "NÃO ENCONTRADO";
-    }
-
-    // só substitui se o TEXTO TODO for sem informação
-    $invalidos = [
-        "SEM INFORMAÇÃO",
-        "SEM INFORMACAO",
-        "DESCONHECIDO",
-        "NULL",
-        "-"
-    ];
-
-    if (in_array(mb_strtoupper($v), $invalidos)) {
-        return "NÃO ENCONTRADO";
-    }
-
-    return $v;
-}
 
     // =========================
     // 🔄 LOADING
