@@ -2835,7 +2835,6 @@ function consultaParentes($chat, $cpf) {
 
     // remove loading
     if ($stickerMsgId) {
-
         tg("deleteMessage", [
             "chat_id"=>$chat,
             "message_id"=>$stickerMsgId
@@ -2851,26 +2850,6 @@ function consultaParentes($chat, $cpf) {
     }
 
     // =========================
-    // 👤 NOME TITULAR
-    // =========================
-    $nomeTitular = "NÃO ENCONTRADO";
-
-    foreach ($json["dados"]["resultado"] as $item) {
-
-        $titulo = $item["titulo"] ?? "";
-        $conteudo = $item["conteudo"] ?? "";
-
-        if (strpos($titulo, "CPF: {$cpf}") !== false) {
-
-            preg_match('/NOME:\s*(.*)/i', $conteudo, $m);
-
-            if (!empty($m[1])) {
-                $nomeTitular = trim($m[1]);
-            }
-        }
-    }
-
-    // =========================
     // 👨‍👩‍👧 EXTRAIR PARENTES
     // =========================
     $parentes = [];
@@ -2881,19 +2860,25 @@ function consultaParentes($chat, $cpf) {
         $conteudo = trim($item["conteudo"] ?? "");
 
         if (
-            strpos($titulo, "NOME:") === 0 &&
-            strpos($conteudo, "GRAU DE PARENTESCO:") !== false
+            stripos($conteudo, "GRAU DE PARENTESCO") !== false
         ) {
 
-            $nome = trim(str_replace("NOME:", "", $titulo));
-
+            preg_match('/NOME:\s*(.*)/i', $titulo, $nomeMatch);
             preg_match('/CPF:\s*(.*)/i', $conteudo, $cpfMatch);
             preg_match('/GRAU DE PARENTESCO:\s*(.*)/i', $conteudo, $grauMatch);
 
             $parentes[] = [
-                "nome" => v($nome),
-                "cpf" => v($cpfMatch[1] ?? ""),
-                "grau" => v($grauMatch[1] ?? "")
+                "secao" => v($nomeMatch[1] ?? "PARANTE"),
+                "dados" => [
+                    [
+                        "campo" => "CPF",
+                        "valor" => v($cpfMatch[1] ?? "")
+                    ],
+                    [
+                        "campo" => "PARENTESCO",
+                        "valor" => v($grauMatch[1] ?? "")
+                    ]
+                ]
             ];
         }
     }
@@ -2901,28 +2886,6 @@ function consultaParentes($chat, $cpf) {
     if (empty($parentes)) {
         naoEncontrado($chat, "PARENTES", $cpf);
         return;
-    }
-
-    // =========================
-    // 🧠 FORMATAR
-    // =========================
-    $resultadoFormatado = [];
-
-    foreach ($parentes as $p) {
-
-        $resultadoFormatado[] = [
-            "secao" => $p["nome"],
-            "dados" => [
-                [
-                    "campo" => "CPF",
-                    "valor" => $p["cpf"]
-                ],
-                [
-                    "campo" => "PARENTESCO",
-                    "valor" => $p["grau"]
-                ]
-            ]
-        ];
     }
 
     // =========================
@@ -2942,7 +2905,7 @@ function consultaParentes($chat, $cpf) {
             [
                 "consulta" => "PARENTES",
                 "documento" => $cpf,
-                "resultado" => $resultadoFormatado
+                "resultado" => $parentes
             ]
         ]
     ]);
@@ -2970,18 +2933,16 @@ function consultaParentes($chat, $cpf) {
     $link = $api . "/r/" . $token;
 
     // =========================
-    // 📲 MENSAGEM
+    // 💎 PREVIEW
     // =========================
     $msg = "
-<b>👨‍👩‍👧 CONSULTA DE PARENTES FINALIZADA</b>
+<b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
 
-<blockquote>📂 Base: Parentes • Nacional</blockquote>
+<blockquote>🔎 <b>Base:</b> PARENTES • ULTRA COMPLETO</blockquote>
 
-👤 <b>Titular:</b> {$nomeTitular}
-🪪 <b>CPF:</b> {$cpf}
-🔗 <b>Total de vínculos:</b> ".count($parentes)."
+Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado completo.
 
-Clique no botão abaixo para acessar o resultado completo.
+⏳ <i>Disponível por tempo limitado</i>
 
 ━━━━━━━━━━━━━━━
 
@@ -2990,36 +2951,27 @@ Clique no botão abaixo para acessar o resultado completo.
 
 <blockquote>
 <b>Astro Ultra</b>
-Sistema premium com parentes, vizinhos, score, compras, telefones e vínculos completos.
+Sistema premium com vínculos familiares avançados e dados completos.
 </blockquote>
 ";
 
     // =========================
-    // 📤 ENVIO
+    // 📲 ENVIO FINAL
     // =========================
     tg("sendMessage", [
         "chat_id" => $chat,
         "text" => $msg,
         "parse_mode" => "HTML",
         "reply_markup" => json_encode([
-            "inline_keyboard" => [
+            "inline_keyboard"=>[
                 [
-                    [
-                        "text"=>"🔍 Ver Resultado",
-                        "url"=>$link
-                    ]
+                    ["text"=>"🔍 Ver Resultado","url"=>$link]
                 ],
                 [
-                    [
-                        "text"=>"💎 • Ativar VIP",
-                        "callback_data"=>"planos"
-                    ]
+                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
                 ],
                 [
-                    [
-                        "text"=>"🗑 Apagar",
-                        "callback_data"=>"del_{$user_id}"
-                    ]
+                    ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
                 ]
             ]
         ])
