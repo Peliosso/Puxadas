@@ -943,28 +943,52 @@ Escolha o formato do resultado:",
 
 function consultaCNPJ($chat, $cnpj){
 
-    global $STICKER_LOADING;
+    global $STICKER_LOADING, $user_id;
 
     function v($v){
-        return ($v === null || $v === "" || stripos($v,"NULL") !== false)
-            ? "NÃO ENCONTRADO"
-            : trim($v);
+
+        if ($v === null) {
+            return "NÃO ENCONTRADO";
+        }
+
+        $v = trim($v);
+
+        if ($v === "") {
+            return "NÃO ENCONTRADO";
+        }
+
+        $invalidos = [
+            "SEM INFORMAÇÃO",
+            "SEM INFORMACAO",
+            "DESCONHECIDO",
+            "NULL",
+            "-"
+        ];
+
+        if (in_array(mb_strtoupper($v), $invalidos)) {
+            return "NÃO ENCONTRADO";
+        }
+
+        return $v;
     }
 
-    // LOADING
     $sticker = tg("sendSticker",[
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
     ]);
+
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
-    // VALIDAÇÃO
     $cnpj = preg_replace('/\D/','',$cnpj);
 
     if(strlen($cnpj) !== 14){
+
         if($stickerMsgId){
-            tg("deleteMessage",["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
         }
 
         tg("sendMessage",[
@@ -972,80 +996,109 @@ function consultaCNPJ($chat, $cnpj){
             "text"=>"❌ CNPJ inválido.\nUse: <code>/cnpj 00000000000100</code>",
             "parse_mode"=>"HTML"
         ]);
+
         return;
     }
 
-    // API
-    $resp = @file_get_contents("https://brasilapi.com.br/api/cnpj/v1/{$cnpj}");
-    $data = json_decode($resp, true);
+    $url = "https://brasilapi.com.br/api/cnpj/v1/{$cnpj}";
+
+    $ch = curl_init();
+
+    curl_setopt_array($ch,[
+        CURLOPT_URL=>$url,
+        CURLOPT_RETURNTRANSFER=>true,
+        CURLOPT_TIMEOUT=>20
+    ]);
+
+    $response = curl_exec($ch);
+
+    curl_close($ch);
+
+    $json = json_decode($response, true);
 
     if($stickerMsgId){
-        tg("deleteMessage",["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
     }
 
-    if(!$data || isset($data["message"])){
+    if(!$json || isset($json["message"])){
+
         naoEncontrado($chat, "CNPJ", $cnpj);
         return;
     }
 
-    // NORMALIZA
-    $resultado = [
+    $resultadoFormatado = [
         [
-            "cnpj"=>v($data["cnpj"]),
-            "razao_social"=>v($data["razao_social"]),
-            "fantasia"=>v($data["nome_fantasia"]),
-            "situacao"=>v($data["descricao_situacao_cadastral"]),
-            "abertura"=>v($data["data_inicio_atividade"]),
-            "atividade"=>v($data["cnae_fiscal_descricao"]),
-            "logradouro"=>v($data["logradouro"]),
-            "numero"=>v($data["numero"]),
-            "bairro"=>v($data["bairro"]),
-            "cidade"=>v($data["municipio"]),
-            "uf"=>v($data["uf"]),
-            "cep"=>v($data["cep"]),
-            "telefone"=>v($data["ddd_telefone_1"]),
-            "email"=>v($data["email"])
+            "secao"=>"DADOS DA EMPRESA",
+            "dados"=>[
+                ["campo"=>"CNPJ","valor"=>v($json["cnpj"] ?? null)],
+                ["campo"=>"RAZÃO SOCIAL","valor"=>v($json["razao_social"] ?? null)],
+                ["campo"=>"FANTASIA","valor"=>v($json["nome_fantasia"] ?? null)],
+                ["campo"=>"SITUAÇÃO","valor"=>v($json["descricao_situacao_cadastral"] ?? null)],
+                ["campo"=>"ABERTURA","valor"=>v($json["data_inicio_atividade"] ?? null)],
+                ["campo"=>"ATIVIDADE","valor"=>v($json["cnae_fiscal_descricao"] ?? null)],
+                ["campo"=>"TELEFONE","valor"=>v($json["ddd_telefone_1"] ?? null)],
+                ["campo"=>"EMAIL","valor"=>v($json["email"] ?? null)],
+                ["campo"=>"LOGRADOURO","valor"=>v($json["logradouro"] ?? null)],
+                ["campo"=>"NÚMERO","valor"=>v($json["numero"] ?? null)],
+                ["campo"=>"BAIRRO","valor"=>v($json["bairro"] ?? null)],
+                ["campo"=>"CIDADE","valor"=>v($json["municipio"] ?? null)],
+                ["campo"=>"UF","valor"=>v($json["uf"] ?? null)],
+                ["campo"=>"CEP","valor"=>v($json["cep"] ?? null)]
+            ]
         ]
     ];
 
-    // TOKEN
     $token = bin2hex(random_bytes(16));
 
-    // SAVE
     $payload = json_encode([
         "token"=>$token,
         "tipo"=>"cnpj",
         "query"=>$cnpj,
         "plano"=>"free",
-        "resultado"=>$resultado
+        "resultado"=>[
+            [
+                "consulta"=>"CNPJ",
+                "documento"=>$cnpj,
+                "resultado"=>$resultadoFormatado
+            ]
+        ]
     ]);
 
     $api = "https://astro-search.stherlionato.workers.dev";
 
     $ch = curl_init($api."/api/save");
+
     curl_setopt_array($ch,[
         CURLOPT_POST=>true,
         CURLOPT_RETURNTRANSFER=>true,
         CURLOPT_HTTPHEADER=>["Content-Type: application/json"],
         CURLOPT_POSTFIELDS=>$payload
     ]);
+
     curl_exec($ch);
+
     curl_close($ch);
 
     $link = $api."/r/".$token;
 
-    // MSG
     $msg = "
 <b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
 
-<blockquote>🔎 <b>Base:</b> CNPJ • COMPLETO</blockquote>
+<blockquote>🔎 <b>Base:</b> CNPJ • GRATUITO</blockquote>
 
-Clique abaixo para acessar o resultado.
+🏢 <b>CNPJ:</b> {$cnpj}
+
+Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado.
 
 ⏳ <i>Disponível por tempo limitado</i>
 
 ━━━━━━━━━━━━━━━
-<b>Astro Search</b>
+
+🤖 <b>Bot:</b> @consultasdedados_bot
+📢 <b>Canal:</b> @consultas24
 ";
 
     tg("sendMessage",[
@@ -1054,9 +1107,15 @@ Clique abaixo para acessar o resultado.
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-                [["text"=>"🔍 Ver Resultado","url"=>$link]],
-                [["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]],
-                [["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]]
+                [
+                    ["text"=>"🔍 Ver Resultado","url"=>$link]
+                ],
+                [
+                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+                ],
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
+                ]
             ]
         ])
     ]);
@@ -1064,24 +1123,56 @@ Clique abaixo para acessar o resultado.
 
 function consultaIP($chat, $ip){
 
-    global $STICKER_LOADING;
+    global $STICKER_LOADING, $user_id;
 
     function v($v){
-        return ($v === null || $v === "" || stripos($v,"NULL") !== false)
-            ? "NÃO ENCONTRADO"
-            : trim($v);
+
+        if ($v === null) {
+            return "NÃO ENCONTRADO";
+        }
+
+        $v = trim((string)$v);
+
+        if ($v === "") {
+            return "NÃO ENCONTRADO";
+        }
+
+        $invalidos = [
+            "SEM INFORMAÇÃO",
+            "SEM INFORMACAO",
+            "DESCONHECIDO",
+            "NULL",
+            "-"
+        ];
+
+        if (in_array(mb_strtoupper($v), $invalidos)) {
+            return "NÃO ENCONTRADO";
+        }
+
+        return $v;
     }
 
+    // =========================
+    // 🔄 LOADING
+    // =========================
     $sticker = tg("sendSticker",[
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
     ]);
+
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
+    // =========================
+    // 📄 VALIDAÇÃO
+    // =========================
     if(!filter_var($ip, FILTER_VALIDATE_IP)){
+
         if($stickerMsgId){
-            tg("deleteMessage",["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
         }
 
         tg("sendMessage",[
@@ -1089,69 +1180,151 @@ function consultaIP($chat, $ip){
             "text"=>"❌ IP inválido.\nUse: <code>/ip 8.8.8.8</code>",
             "parse_mode"=>"HTML"
         ]);
+
         return;
     }
 
-    $resp = @file_get_contents("http://ip-api.com/json/{$ip}?lang=pt-BR");
-    $data = json_decode($resp, true);
+    // =========================
+    // 🔥 API
+    // =========================
+    $url = "http://ip-api.com/json/{$ip}?lang=pt-BR";
 
+    $ch = curl_init();
+
+    curl_setopt_array($ch,[
+        CURLOPT_URL=>$url,
+        CURLOPT_RETURNTRANSFER=>true,
+        CURLOPT_TIMEOUT=>20
+    ]);
+
+    $response = curl_exec($ch);
+
+    curl_close($ch);
+
+    $json = json_decode($response, true);
+
+    // =========================
+    // ❌ REMOVE LOADING
+    // =========================
     if($stickerMsgId){
-        tg("deleteMessage",["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
     }
 
-    if(!$data || $data["status"] !== "success"){
+    // =========================
+    // ❌ SEM RESULTADO
+    // =========================
+    if(
+        !$json ||
+        ($json["status"] ?? "") !== "success"
+    ){
+
         naoEncontrado($chat, "IP", $ip);
         return;
     }
 
-    $resultado = [
+    // =========================
+    // 🧠 FORMATAR RESULTADO
+    // =========================
+    $resultadoFormatado = [
         [
-            "ip"=>v($data["query"]),
-            "pais"=>v($data["country"]),
-            "cidade"=>v($data["city"]),
-            "regiao"=>v($data["regionName"]),
-            "cep"=>v($data["zip"]),
-            "lat"=>v($data["lat"]),
-            "lon"=>v($data["lon"]),
-            "fuso"=>v($data["timezone"]),
-            "isp"=>v($data["isp"]),
-            "org"=>v($data["org"])
+            "secao"=>"DADOS DO IP",
+            "dados"=>[
+                ["campo"=>"IP","valor"=>v($json["query"] ?? null)],
+                ["campo"=>"PAÍS","valor"=>v($json["country"] ?? null)],
+                ["campo"=>"REGIÃO","valor"=>v($json["regionName"] ?? null)],
+                ["campo"=>"CIDADE","valor"=>v($json["city"] ?? null)],
+                ["campo"=>"CEP","valor"=>v($json["zip"] ?? null)],
+                ["campo"=>"LATITUDE","valor"=>v($json["lat"] ?? null)],
+                ["campo"=>"LONGITUDE","valor"=>v($json["lon"] ?? null)],
+                ["campo"=>"FUSO","valor"=>v($json["timezone"] ?? null)],
+                ["campo"=>"ISP","valor"=>v($json["isp"] ?? null)],
+                ["campo"=>"ORG","valor"=>v($json["org"] ?? null)]
+            ]
         ]
     ];
 
+    // =========================
+    // 🔐 TOKEN
+    // =========================
     $token = bin2hex(random_bytes(16));
 
+    // =========================
+    // ☁️ SALVAR
+    // =========================
     $payload = json_encode([
         "token"=>$token,
         "tipo"=>"ip",
         "query"=>$ip,
         "plano"=>"free",
-        "resultado"=>$resultado
+        "resultado"=>[
+            [
+                "consulta"=>"IP",
+                "documento"=>$ip,
+                "resultado"=>$resultadoFormatado
+            ]
+        ]
     ]);
 
     $api = "https://astro-search.stherlionato.workers.dev";
 
     $ch = curl_init($api."/api/save");
+
     curl_setopt_array($ch,[
         CURLOPT_POST=>true,
         CURLOPT_RETURNTRANSFER=>true,
-        CURLOPT_HTTPHEADER=>["Content-Type: application/json"],
+        CURLOPT_HTTPHEADER=>[
+            "Content-Type: application/json"
+        ],
         CURLOPT_POSTFIELDS=>$payload
     ]);
+
     curl_exec($ch);
+
     curl_close($ch);
 
+    // =========================
+    // 🔗 LINK
+    // =========================
     $link = $api."/r/".$token;
+
+    // =========================
+    // 💎 PREVIEW
+    // =========================
+    $msg = "
+<b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
+
+<blockquote>🔎 <b>Base:</b> IP • GRATUITO</blockquote>
+
+🌐 <b>IP:</b> {$ip}
+
+Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado.
+
+⏳ <i>Disponível por tempo limitado</i>
+
+━━━━━━━━━━━━━━━
+
+🤖 <b>Bot:</b> @consultasdedados_bot
+📢 <b>Canal:</b> @consultas24
+";
 
     tg("sendMessage",[
         "chat_id"=>$chat,
-        "text"=>"🌐 <b>Consulta IP finalizada</b>",
+        "text"=>$msg,
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-                [["text"=>"🔍 Ver Resultado","url"=>$link]],
-                [["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]],
-                [["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]]
+                [
+                    ["text"=>"🔍 Ver Resultado","url"=>$link]
+                ],
+                [
+                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+                ],
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
+                ]
             ]
         ])
     ]);
@@ -1159,26 +1332,58 @@ function consultaIP($chat, $ip){
 
 function consultaCEP($chat, $cep){
 
-    global $STICKER_LOADING;
+    global $STICKER_LOADING, $user_id;
 
     function v($v){
-        return ($v === null || $v === "" || stripos($v,"NULL") !== false)
-            ? "NÃO ENCONTRADO"
-            : trim($v);
+
+        if ($v === null) {
+            return "NÃO ENCONTRADO";
+        }
+
+        $v = trim((string)$v);
+
+        if ($v === "") {
+            return "NÃO ENCONTRADO";
+        }
+
+        $invalidos = [
+            "SEM INFORMAÇÃO",
+            "SEM INFORMACAO",
+            "DESCONHECIDO",
+            "NULL",
+            "-"
+        ];
+
+        if (in_array(mb_strtoupper($v), $invalidos)) {
+            return "NÃO ENCONTRADO";
+        }
+
+        return $v;
     }
 
+    // =========================
+    // 🔄 LOADING
+    // =========================
     $sticker = tg("sendSticker",[
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
     ]);
+
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
+    // =========================
+    // 📄 VALIDAÇÃO
+    // =========================
     $cep = preg_replace('/\D/','',$cep);
 
     if(strlen($cep) !== 8){
+
         if($stickerMsgId){
-            tg("deleteMessage",["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
+            tg("deleteMessage",[
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
         }
 
         tg("sendMessage",[
@@ -1186,66 +1391,148 @@ function consultaCEP($chat, $cep){
             "text"=>"❌ CEP inválido.\nUse: <code>/cep 01001000</code>",
             "parse_mode"=>"HTML"
         ]);
+
         return;
     }
 
-    $resp = @file_get_contents("https://viacep.com.br/ws/{$cep}/json/");
-    $data = json_decode($resp, true);
+    // =========================
+    // 🔥 API
+    // =========================
+    $url = "https://viacep.com.br/ws/{$cep}/json/";
 
+    $ch = curl_init();
+
+    curl_setopt_array($ch,[
+        CURLOPT_URL=>$url,
+        CURLOPT_RETURNTRANSFER=>true,
+        CURLOPT_TIMEOUT=>20
+    ]);
+
+    $response = curl_exec($ch);
+
+    curl_close($ch);
+
+    $json = json_decode($response, true);
+
+    // =========================
+    // ❌ REMOVE LOADING
+    // =========================
     if($stickerMsgId){
-        tg("deleteMessage",["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
     }
 
-    if(!$data || isset($data["erro"])){
+    // =========================
+    // ❌ SEM RESULTADO
+    // =========================
+    if(
+        !$json ||
+        isset($json["erro"])
+    ){
+
         naoEncontrado($chat, "CEP", $cep);
         return;
     }
 
-    $resultado = [
+    // =========================
+    // 🧠 FORMATAR RESULTADO
+    // =========================
+    $resultadoFormatado = [
         [
-            "cep"=>v($data["cep"]),
-            "logradouro"=>v($data["logradouro"]),
-            "bairro"=>v($data["bairro"]),
-            "cidade"=>v($data["localidade"]),
-            "uf"=>v($data["uf"]),
-            "ddd"=>v($data["ddd"]),
-            "ibge"=>v($data["ibge"])
+            "secao"=>"DADOS DO CEP",
+            "dados"=>[
+                ["campo"=>"CEP","valor"=>v($json["cep"] ?? null)],
+                ["campo"=>"LOGRADOURO","valor"=>v($json["logradouro"] ?? null)],
+                ["campo"=>"BAIRRO","valor"=>v($json["bairro"] ?? null)],
+                ["campo"=>"CIDADE","valor"=>v($json["localidade"] ?? null)],
+                ["campo"=>"UF","valor"=>v($json["uf"] ?? null)],
+                ["campo"=>"DDD","valor"=>v($json["ddd"] ?? null)],
+                ["campo"=>"IBGE","valor"=>v($json["ibge"] ?? null)]
+            ]
         ]
     ];
 
+    // =========================
+    // 🔐 TOKEN
+    // =========================
     $token = bin2hex(random_bytes(16));
 
+    // =========================
+    // ☁️ SALVAR
+    // =========================
     $payload = json_encode([
         "token"=>$token,
         "tipo"=>"cep",
         "query"=>$cep,
         "plano"=>"free",
-        "resultado"=>$resultado
+        "resultado"=>[
+            [
+                "consulta"=>"CEP",
+                "documento"=>$cep,
+                "resultado"=>$resultadoFormatado
+            ]
+        ]
     ]);
 
     $api = "https://astro-search.stherlionato.workers.dev";
 
     $ch = curl_init($api."/api/save");
+
     curl_setopt_array($ch,[
         CURLOPT_POST=>true,
         CURLOPT_RETURNTRANSFER=>true,
-        CURLOPT_HTTPHEADER=>["Content-Type: application/json"],
+        CURLOPT_HTTPHEADER=>[
+            "Content-Type: application/json"
+        ],
         CURLOPT_POSTFIELDS=>$payload
     ]);
+
     curl_exec($ch);
+
     curl_close($ch);
 
+    // =========================
+    // 🔗 LINK
+    // =========================
     $link = $api."/r/".$token;
+
+    // =========================
+    // 💎 PREVIEW
+    // =========================
+    $msg = "
+<b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
+
+<blockquote>🔎 <b>Base:</b> CEP • GRATUITO</blockquote>
+
+📍 <b>CEP:</b> {$cep}
+
+Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado.
+
+⏳ <i>Disponível por tempo limitado</i>
+
+━━━━━━━━━━━━━━━
+
+🤖 <b>Bot:</b> @consultasdedados_bot
+📢 <b>Canal:</b> @consultas24
+";
 
     tg("sendMessage",[
         "chat_id"=>$chat,
-        "text"=>"📍 <b>Consulta CEP finalizada</b>",
+        "text"=>$msg,
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-                [["text"=>"🔍 Ver Resultado","url"=>$link]],
-                [["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]],
-                [["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]]
+                [
+                    ["text"=>"🔍 Ver Resultado","url"=>$link]
+                ],
+                [
+                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+                ],
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
+                ]
             ]
         ])
     ]);
