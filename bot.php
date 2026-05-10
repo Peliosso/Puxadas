@@ -1714,11 +1714,33 @@ function consultaTelefone($chat, $telefone) {
 
     global $STICKER_LOADING, $user_id;
 
-    function v($v) {
-        return ($v === null || $v === "" || stripos($v, "DESCONHECIDO") !== false)
-            ? "NÃO ENCONTRADO"
-            : trim($v);
+function v($v) {
+
+    if ($v === null) {
+        return "NÃO ENCONTRADO";
     }
+
+    $v = trim($v);
+
+    if ($v === "") {
+        return "NÃO ENCONTRADO";
+    }
+
+    // só substitui se o TEXTO TODO for sem informação
+    $invalidos = [
+        "SEM INFORMAÇÃO",
+        "SEM INFORMACAO",
+        "DESCONHECIDO",
+        "NULL",
+        "-"
+    ];
+
+    if (in_array(mb_strtoupper($v), $invalidos)) {
+        return "NÃO ENCONTRADO";
+    }
+
+    return $v;
+}
 
     // =========================
     // ⏳ LOADING
@@ -1787,43 +1809,54 @@ function consultaTelefone($chat, $telefone) {
     }
 
 // =========================
-// 🧠 PROCESSAR FORMATO
+// 🧠 FORMATAR RESULTADO
 // =========================
-$textoFinal = "";
+$resultadoFormatado = [];
 
-foreach ($data["dados"]["resultado"] as $item) {
+foreach ($json["dados"]["resultado"] as $item) {
 
-    $titulo = v($item["titulo"] ?? "");
-    $conteudo = v($item["conteudo"] ?? "");
+    $titulo = trim($item["titulo"] ?? "");
+    $conteudo = trim($item["conteudo"] ?? "");
+
+    if (!$titulo && !$conteudo) {
+        continue;
+    }
+
+    // cria seção
+    $secao = [
+        "secao" => $titulo,
+        "dados" => []
+    ];
 
     // quebra linhas
     $conteudo = str_replace(["\r\n", "\r"], "\n", $conteudo);
 
-    $linhas = explode("\n", $conteudo);
-
-    $textoFinal .= "<div style='margin-bottom:14px'>";
-
-    $textoFinal .= "
-    <div style='font-size:13px;font-weight:600;margin-bottom:6px'>
-        🔷 {$titulo}
-    </div>
-    ";
-
-    foreach ($linhas as $linha) {
+    foreach (explode("\n", $conteudo) as $linha) {
 
         $linha = trim($linha);
 
-        if ($linha !== "") {
+        if (!$linha) continue;
 
-            $textoFinal .= "
-            <div style='font-size:12px;opacity:.88;margin-left:6px'>
-                • {$linha}
-            </div>
-            ";
+        // separa chave : valor
+        if (strpos($linha, ":") !== false) {
+
+            [$k, $v2] = explode(":", $linha, 2);
+
+            $secao["dados"][] = [
+                "campo" => trim($k),
+                "valor" => v(trim($v2))
+            ];
+
+        } else {
+
+            $secao["dados"][] = [
+                "campo" => "INFO",
+                "valor" => $linha
+            ];
         }
     }
 
-    $textoFinal .= "</div>";
+    $resultadoFormatado[] = $secao;
 }
 
     // =========================
@@ -1833,7 +1866,6 @@ foreach ($data["dados"]["resultado"] as $item) {
 
     // =========================
     // ☁️ SALVAR CLOUDFLARE
-    // =========================
 $payload = json_encode([
     "token" => $token,
     "tipo" => "telefone",
@@ -1841,7 +1873,9 @@ $payload = json_encode([
     "plano" => "vip",
     "resultado" => [
         [
-            "valor" => $textoFinal
+            "consulta" => "TELEFONE",
+            "documento" => $telefone,
+            "resultado" => $resultadoFormatado
         ]
     ]
 ]);
@@ -1942,6 +1976,7 @@ function v($v) {
         return "NÃO ENCONTRADO";
     }
 
+    // só substitui se o TEXTO TODO for sem informação
     $invalidos = [
         "SEM INFORMAÇÃO",
         "SEM INFORMACAO",
@@ -2023,43 +2058,54 @@ function v($v) {
     }
 
 // =========================
-// 🧠 PROCESSAR FORMATO
+// 🧠 FORMATAR RESULTADO
 // =========================
-$textoFinal = "";
+$resultadoFormatado = [];
 
-foreach ($data["dados"]["resultado"] as $item) {
+foreach ($json["dados"]["resultado"] as $item) {
 
-    $titulo = v($item["titulo"] ?? "");
-    $conteudo = v($item["conteudo"] ?? "");
+    $titulo = trim($item["titulo"] ?? "");
+    $conteudo = trim($item["conteudo"] ?? "");
+
+    if (!$titulo && !$conteudo) {
+        continue;
+    }
+
+    // cria seção
+    $secao = [
+        "secao" => $titulo,
+        "dados" => []
+    ];
 
     // quebra linhas
     $conteudo = str_replace(["\r\n", "\r"], "\n", $conteudo);
 
-    $linhas = explode("\n", $conteudo);
-
-    $textoFinal .= "<div style='margin-bottom:14px'>";
-
-    $textoFinal .= "
-    <div style='font-size:13px;font-weight:600;margin-bottom:6px'>
-        🔷 {$titulo}
-    </div>
-    ";
-
-    foreach ($linhas as $linha) {
+    foreach (explode("\n", $conteudo) as $linha) {
 
         $linha = trim($linha);
 
-        if ($linha !== "") {
+        if (!$linha) continue;
 
-            $textoFinal .= "
-            <div style='font-size:12px;opacity:.88;margin-left:6px'>
-                • {$linha}
-            </div>
-            ";
+        // separa chave : valor
+        if (strpos($linha, ":") !== false) {
+
+            [$k, $v2] = explode(":", $linha, 2);
+
+            $secao["dados"][] = [
+                "campo" => trim($k),
+                "valor" => v(trim($v2))
+            ];
+
+        } else {
+
+            $secao["dados"][] = [
+                "campo" => "INFO",
+                "valor" => $linha
+            ];
         }
     }
 
-    $textoFinal .= "</div>";
+    $resultadoFormatado[] = $secao;
 }
 
     // =========================
@@ -2077,7 +2123,9 @@ $payload = json_encode([
     "plano" => "vip",
     "resultado" => [
         [
-            "valor" => $textoFinal
+            "consulta" => "NOME",
+            "documento" => $nome,
+            "resultado" => $resultadoFormatado
         ]
     ]
 ]);
