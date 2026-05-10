@@ -445,7 +445,7 @@ Seu plano atual é <b>Gratuito</b> e possui limitações.
 
 📅 Diário: R$ 14,90
 📆 Semanal: R$ 24,90
-👑 Para Sempre: R$ 20,90 - <b>1 Vaga</b> 
+👑 Para Sempre: R$ 20,90 - <b>Oferta!</b> 
 
 🚀 Liberação automática após pagamento
 
@@ -554,18 +554,18 @@ $kb = [
 "inline_keyboard"=>[
 
 [
-["text"=>"📂 Consultas","callback_data"=>"catalogo_1"],
-["text"=>"👤 Conta","callback_data"=>"conta"]
+["text"=>"📂 • Consultas","callback_data"=>"catalogo_1"],
+["text"=>"👤 • Conta","callback_data"=>"conta"]
 ],
 
 [
-["text"=>"⭐ Planos VIP","callback_data"=>"planos"],
-["text"=>"🌐 Site Premium","url"=>"https://astro-search.stherlionato.workers.dev"]
+["text"=>"⭐ • Planos VIP","callback_data"=>"planos"],
+["text"=>"🚀 • Site","url"=>"https://astro-search.stherlionato.workers.dev"]
 ],
 
 [
-["text"=>"📢 Canal Oficial","url"=>"https://t.me/astrosearch"],
-["text"=>"🛠 Suporte","url"=>"https://t.me/puxardados5"]
+["text"=>"📢 • Canal Oficial","url"=>"https://t.me/astrosearch"],
+["text"=>"🛠 • Suporte","url"=>"https://t.me/puxardados5"]
 ]
 
 ]
@@ -4538,11 +4538,10 @@ if($data == "planos"){
                 ["text"=>"📆 Semanal - R$24,90","callback_data"=>"plano_semanal"]
             ],
             [
-                ["text"=>"👑 Para Sempre - R$20,90 - 1 vaga.","callback_data"=>"plano_vitalicio"]
+                ["text"=>"👑 Para Sempre - R$20,90 - Oferta.","callback_data"=>"plano_vitalicio"]
             ],
             [
-                ["text"=>"⬅️ Voltar","callback_data"=>"voltar_menu"],
-                ["text"=>"🏠 Início","callback_data"=>"inicio"]
+                ["text"=>"🏠 Início","callback_data"=>"voltar_menu"]
             ]
         ]
     ]);
