@@ -1104,7 +1104,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado.
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @consultas24
+📢 <b>Canal:</b> @astrosearch
 ";
 
     tg("sendMessage",[
@@ -1313,7 +1313,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado.
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @consultas24
+📢 <b>Canal:</b> @astrosearch
 ";
 
     tg("sendMessage",[
@@ -1521,7 +1521,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado.
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @consultas24
+📢 <b>Canal:</b> @astrosearch
 ";
 
     tg("sendMessage",[
@@ -2218,7 +2218,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @consultas24
+📢 <b>Canal:</b> @astrosearch
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -2464,7 +2464,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @consultas24
+📢 <b>Canal:</b> @astrosearch
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -2947,7 +2947,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @consultas24
+📢 <b>Canal:</b> @astrosearch
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -3172,7 +3172,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @consultas24
+📢 <b>Canal:</b> @astrosearch
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -3881,7 +3881,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @consultas24
+📢 <b>Canal:</b> @astrosearch
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -4161,7 +4161,7 @@ Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resu
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @consultas24
+📢 <b>Canal:</b> @astrosearch
 
 <blockquote>
 <b>Astro Search</b>
