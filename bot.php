@@ -3797,121 +3797,75 @@ function consultaPlaca($chat, $placa) {
         return;
     }
 
-    // =========================
-    // 🧠 FORMATA IGUAL CPF1
-    // =========================
-    $textoFinal = "";
+// =========================
+// 🧠 FORMATAR RESULTADO
+// =========================
+$resultadoFormatado = [];
 
-    foreach ($json["dados"]["resultado"] as $item) {
+foreach ($json["dados"]["resultado"] as $item) {
 
-        $titulo = v($item["titulo"] ?? "");
-        $conteudo = v($item["conteudo"] ?? "");
+    $titulo = trim($item["titulo"] ?? "");
+    $conteudo = trim($item["conteudo"] ?? "");
 
-        $conteudo = str_replace(["\r\n", "\r"], "\n", $conteudo);
-        $linhas = explode("\n", $conteudo);
-
-        $textoFinal .= "<div style='margin-bottom:14px'>";
-
-        $textoFinal .= "<div style='font-size:13px;font-weight:600;margin-bottom:6px'>
-        🚗 {$titulo}
-        </div>";
-
-        foreach ($linhas as $linha) {
-            $linha = trim($linha);
-            if ($linha !== "") {
-                $textoFinal .= "<div style='font-size:12px;opacity:.85;margin-left:6px'>
-                • {$linha}
-                </div>";
-            }
-        }
-
-        $textoFinal .= "</div>";
+    if (!$titulo && !$conteudo) {
+        continue;
     }
 
-    // =========================
-    // 🔐 TOKEN
-    // =========================
-    $token = bin2hex(random_bytes(16));
+    $secao = [
+        "secao" => $titulo,
+        "dados" => []
+    ];
 
-    // =========================
-    // ☁️ SALVAR (PADRÃO NOVO)
-    // =========================
-    $payload = json_encode([
-        "token" => $token,
-        "tipo" => "placa",
-        "query" => $placa,
-        "plano" => "vip",
-        "resultado" => [
-            [
-                "valor" => $textoFinal
-            ]
-        ]
-    ]);
+    $conteudo = str_replace(["\r\n", "\r"], "\n", $conteudo);
 
-    $api = "https://astro-search.stherlionato.workers.dev";
+    foreach (explode("\n", $conteudo) as $linha) {
 
-    $ch = curl_init($api . "/api/save");
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => ["Content-Type: application/json"],
-        CURLOPT_POSTFIELDS => $payload
-    ]);
-    curl_exec($ch);
-    curl_close($ch);
+        $linha = trim($linha);
 
-    // =========================
-    // 🔗 LINK
-    // =========================
-    $link = $api . "/r/" . $token;
+        if (!$linha) continue;
 
-    // =========================
-    // 💎 PREVIEW
-    // =========================
-    $msg = "
-<b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
+        if (strpos($linha, ":") !== false) {
 
-<blockquote>🚗 <b>Base:</b> PLACA • COMPLETO</blockquote>
+            [$k, $v2] = explode(":", $linha, 2);
 
-🔎 <b>Consulta:</b> {$placa}
+            $secao["dados"][] = [
+                "campo" => trim($k),
+                "valor" => v(trim($v2))
+            ];
 
-Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado completo.
+        } else {
 
-⏳ <i>Disponível por tempo limitado</i>
+            $secao["dados"][] = [
+                "campo" => "INFO",
+                "valor" => v($linha)
+            ];
+        }
+    }
 
-━━━━━━━━━━━━━━━
-
-🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @astrosearch
-
-<blockquote>
-<b>Astro Ultra</b>
-Dados completos do veículo, proprietário, restrições e muito mais.
-</blockquote>
-";
-
-    // =========================
-    // 📲 ENVIO
-    // =========================
-    tg("sendMessage", [
-        "chat_id" => $chat,
-        "text" => $msg,
-        "parse_mode" => "HTML",
-        "reply_markup" => json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"🔍 Ver Resultado","url"=>$link]
-                ],
-                [
-                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
-                ],
-                [
-                    ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
-                ]
-            ]
-        ])
-    ]);
+    $resultadoFormatado[] = $secao;
 }
+
+// =========================
+// 🔐 TOKEN
+// =========================
+$token = bin2hex(random_bytes(16));
+
+// =========================
+// ☁️ SALVAR
+// =========================
+$payload = json_encode([
+    "token" => $token,
+    "tipo" => "placa",
+    "query" => $placa,
+    "plano" => "vip",
+    "resultado" => [
+        [
+            "consulta" => "PLACA",
+            "documento" => $placa,
+            "resultado" => $resultadoFormatado
+        ]
+    ]
+]);
 
 function consultaInstagram($chat,$user){
 
@@ -4278,8 +4232,7 @@ function consultaCPF($chat, $cpf) {
     $msg = "
 <b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
 
-<blockquote>
-🔎 <b>Base:</b> CPF • SIMPLES</blockquote>
+<blockquote>🔎 <b>Base:</b> CPF • SIMPLES</blockquote>
 
 👤 <b>Nome:</b> {$nomePessoa}
 
