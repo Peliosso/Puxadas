@@ -3866,6 +3866,9 @@ $payload = json_encode([
         ]
     ]
 ]);
+unlink($file);
+
+}
 
 function consultaInstagram($chat,$user){
 
