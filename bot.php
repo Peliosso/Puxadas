@@ -3737,9 +3737,30 @@ function consultaPlaca($chat, $placa) {
     global $STICKER_LOADING, $user_id;
 
     function v($v) {
-        return ($v === null || $v === "" || stripos($v, "NULL") !== false)
-            ? "NÃO ENCONTRADO"
-            : trim($v);
+
+        if ($v === null) {
+            return "NÃO ENCONTRADO";
+        }
+
+        $v = trim($v);
+
+        if ($v === "") {
+            return "NÃO ENCONTRADO";
+        }
+
+        $invalidos = [
+            "SEM INFORMAÇÃO",
+            "SEM INFORMACAO",
+            "DESCONHECIDO",
+            "NULL",
+            "-"
+        ];
+
+        if (in_array(mb_strtoupper($v), $invalidos)) {
+            return "NÃO ENCONTRADO";
+        }
+
+        return $v;
     }
 
     // =========================
@@ -3749,17 +3770,24 @@ function consultaPlaca($chat, $placa) {
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
     ]);
+
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
     // =========================
-    // 📄 VALIDAÇÃO
+    // 🚗 VALIDAÇÃO
     // =========================
-    $placa = strtoupper(preg_replace('/[^A-Z0-9]/', '', $placa));
+    $placa = strtoupper(
+        preg_replace('/[^A-Z0-9]/', '', $placa)
+    );
 
     if (strlen($placa) < 7) {
+
         if ($stickerMsgId) {
-            tg("deleteMessage", ["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
+            tg("deleteMessage", [
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
         }
 
         tg("sendMessage", [
@@ -3767,6 +3795,7 @@ function consultaPlaca($chat, $placa) {
             "text"=>"❌ Placa inválida.\nUse: <code>/placa ABC1234</code>",
             "parse_mode"=>"HTML"
         ]);
+
         return;
     }
 
@@ -3776,98 +3805,179 @@ function consultaPlaca($chat, $placa) {
     $url = "https://boks.stherlionato.workers.dev/placa?token=fxckbuscas&placa={$placa}";
 
     $ch = curl_init();
+
     curl_setopt_array($ch, [
         CURLOPT_URL=>$url,
         CURLOPT_RETURNTRANSFER=>true,
-        CURLOPT_TIMEOUT=>20
+        CURLOPT_TIMEOUT=>25
     ]);
 
     $response = curl_exec($ch);
+
     curl_close($ch);
 
     $json = json_decode($response, true);
 
-    // remove loading
+    // =========================
+    // ❌ REMOVE LOADING
+    // =========================
     if ($stickerMsgId) {
-        tg("deleteMessage", ["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
+        tg("deleteMessage", [
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
     }
 
-    if (!$json || empty($json["dados"]["resultado"])) {
+    // =========================
+    // ❌ SEM RESULTADO
+    // =========================
+    if (
+        !$json ||
+        empty($json["dados"]["resultado"])
+    ) {
+
         naoEncontrado($chat, "PLACA", $placa);
         return;
     }
 
-// =========================
-// 🧠 FORMATAR RESULTADO
-// =========================
-$resultadoFormatado = [];
+    // =========================
+    // 🧠 FORMATAR RESULTADO
+    // =========================
+    $resultadoFormatado = [];
 
-foreach ($json["dados"]["resultado"] as $item) {
+    foreach ($json["dados"]["resultado"] as $item) {
 
-    $titulo = trim($item["titulo"] ?? "");
-    $conteudo = trim($item["conteudo"] ?? "");
+        $titulo = trim($item["titulo"] ?? "");
+        $conteudo = trim($item["conteudo"] ?? "");
 
-    if (!$titulo && !$conteudo) {
-        continue;
-    }
-
-    $secao = [
-        "secao" => $titulo,
-        "dados" => []
-    ];
-
-    $conteudo = str_replace(["\r\n", "\r"], "\n", $conteudo);
-
-    foreach (explode("\n", $conteudo) as $linha) {
-
-        $linha = trim($linha);
-
-        if (!$linha) continue;
-
-        if (strpos($linha, ":") !== false) {
-
-            [$k, $v2] = explode(":", $linha, 2);
-
-            $secao["dados"][] = [
-                "campo" => trim($k),
-                "valor" => v(trim($v2))
-            ];
-
-        } else {
-
-            $secao["dados"][] = [
-                "campo" => "INFO",
-                "valor" => v($linha)
-            ];
+        if (!$titulo && !$conteudo) {
+            continue;
         }
+
+        $secao = [
+            "secao" => $titulo,
+            "dados" => []
+        ];
+
+        $conteudo = str_replace(["\r\n", "\r"], "\n", $conteudo);
+
+        foreach (explode("\n", $conteudo) as $linha) {
+
+            $linha = trim($linha);
+
+            if (!$linha) continue;
+
+            if (strpos($linha, ":") !== false) {
+
+                [$k, $v2] = explode(":", $linha, 2);
+
+                $secao["dados"][] = [
+                    "campo" => trim($k),
+                    "valor" => v(trim($v2))
+                ];
+
+            } else {
+
+                $secao["dados"][] = [
+                    "campo" => "INFO",
+                    "valor" => $linha
+                ];
+            }
+        }
+
+        $resultadoFormatado[] = $secao;
     }
 
-    $resultadoFormatado[] = $secao;
-}
+    // =========================
+    // 🔐 TOKEN
+    // =========================
+    $token = bin2hex(random_bytes(16));
 
-// =========================
-// 🔐 TOKEN
-// =========================
-$token = bin2hex(random_bytes(16));
-
-// =========================
-// ☁️ SALVAR
-// =========================
-$payload = json_encode([
-    "token" => $token,
-    "tipo" => "placa",
-    "query" => $placa,
-    "plano" => "vip",
-    "resultado" => [
-        [
-            "consulta" => "PLACA",
-            "documento" => $placa,
-            "resultado" => $resultadoFormatado
+    // =========================
+    // ☁️ SALVAR
+    // =========================
+    $payload = json_encode([
+        "token" => $token,
+        "tipo" => "placa",
+        "query" => $placa,
+        "plano" => "vip",
+        "resultado" => [
+            [
+                "consulta" => "PLACA",
+                "documento" => $placa,
+                "resultado" => $resultadoFormatado
+            ]
         ]
-    ]
-]);
-unlink($file);
+    ]);
 
+    $api = "https://astro-search.stherlionato.workers.dev";
+
+    $ch = curl_init($api . "/api/save");
+
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            "Content-Type: application/json"
+        ],
+        CURLOPT_POSTFIELDS => $payload
+    ]);
+
+    curl_exec($ch);
+
+    curl_close($ch);
+
+    // =========================
+    // 🔗 LINK
+    // =========================
+    $link = $api . "/r/" . $token;
+
+    // =========================
+    // 💎 PREVIEW
+    // =========================
+    $msg = "
+<b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
+
+<blockquote>🚗 <b>Base:</b> PLACA • ULTRA COMPLETO</blockquote>
+
+🚘 <b>Placa:</b> {$placa}
+
+Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado completo.
+
+⏳ <i>Disponível por tempo limitado</i>
+
+━━━━━━━━━━━━━━━
+
+🤖 <b>Bot:</b> @consultasdedados_bot
+📢 <b>Canal:</b> @astrosearch
+
+<blockquote>
+<b>Astro Ultra</b>
+Dados completos do veículo, proprietário, restrições e muito mais.
+</blockquote>
+";
+
+    // =========================
+    // 📲 ENVIO FINAL
+    // =========================
+    tg("sendMessage", [
+        "chat_id" => $chat,
+        "text" => $msg,
+        "parse_mode" => "HTML",
+        "reply_markup" => json_encode([
+            "inline_keyboard"=>[
+                [
+                    ["text"=>"🔍 Ver Resultado","url"=>$link]
+                ],
+                [
+                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+                ],
+                [
+                    ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
+                ]
+            ]
+        ])
+    ]);
 }
 
 function consultaInstagram($chat,$user){
