@@ -4012,104 +4012,220 @@ tg("sendPhoto",[
 
 function consultaCPF($chat, $cpf) {
 
-    global $STICKER_LOADING;
+    global $STICKER_LOADING, $user_id, $nome;
 
+    // =========================
+    // 🧠 FORMATADOR
+    // =========================
     function v($v) {
-        return ($v === null || $v === "" || stripos($v, "NULL") !== false)
-            ? "NÃO ENCONTRADO"
-            : trim($v);
+
+        if ($v === null) {
+            return "NÃO ENCONTRADO";
+        }
+
+        $v = trim($v);
+
+        if ($v === "") {
+            return "NÃO ENCONTRADO";
+        }
+
+        $invalidos = [
+            "SEM INFORMAÇÃO",
+            "SEM INFORMACAO",
+            "DESCONHECIDO",
+            "NULL",
+            "-"
+        ];
+
+        if (in_array(mb_strtoupper($v), $invalidos)) {
+            return "NÃO ENCONTRADO";
+        }
+
+        return $v;
     }
 
     // =========================
     // 🔄 LOADING
     // =========================
     $sticker = tg("sendSticker", [
-        "chat_id"=>$chat,
-        "sticker"=>$STICKER_LOADING
+        "chat_id" => $chat,
+        "sticker" => $STICKER_LOADING
     ]);
+
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
     // =========================
-    // 📄 VALIDAÇÃO
+    // 📄 VALIDAR CPF
     // =========================
     $cpf = preg_replace('/\D/', '', $cpf);
 
     if (strlen($cpf) != 11) {
+
         if ($stickerMsgId) {
-            tg("deleteMessage", ["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
+            tg("deleteMessage", [
+                "chat_id" => $chat,
+                "message_id" => $stickerMsgId
+            ]);
         }
 
         tg("sendMessage", [
-            "chat_id"=>$chat,
-            "text"=>"❌ CPF inválido.\nUse: <code>/cpf 00000000000</code>",
-            "parse_mode"=>"HTML"
+            "chat_id" => $chat,
+            "text" => "❌ CPF inválido.\nUse: <code>/cpf 00000000000</code>",
+            "parse_mode" => "HTML"
         ]);
+
         return;
     }
 
     // =========================
-    // 🔥 API CPF
+    // 🔥 API
     // =========================
-    $url = "https://sara-api.xyz/api/consulta/cpf?apikey=stherlionato&cpf={$cpf}";
+    $url = "https://boks.stherlionato.workers.dev/cpf?token=fxckbuscas&cpf={$cpf}";
 
     $ch = curl_init();
+
     curl_setopt_array($ch, [
-        CURLOPT_URL=>$url,
-        CURLOPT_RETURNTRANSFER=>true,
-        CURLOPT_TIMEOUT=>20
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 25
     ]);
 
     $response = curl_exec($ch);
+
     curl_close($ch);
 
     $json = json_decode($response, true);
 
     // remove loading
     if ($stickerMsgId) {
-        tg("deleteMessage", ["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
+
+        tg("deleteMessage", [
+            "chat_id" => $chat,
+            "message_id" => $stickerMsgId
+        ]);
     }
 
+    // =========================
+    // ❌ NÃO ENCONTRADO
+    // =========================
     if (
         !$json ||
-        empty($json["resultado"]["body"])
+        empty($json["dados"]["resultado"])
     ) {
+
         naoEncontrado($chat, "CPF", $cpf);
+
         return;
     }
 
-    $p = $json["resultado"]["body"];
-
     // =========================
-    // 🧠 NORMALIZA (IMPORTANTE)
+    // 🧠 CAMPOS PERMITIDOS
     // =========================
-    $resultado = [
-        [
-            "nome" => $p["name"] ?? null,
-            "cpf" => $p["cpf_masked"] ?? null,
-            "sexo" => $p["gender"] ?? null,
-            "nascimento" => $p["birth_date"] ?? null,
-            "mae" => $p["mother_name"] ?? null,
-            "pai" => $p["father_name"] ?? null,
-            "rg" => $p["rg"] ?? null,
-            "situacao" => $p["federal_status"] ?? null,
-            "renda" => $p["income"] ?? null,
-            "classe_social" => $p["social_class"]["social_class"] ?? null,
+    $permitidos = [
 
-            "email" => $p["email"] ?? null,
-            "emails_adicionais" => $p["additional_emails"] ?? [],
-            "telefones" => $p["phones"] ?? [],
+        "NOME",
+        "CPF",
+        "DATA DE NASCIMENTO",
+        "IDADE",
+        "SEXO",
 
-            "endereco" => $p["address"] ?? [],
-            "todos_enderecos" => $p["all_addresses"] ?? [],
-            "parentes" => $p["parentes"] ?? [],
-            "vizinhos" => $p["vizinhos"] ?? [],
-            "pedidos" => $p["paycom_orders"]["latest_orders"] ?? [],
-            "score" => $p["serasa_completo"]["score"] ?? [],
-            "poder_aquisitivo" => $p["poder_aquisitivo"] ?? [],
-            "historico_telefones" => $p["historico_telefones"] ?? []
-        ]
+        "NOME DA MÃE",
+        "NOME DA MAE",
+
+        "ENDEREÇO",
+        "ENDERECO",
+        "BAIRRO",
+        "CIDADE",
+        "UF",
+        "CEP",
+
+        "TELEFONE",
+        "CELULAR",
+
+        "SITUAÇÃO CADASTRAL",
+        "SITUACAO CADASTRAL"
     ];
+
+    // =========================
+    // 🧠 FORMATAR RESULTADO
+    // =========================
+    $resultadoFormatado = [];
+
+    foreach ($json["dados"]["resultado"] as $item) {
+
+        $titulo = trim($item["titulo"] ?? "");
+        $conteudo = trim($item["conteudo"] ?? "");
+
+        if (!$titulo && !$conteudo) {
+            continue;
+        }
+
+        $secao = [
+            "secao" => $titulo,
+            "dados" => []
+        ];
+
+        $conteudo = str_replace(
+            ["\r\n", "\r"],
+            "\n",
+            $conteudo
+        );
+
+        foreach (explode("\n", $conteudo) as $linha) {
+
+            $linha = trim($linha);
+
+            if (!$linha) {
+                continue;
+            }
+
+            if (strpos($linha, ":") !== false) {
+
+                [$k, $v2] = explode(":", $linha, 2);
+
+                $campo = trim($k);
+                $valor = v(trim($v2));
+
+                $campoUpper = mb_strtoupper($campo);
+
+                // filtra somente os campos permitidos
+                if (!in_array($campoUpper, $permitidos)) {
+                    continue;
+                }
+
+                $secao["dados"][] = [
+                    "campo" => $campo,
+                    "valor" => $valor
+                ];
+            }
+        }
+
+        // evita seção vazia
+        if (!empty($secao["dados"])) {
+            $resultadoFormatado[] = $secao;
+        }
+    }
+
+    // =========================
+    // 👤 PEGAR NOME
+    // =========================
+    $nomePessoa = "NÃO ENCONTRADO";
+
+    foreach ($resultadoFormatado as $secao) {
+
+        foreach ($secao["dados"] as $dado) {
+
+            $campo = mb_strtoupper($dado["campo"]);
+
+            if ($campo == "NOME") {
+
+                $nomePessoa = $dado["valor"];
+
+                break 2;
+            }
+        }
+    }
 
     // =========================
     // 🔐 TOKEN
@@ -4117,26 +4233,37 @@ function consultaCPF($chat, $cpf) {
     $token = bin2hex(random_bytes(16));
 
     // =========================
-    // ☁️ SALVAR
+    // ☁️ SALVAR RESULTADO
     // =========================
     $payload = json_encode([
         "token" => $token,
         "tipo" => "cpf",
         "query" => $cpf,
         "plano" => "vip",
-        "resultado" => $resultado
+        "resultado" => [
+            [
+                "consulta" => "CPF",
+                "documento" => $cpf,
+                "resultado" => $resultadoFormatado
+            ]
+        ]
     ]);
 
     $api = "https://astro-search.stherlionato.workers.dev";
 
     $ch = curl_init($api . "/api/save");
+
     curl_setopt_array($ch, [
         CURLOPT_POST => true,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => ["Content-Type: application/json"],
+        CURLOPT_HTTPHEADER => [
+            "Content-Type: application/json"
+        ],
         CURLOPT_POSTFIELDS => $payload
     ]);
+
     curl_exec($ch);
+
     curl_close($ch);
 
     // =========================
@@ -4150,13 +4277,16 @@ function consultaCPF($chat, $cpf) {
     $msg = "
 <b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
 
-<blockquote>🔎 <b>Base:</b> CPF • COMPLETO</blockquote>
+<blockquote>
+🔎 <b>Base:</b> CPF • SIMPLES
+</blockquote>
 
-Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resultado.
+👤 <b>Nome:</b> {$nomePessoa}
 
-⏳ <i>O resultado ficará disponível por tempo limitado</i>
 
-<blockquote>👤 <b>Usuário:</b> {$nome}</blockquote>
+Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado completo.
+
+⏳ <i>Disponível por tempo limitado</i>
 
 ━━━━━━━━━━━━━━━
 
@@ -4164,29 +4294,50 @@ Clique no botão abaixo ou clique <a href='{$link}'>AQUI</a> para acessar o resu
 📢 <b>Canal:</b> @astrosearch
 
 <blockquote>
-<b>Astro Search</b>
-Plataforma premium de consultas com alta precisão, velocidade e dados completos.
+<b>Astro Premium</b>
+Consultas rápidas com dados organizados,
+interface premium e acesso imediato.
 </blockquote>
 ";
+
     // =========================
-    // 📲 ENVIO FINAL
+    // 📲 ENVIO
     // =========================
     tg("sendMessage", [
+
         "chat_id" => $chat,
+
         "text" => $msg,
+
         "parse_mode" => "HTML",
+
+        "disable_web_page_preview" => true,
+
         "reply_markup" => json_encode([
-"inline_keyboard"=>[
-    [
-        ["text"=>"🔍 Ver Resultado","url"=>$link]
-    ],
-    [
-        ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
-    ],
-    [
-        ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
-    ]
-]
+
+            "inline_keyboard" => [
+
+                [
+                    [
+                        "text" => "🔍 Ver Resultado",
+                        "url" => $link
+                    ]
+                ],
+
+                [
+                    [
+                        "text" => "💎 • Ativar VIP",
+                        "callback_data" => "planos"
+                    ]
+                ],
+
+                [
+                    [
+                        "text" => "🗑 Apagar",
+                        "callback_data" => "del_{$user_id}"
+                    ]
+                ]
+            ]
         ])
     ]);
 }
