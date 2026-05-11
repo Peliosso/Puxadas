@@ -4278,11 +4278,9 @@ function consultaCPF($chat, $cpf) {
 <b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
 
 <blockquote>
-🔎 <b>Base:</b> CPF • SIMPLES
-</blockquote>
+🔎 <b>Base:</b> CPF • SIMPLES</blockquote>
 
 👤 <b>Nome:</b> {$nomePessoa}
-
 
 Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado completo.
 
