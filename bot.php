@@ -567,23 +567,25 @@ Escolha uma opção abaixo:";
     BOTÃO CONSULTAS
     ========================= */
 
-    if($isGroup){
+if($isGroup){
 
-        $botaoConsultas = [
-            "text"=>"📂 • Consultas",
-            "url"=>"https://t.me/consultasdedados_bot?startapp=home"
-        ];
+    // GRUPO = abre catálogo antigo
+    $botaoConsultas = [
+        "text"=>"📂 • Consultas",
+        "callback_data"=>"catalogo_1"
+    ];
 
-    }else{
+}else{
 
-        $botaoConsultas = [
-            "text"=>"📂 • Consultas",
-            "web_app"=>[
-                "url"=>"https://astro-search.stherlionato.workers.dev/app"
-            ]
-        ];
+    // PRIVADO = abre miniapp
+    $botaoConsultas = [
+        "text"=>"📂 • Consultas",
+        "web_app"=>[
+            "url"=>"https://astro-search.stherlionato.workers.dev/app"
+        ]
+    ];
 
-    }
+}
 
     /* =========================
     KEYBOARD
