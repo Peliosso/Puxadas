@@ -4798,10 +4798,21 @@ if($callback){
     // =========================
     // VOLTAR MENU
     // =========================
-    if($data == "voltar_menu"){
-        menuPrincipal($chat, $nome, $id, true, $msg);
-        exit;
-    }
+if($data == "voltar_menu"){
+
+    $tipo = $callback["message"]["chat"]["type"];
+
+    menuPrincipal(
+        $chat,
+        $nome,
+        $id,
+        $tipo,
+        true,
+        $msg
+    );
+
+    exit;
+}
 
     // =========================
     // APAGAR MSG
@@ -4823,8 +4834,14 @@ if($data == "menu_vip"){
     exit;
 }
 
+
 if($data == "menu_free"){
     menuFree($chat,$msg);
+    exit;
+}
+
+if($data == "catalogo_1"){
+    catalogo1($chat,$msg);
     exit;
 }
 
