@@ -542,7 +542,7 @@ if($message && isset($message["text"])){
 
 /* ================= MENU ================= */
 
-function menuPrincipal($chat,$nome,$id,$tipo="private",$edit=false,$msg=null){
+function menuPrincipal($chat,$nome,$id,$edit=false,$msg=null){
 
     global $START_PHOTO;
 
@@ -554,42 +554,30 @@ Olá, <a href=\"tg://user?id={$id}\"><b>{$nome}</b></a>
 
 Escolha uma opção abaixo:";
 
-    /* =========================
-    DETECTA GRUPO
-    ========================= */
+    // Detecta grupo automaticamente
+    $isGroup = str_contains((string)$chat, "-");
 
-    $isGroup = in_array($tipo,[
-        "group",
-        "supergroup"
-    ]);
+    // =========================
+    // BOTÃO CONSULTAS
+    // =========================
 
-    /* =========================
-    BOTÃO CONSULTAS
-    ========================= */
+    if($isGroup){
 
-if($isGroup){
+        $botaoConsultas = [
+            "text"=>"📂 • Consultas",
+            "callback_data"=>"catalogo_1"
+        ];
 
-    // GRUPO = abre catálogo antigo
-    $botaoConsultas = [
-        "text"=>"📂 • Consultas",
-        "callback_data"=>"catalogo_1"
-    ];
+    }else{
 
-}else{
+        $botaoConsultas = [
+            "text"=>"📂 • Consultas",
+            "web_app"=>[
+                "url"=>"https://astro-search.stherlionato.workers.dev/app"
+            ]
+        ];
 
-    // PRIVADO = abre miniapp
-    $botaoConsultas = [
-        "text"=>"📂 • Consultas",
-        "web_app"=>[
-            "url"=>"https://astro-search.stherlionato.workers.dev/app"
-        ]
-    ];
-
-}
-
-    /* =========================
-    KEYBOARD
-    ========================= */
+    }
 
     $kb = [
         "inline_keyboard"=>[
@@ -629,10 +617,6 @@ if($isGroup){
 
         ]
     ];
-
-    /* =========================
-    ENVIA / EDITA
-    ========================= */
 
     if($edit){
 
