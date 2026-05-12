@@ -556,18 +556,41 @@ $kb = [
 "inline_keyboard"=>[
 
 [
-["text"=>"📂 • Consultas","callback_data"=>"catalogo_1"],
-["text"=>"👤 • Conta","callback_data"=>"conta"]
+[
+"text"=>"📂 • Consultas",
+"web_app"=>[
+"url"=>"https://astro-search.stherlionato.workers.dev/app"
+]
 ],
 
 [
-["text"=>"⭐ • Planos VIP","callback_data"=>"planos"],
-["text"=>"🚀 • Site","url"=>"https://astro-search.stherlionato.workers.dev"]
+"text"=>"👤 • Conta",
+"callback_data"=>"conta"
+]
 ],
 
 [
-["text"=>"📢 • Canal Oficial","url"=>"https://t.me/astrosearch"],
-["text"=>"🛠 • Suporte","url"=>"https://t.me/puxardados5"]
+[
+"text"=>"⭐ • Planos VIP",
+"callback_data"=>"planos"
+],
+
+[
+"text"=>"🚀 • Site",
+"url"=>"https://astro-search.stherlionato.workers.dev"
+]
+],
+
+[
+[
+"text"=>"📢 • Canal Oficial",
+"url"=>"https://t.me/astrosearch"
+],
+
+[
+"text"=>"🛠 • Suporte",
+"url"=>"https://t.me/puxardados5"
+]
 ]
 
 ]
