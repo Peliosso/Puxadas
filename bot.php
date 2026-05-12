@@ -542,10 +542,11 @@ if($message && isset($message["text"])){
 
 /* ================= MENU ================= */
 
-function menuPrincipal($chat,$nome,$id,$edit=false,$msg=null){
+function menuPrincipal($chat,$nome,$id,$tipo="private",$edit=false,$msg=null){
+
     global $START_PHOTO;
 
-$caption =
+    $caption =
 "<b>🚀 • Astro Search</b>
 
 Olá, <a href=\"tg://user?id={$id}\"><b>{$nome}</b></a>
@@ -553,71 +554,106 @@ Olá, <a href=\"tg://user?id={$id}\"><b>{$nome}</b></a>
 
 Escolha uma opção abaixo:";
 
-$kb = [
-"inline_keyboard"=>[
+    /* =========================
+    DETECTA GRUPO
+    ========================= */
 
-[
-[
-"text"=>"📂 • Consultas",
-"web_app"=>[
-"url"=>"https://astro-search.stherlionato.workers.dev/app"
-]
-],
-
-[
-"text"=>"👤 • Conta",
-"callback_data"=>"conta"
-]
-],
-
-[
-[
-"text"=>"⭐ • Planos VIP",
-"callback_data"=>"planos"
-],
-
-[
-"text"=>"🚀 • Site",
-"url"=>"https://astro-search.stherlionato.workers.dev"
-]
-],
-
-[
-[
-"text"=>"📢 • Canal Oficial",
-"url"=>"https://t.me/astrosearch"
-],
-
-[
-"text"=>"🛠 • Suporte",
-"url"=>"https://t.me/puxardados5"
-]
-]
-
-]
-];
-
-if($edit){
-
-    tg("editMessageCaption",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg,
-        "caption"=>$caption,
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode($kb)
+    $isGroup = in_array($tipo,[
+        "group",
+        "supergroup"
     ]);
 
-}else{
+    /* =========================
+    BOTÃO CONSULTAS
+    ========================= */
 
-    tg("sendPhoto",[
-        "chat_id"=>$chat,
-        "photo"=>$START_PHOTO,
-        "caption"=>$caption,
-        "parse_mode"=>"HTML",
-        "reply_markup"=>json_encode($kb)
-    ]);
+    if($isGroup){
 
-}
+        $botaoConsultas = [
+            "text"=>"📂 • Consultas",
+            "url"=>"https://t.me/consultasdedados_bot?startapp=home"
+        ];
+
+    }else{
+
+        $botaoConsultas = [
+            "text"=>"📂 • Consultas",
+            "web_app"=>[
+                "url"=>"https://astro-search.stherlionato.workers.dev/app"
+            ]
+        ];
+
+    }
+
+    /* =========================
+    KEYBOARD
+    ========================= */
+
+    $kb = [
+        "inline_keyboard"=>[
+
+            [
+                $botaoConsultas,
+
+                [
+                    "text"=>"👤 • Conta",
+                    "callback_data"=>"conta"
+                ]
+            ],
+
+            [
+                [
+                    "text"=>"⭐ • Planos VIP",
+                    "callback_data"=>"planos"
+                ],
+
+                [
+                    "text"=>"🚀 • Site",
+                    "url"=>"https://astro-search.stherlionato.workers.dev"
+                ]
+            ],
+
+            [
+                [
+                    "text"=>"📢 • Canal Oficial",
+                    "url"=>"https://t.me/astrosearch"
+                ],
+
+                [
+                    "text"=>"🛠 • Suporte",
+                    "url"=>"https://t.me/puxardados5"
+                ]
+            ]
+
+        ]
+    ];
+
+    /* =========================
+    ENVIA / EDITA
+    ========================= */
+
+    if($edit){
+
+        tg("editMessageCaption",[
+            "chat_id"=>$chat,
+            "message_id"=>$msg,
+            "caption"=>$caption,
+            "parse_mode"=>"HTML",
+            "reply_markup"=>json_encode($kb)
+        ]);
+
+    }else{
+
+        tg("sendPhoto",[
+            "chat_id"=>$chat,
+            "photo"=>$START_PHOTO,
+            "caption"=>$caption,
+            "parse_mode"=>"HTML",
+            "reply_markup"=>json_encode($kb)
+        ]);
+
+    }
+
 }
 
 /* ================= CATÁLOGOS ================= */
