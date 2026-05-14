@@ -611,7 +611,7 @@ Escolha uma opção abaixo:";
 
                 [
                     "text"=>"🛠 • Suporte",
-                    "url"=>"https://t.me/puxardados5"
+                    "url"=>"https://t.me/puaxadas71"
                 ]
             ]
 
