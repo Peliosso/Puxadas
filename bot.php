@@ -3470,6 +3470,109 @@ tg("sendMessage",[
 
 }
 
+/* ================= MEMBRO VIP ================= */
+
+if($message && isset($message["text"])){
+
+    $text = $message["text"];
+
+    if(stripos($text, "/membrovip") === 0){
+
+        // Apenas dono
+        if($userId != $OWNER_ID){
+
+            tg("sendMessage",[
+                "chat_id"=>$chat,
+                "text"=>"❌ Apenas o dono do bot pode usar este comando."
+            ]);
+
+            exit;
+        }
+
+        // Apenas grupos
+        if(!isGroupChat($chatType)){
+
+            tg("sendMessage",[
+                "chat_id"=>$chat,
+                "text"=>"❌ Este comando funciona apenas em grupos."
+            ]);
+
+            exit;
+        }
+
+        // Verifica usuário marcado
+        if(!isset($message["reply_to_message"])){
+
+            tg("sendMessage",[
+                "chat_id"=>$chat,
+                "text"=>"❌ Responda a mensagem do usuário.
+
+Exemplo:
+<code>/membrovip</code>",
+                "parse_mode"=>"HTML"
+            ]);
+
+            exit;
+        }
+
+        $alvo = $message["reply_to_message"]["from"];
+
+        $alvoId   = $alvo["id"];
+        $alvoNome = $alvo["first_name"];
+
+        // Promover usuário
+        tg("promoteChatMember",[
+            "chat_id" => $chat,
+            "user_id" => $alvoId,
+
+            "can_manage_chat" => true,
+            "can_delete_messages" => true,
+            "can_manage_video_chats" => true,
+            "can_restrict_members" => true,
+            "can_promote_members" => true,
+            "can_change_info" => true,
+            "can_invite_users" => true,
+            "can_pin_messages" => true,
+            "can_post_stories" => true,
+            "can_edit_stories" => true,
+            "can_delete_stories" => true
+        ]);
+
+        // Mensagem bonita
+        $msg =
+"👑 <b>MEMBRO VIP PROMOVIDO</b>
+
+━━━━━━━━━━━━━━━
+💎 Usuário:
+<a href=\"tg://user?id={$alvoId}\"><b>{$alvoNome}</b></a>
+
+🆔 ID:
+<code>{$alvoId}</code>
+
+━━━━━━━━━━━━━━━
+✅ Status: <b>Administrador VIP</b>
+
+🚀 Permissões liberadas:
+• Gerenciar grupo
+• Banir membros
+• Fixar mensagens
+• Apagar mensagens
+• Adicionar admins
+• Controle total
+
+━━━━━━━━━━━━━━━
+🔥 Promoção realizada com sucesso.";
+
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>$msg,
+            "parse_mode"=>"HTML"
+        ]);
+
+        exit;
+    }
+}
+
 function consultaCPF3($chat,$cpf){
 
 global $STICKER_LOADING;
