@@ -4994,7 +4994,7 @@ if(strpos($data, "pix_") === 0){
     $markup = json_encode([
         "inline_keyboard"=>[
             [
-                ["text"=>"📄 Enviar Comprovante","url"=>"https://t.me/puxardados5"]
+                ["text"=>"📄 Enviar Comprovante","url"=>"https://t.me/astrosuporte"]
             ],
             [
                 ["text"=>"⬅️ Voltar","callback_data"=>"planos"]
