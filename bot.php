@@ -5163,7 +5163,45 @@ $valor = $PLANOS[$plano];
 // =========================
 $url = "https://promstpagamentos.discloud.app/create_payment?user_id=8751158979&valor={$valor}";
 
-$response = file_get_contents($url);
+$ch = curl_init();
+
+curl_setopt_array($ch, [
+    CURLOPT_URL => $url,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_SSL_VERIFYPEER => false,
+    CURLOPT_TIMEOUT => 30
+]);
+
+$response = curl_exec($ch);
+
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+curl_close($ch);
+
+if($httpCode != 200){
+
+$texto = "🚫 <b>Gateway indisponível.</b>
+
+⚠️ Não foi possível conectar ao sistema de pagamento.
+
+🔎 Tente novamente em alguns segundos.";
+
+$markup = json_encode([
+    "inline_keyboard"=>[
+        [
+            ["text"=>"🗑 Excluir","callback_data"=>"fechar_msg"]
+        ],
+        [
+            ["text"=>"🔄 Tentar Novamente","callback_data"=>"pix_{$plano}"]
+        ]
+    ]
+]);
+
+editarMsg($callback, $chat, $msg, $texto, $markup);
+
+exit;
+
+}
 
 if(!$response){
 
@@ -5254,8 +5292,9 @@ $file = "pix_{$chat}.png";
 
 file_put_contents($file, base64_decode($img));
 
-bot("sendPhoto",[
-    "chat_id"=>$chat,
+tg("sendMessage",
+[
+"chat_id"=>$chat,
     "photo"=>new CURLFile($file),
     "caption"=>$texto,
     "parse_mode"=>"HTML",
