@@ -120,7 +120,7 @@ $BANIDOS = [
 ];
 
 $PAYMENTS = [];
-$GATEWAY_USER_ID = "8751158979";
+$GATEWAY_USER_ID = "8588669245";
 
 function isVip($id){
 
