@@ -156,7 +156,7 @@ function isGroupChat($type){
 }
 
 define("VIP_CODES_DB","vip_codes.json");
-$OWNER_ID = 7320236887;
+$OWNER_ID = 8588669245;
 
 define("WELCOME_DB", "welcome.json");
 
@@ -612,7 +612,7 @@ Escolha uma opção abaixo:";
 
                 [
                     "text"=>"🛠 • Suporte",
-                    "url"=>"https://t.me/puaxadas71"
+                    "url"=>"https://t.me/astrosuporte"
                 ]
             ]
 
