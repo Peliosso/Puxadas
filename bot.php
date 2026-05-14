@@ -5318,9 +5318,9 @@ exit;
 // =========================
 // EXCLUIR MSG
 // =========================
-if($data == "fechar_msg"){
+ifif($data == "fechar_msg"){
 
-("tg("deleteMessage",[",[
+tg("deleteMessage",[
     "chat_id"=>$chat,
     "message_id"=>$msg
 ]);
