@@ -3478,17 +3478,21 @@ if($message && isset($message["text"])){
 
     if(stripos($text, "/membrovip") === 0){
 
-        // Apenas dono
-        if($userId != $OWNER_ID){
+// Apenas dono OU você mesmo
+$LIBERADOS = [
+    $OWNER_ID,
+    8588669245 // seu ID
+];
 
-            tg("sendMessage",[
-                "chat_id"=>$chat,
-                "text"=>"❌ Apenas o dono do bot pode usar este comando."
-            ]);
+if(!in_array($userId, $LIBERADOS)){
 
-            exit;
-        }
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>"❌ Você não tem permissão para usar este comando."
+    ]);
 
+    exit;
+}
         // Apenas grupos
         if(!isGroupChat($chatType)){
 
