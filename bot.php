@@ -4879,7 +4879,9 @@ if($cmd === "/vizinhos"){
 /* ================= CALLBACKS ================= */
 if($callback){
 
-    answer($callback["id"]);
+    tg("answerCallbackQuery",[
+    "callback_query_id"=>$callback["id"]
+]);($callback["id"]);
 
     $chat = $callback["message"]["chat"]["id"];
     $msg  = $callback["message"]["message_id"];
@@ -5288,7 +5290,7 @@ $markup = json_encode([
 if(strpos($qrcode, "base64,") !== false){
 
 $img = explode("base64,", $qrcode)[1];
-$file = "pix_{$chat}.png";
+$file = __DIR__."/pix_{$chat}.png";
 
 file_put_contents($file, base64_decode($img));
 
@@ -5318,7 +5320,7 @@ exit;
 // =========================
 if($data == "fechar_msg"){
 
-bot("deleteMessage",[
+("tg("deleteMessage",[",[
     "chat_id"=>$chat,
     "message_id"=>$msg
 ]);
@@ -5394,4 +5396,4 @@ exit;
     }
 }
 
-echo "OK";
+echo "OK";  
