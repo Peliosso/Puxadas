@@ -5017,103 +5017,276 @@ if($data == "menu_cep"){
 }
 
 // =========================
-// PLANOS
+// PLANOS ASTRO
+// =========================
+$PLANOS = [
+    "diario" => "14.90",
+    "semanal" => "24.90",
+    "vitalicio" => "20.90"
+];
+
+// =========================
+// MENU DE PLANOS
 // =========================
 if($data == "planos"){
 
-    $texto = "🚀 <b>CONSULTAS ILIMITADAS</b>\n\n💎 Tenha acesso completo à nossa base de consultas avançadas:\n\n✅ RG, CPF e CNH\n✅ Endereços e dados completos\n✅ Score e dados financeiros\n✅ Parentes e vínculos\n✅ Veículos (chassi, motor, laudo)\n✅ Benefícios, CADSUS e muito mais...\n\n⚡ <b>Consultas ilimitadas + acesso instantâneo</b>\n\n👇 <b>Escolha seu plano:</b>";
+$texto = "🌌 <b>ASTRO CONSULTAS PREMIUM</b>
 
-    $markup = json_encode([
-        "inline_keyboard"=>[
-            [
-                ["text"=>"📅 Diário - R$14,90","callback_data"=>"plano_diario"],
-                ["text"=>"📆 Semanal - R$24,90","callback_data"=>"plano_semanal"]
-            ],
-            [
-                ["text"=>"👑 Para Sempre - R$20,90 - Oferta.","callback_data"=>"plano_vitalicio"]
-            ],
-            [
-                ["text"=>"🏠 Início","callback_data"=>"voltar_menu"]
-            ]
+⚡ Acesso brutal à central privada de consultas.
+
+╭━━━🔥 BENEFÍCIOS
+┃ 🪪 CPF • RG • CNH
+┃ 🛰 Endereços completos
+┃ 💳 Dados financeiros
+┃ 👨‍👩‍👧 Vínculos e parentes
+┃ 🚘 Veículos e histórico
+┃ 🏥 CADSUS • Benefícios
+┃ 📡 Muito mais...
+╰━━━━━━━━━━
+
+🧠 <i>Sistema automatizado com liberação rápida.</i>
+
+👇 <b>Escolha seu acesso:</b>";
+
+$markup = json_encode([
+    "inline_keyboard"=>[
+        [
+            ["text"=>"☄️ Diário • R$14,90","callback_data"=>"plano_diario"],
+            ["text"=>"🪐 Semanal • R$24,90","callback_data"=>"plano_semanal"]
+        ],
+        [
+            ["text"=>"🌠 Vitalício • R$20,90","callback_data"=>"plano_vitalicio"]
+        ],
+        [
+            ["text"=>"🏡 Menu Inicial","callback_data"=>"voltar_menu"]
         ]
-    ]);
+    ]
+]);
 
-    editarMsg($callback, $chat, $msg, $texto, $markup);
+editarMsg($callback, $chat, $msg, $texto, $markup);
 
-    exit;
+exit;
+
 }
-
 
 // =========================
 // ESCOLHA DO PLANO
 // =========================
 if(strpos($data, "plano_") === 0){
 
-    $plano = str_replace("plano_", "", $data);
+$plano = str_replace("plano_", "", $data);
 
-    $texto = "💎 <b>Plano ".strtoupper($plano)."</b>\n\n💰 Clique abaixo para ver a chave PIX e realizar o pagamento.";
+if(!isset($PLANOS[$plano])){
 
-    $markup = json_encode([
-        "inline_keyboard"=>[
-            [
-                ["text"=>"💳 Chave Pix","callback_data"=>"pix_{$plano}"]
-            ],
-            [
-                ["text"=>"⬅️ Voltar","callback_data"=>"planos"]
-            ]
+$texto = "⚠️ <b>Plano não encontrado.</b>
+
+🔎 Verifique sua pesquisa ou tente acessar novamente pelo menu principal.";
+
+$markup = json_encode([
+    "inline_keyboard"=>[
+        [
+            ["text"=>"🗑 Excluir Mensagem","callback_data"=>"fechar_msg"]
+        ],
+        [
+            ["text"=>"🔙 Voltar","callback_data"=>"planos"]
         ]
-    ]);
+    ]
+]);
 
-    editarMsg($callback, $chat, $msg, $texto, $markup);
+editarMsg($callback, $chat, $msg, $texto, $markup);
 
-    exit;
+exit;
+
 }
 
+$valor = $PLANOS[$plano];
+
+$texto = "🌌 <b>ACESSO ".strtoupper($plano)."</b>
+
+💸 Valor do acesso: <b>R$ {$valor}</b>
+
+⚡ O pagamento é gerado automaticamente via Gateway AstroPay.
+
+👇 Clique abaixo para gerar seu PIX instantâneo.";
+
+$markup = json_encode([
+    "inline_keyboard"=>[
+        [
+            ["text"=>"💠 Gerar PIX","callback_data"=>"pix_{$plano}"]
+        ],
+        [
+            ["text"=>"🔙 Voltar","callback_data"=>"planos"]
+        ]
+    ]
+]);
+
+editarMsg($callback, $chat, $msg, $texto, $markup);
+
+exit;
+
+}
 
 // =========================
-// MOSTRAR PIX
+// GERAR PIX VIA API
 // =========================
 if(strpos($data, "pix_") === 0){
 
-    global $PLANOS, $CHAVE_PIX;
+$plano = str_replace("pix_", "", $data);
 
-    $plano = str_replace("pix_", "", $data);
+if(!isset($PLANOS[$plano])){
 
-    if(!isset($PLANOS[$plano])){
-        tg("answerCallbackQuery",[
-            "callback_query_id"=>$callback["id"],
-            "text"=>"❌ Plano inválido",
-            "show_alert"=>true
-        ]);
-        exit;
-    }
+$texto = "❌ <b>Pagamento inválido.</b>
 
-    $valor = $PLANOS[$plano];
+🔎 Confira novamente sua solicitação e tente gerar o pagamento outra vez.";
 
-    tg("answerCallbackQuery",[
-        "callback_query_id"=>$callback["id"],
-        "text"=>"📋 Copie a chave e faça o pagamento",
-        "show_alert"=>false
-    ]);
-
-    $texto = "💎 <b>PLANO ".strtoupper($plano)."</b>\n\n💰 Valor: <b>R$ {$valor}</b>\n\n📌 <b>Chave PIX:</b>\n<code>{$CHAVE_PIX}</code>\n\n📋 <i>Clique na chave acima para copiar automaticamente</i>\n\n⚠️ <b>IMPORTANTE:</b>\n⏳ Envie o comprovante para liberação imediata";
-
-    $markup = json_encode([
-        "inline_keyboard"=>[
-            [
-                ["text"=>"📄 Enviar Comprovante","url"=>"https://t.me/astrosuporte"]
-            ],
-            [
-                ["text"=>"⬅️ Voltar","callback_data"=>"planos"]
-            ]
+$markup = json_encode([
+    "inline_keyboard"=>[
+        [
+            ["text"=>"🗑 Excluir","callback_data"=>"fechar_msg"]
+        ],
+        [
+            ["text"=>"🔄 Tentar Novamente","callback_data"=>"planos"]
         ]
-    ]);
+    ]
+]);
 
-    editarMsg($callback, $chat, $msg, $texto, $markup);
+editarMsg($callback, $chat, $msg, $texto, $markup);
 
-    exit;
+exit;
+
 }
 
+$valor = $PLANOS[$plano];
+
+// =========================
+// NOVO GATEWAY
+// =========================
+$url = "https://promstpagamentos.discloud.app/create_payment?user_id=8751158979&valor={$valor}";
+
+$response = file_get_contents($url);
+
+if(!$response){
+
+$texto = "🚫 <b>Falha ao gerar pagamento.</b>
+
+⚠️ O gateway não respondeu.
+
+🔎 Verifique novamente ou tente em alguns segundos.";
+
+$markup = json_encode([
+    "inline_keyboard"=>[
+        [
+            ["text"=>"🗑 Excluir","callback_data"=>"fechar_msg"]
+        ],
+        [
+            ["text"=>"🔄 Gerar Novamente","callback_data"=>"pix_{$plano}"]
+        ]
+    ]
+]);
+
+editarMsg($callback, $chat, $msg, $texto, $markup);
+
+exit;
+
+}
+
+$dados = json_decode($response, true);
+
+if(!$dados || !isset($dados["pixCopiaECola"])){
+
+$texto = "❌ <b>Erro ao processar pagamento.</b>
+
+🔎 Revise sua pesquisa e tente gerar o PIX novamente.";
+
+$markup = json_encode([
+    "inline_keyboard"=>[
+        [
+            ["text"=>"🗑 Excluir","callback_data"=>"fechar_msg"]
+        ],
+        [
+            ["text"=>"🔄 Tentar Novamente","callback_data"=>"pix_{$plano}"]
+        ]
+    ]
+]);
+
+editarMsg($callback, $chat, $msg, $texto, $markup);
+
+exit;
+
+}
+
+$pix = $dados["pixCopiaECola"];
+$qrcode = $dados["qrcode_base64"];
+$txid = $dados["txid"];
+$status = $dados["status"];
+
+$texto = "🌠 <b>PAGAMENTO GERADO</b>
+
+💸 Valor: <b>R$ {$valor}</b>
+🧾 ID: <code>{$txid}</code>
+📡 Status: <b>{$status}</b>
+
+⚠️ <b>Pagamento reservado por tempo limitado.</b>
+
+📋 <b>PIX COPIA E COLA:</b>
+
+<code>{$pix}</code>
+
+🧠 <i>Toque no código acima para copiar automaticamente.</i>
+
+✅ Após o pagamento, a confirmação poderá ocorrer automaticamente.";
+
+$markup = json_encode([
+    "inline_keyboard"=>[
+        [
+            ["text"=>"🗑 Excluir","callback_data"=>"fechar_msg"]
+        ],
+        [
+            ["text"=>"🏡 Menu","callback_data"=>"voltar_menu"]
+        ]
+    ]
+]);
+
+if(strpos($qrcode, "base64,") !== false){
+
+$img = explode("base64,", $qrcode)[1];
+$file = "pix_{$chat}.png";
+
+file_put_contents($file, base64_decode($img));
+
+bot("sendPhoto",[
+    "chat_id"=>$chat,
+    "photo"=>new CURLFile($file),
+    "caption"=>$texto,
+    "parse_mode"=>"HTML",
+    "reply_markup"=>$markup
+]);
+
+unlink($file);
+
+} else {
+
+editarMsg($callback, $chat, $msg, $texto, $markup);
+
+}
+
+exit;
+
+}
+
+// =========================
+// EXCLUIR MSG
+// =========================
+if($data == "fechar_msg"){
+
+bot("deleteMessage",[
+    "chat_id"=>$chat,
+    "message_id"=>$msg
+]);
+
+exit;
+
+}
     // =========================
     // CONTA
     // =========================
