@@ -574,7 +574,7 @@ Escolha uma opção abaixo:";
         $botaoConsultas = [
             "text"=>"📂 • Consultas",
             "web_app"=>[
-                "url"=>"https://astro-search.stherlionato.workers.dev/app"
+                "url"=>"https://astrosearch.amorinha6767.workers.dev/app"
             ]
         ];
 
@@ -600,7 +600,7 @@ Escolha uma opção abaixo:";
 
                 [
                     "text"=>"🚀 • Site",
-                    "url"=>"https://astro-search.stherlionato.workers.dev"
+                    "url"=>"https://astrosearch.amorinha6767.workers.dev"
                 ]
             ],
 
@@ -1121,7 +1121,7 @@ function consultaCNPJ($chat, $cnpj){
         ]
     ]);
 
-    $api = "https://astro-search.stherlionato.workers.dev";
+    $api = "https://astrosearch.amorinha6767.workers.dev";
 
     $ch = curl_init($api."/api/save");
 
@@ -1322,7 +1322,7 @@ function consultaIP($chat, $ip){
         ]
     ]);
 
-    $api = "https://astro-search.stherlionato.workers.dev";
+    $api = "https://astrosearch.amorinha6767.workers.dev";
 
     $ch = curl_init($api."/api/save");
 
@@ -1530,7 +1530,7 @@ function consultaCEP($chat, $cep){
         ]
     ]);
 
-    $api = "https://astro-search.stherlionato.workers.dev";
+    $api = "https://astrosearch.amorinha6767.workers.dev";
 
     $ch = curl_init($api."/api/save");
 
@@ -2227,7 +2227,7 @@ function consultaTelefone($chat, $telefone) {
         ]
     ]);
 
-    $api = "https://astro-search.stherlionato.workers.dev";
+    $api = "https://astrosearch.amorinha6767.workers.dev/";
 
     $ch = curl_init($api . "/api/save");
 
@@ -2473,7 +2473,7 @@ function consultaNome($chat, $nome) {
         ]
     ]);
 
-    $api = "https://astro-search.stherlionato.workers.dev";
+    $api = "https://astrosearch.amorinha6767.workers.dev";
 
     $ch = curl_init($api . "/api/save");
 
@@ -2958,7 +2958,7 @@ function consultaParentes($chat, $cpf) {
         ]
     ]);
 
-    $api = "https://astro-search.stherlionato.workers.dev";
+    $api = "https://astrosearch.amorinha6767.workers.dev";
 
     $ch = curl_init($api . "/api/save");
 
@@ -3186,7 +3186,7 @@ $payload = json_encode([
     ]
 ]);
 
-    $api = "https://astro-search.stherlionato.workers.dev";
+    $api = "https://astrosearch.amorinha6767.workers.dev/";
 
     $ch = curl_init($api . "/api/save");
     curl_setopt_array($ch, [
@@ -4064,7 +4064,7 @@ function consultaPlaca($chat, $placa) {
         ]
     ]);
 
-    $api = "https://astro-search.stherlionato.workers.dev";
+    $api = "https://astrosearch.amorinha6767.workers.dev/";
 
     $ch = curl_init($api . "/api/save");
 
@@ -4471,7 +4471,7 @@ function consultaCPF($chat, $cpf) {
         ]
     ]);
 
-    $api = "https://astro-search.stherlionato.workers.dev";
+    $api = "https://astrosearch.amorinha6767.workers.dev";
 
     $ch = curl_init($api . "/api/save");
 
