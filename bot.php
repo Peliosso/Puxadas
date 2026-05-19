@@ -608,7 +608,7 @@ Escolha uma opção abaixo:";
             [
                 [
                     "text"=>"📢 • Canal Oficial",
-                    "url"=>"https://t.me/astrosearch"
+                    "url"=>"https://t.me/consultarcpff"
                 ],
 
                 [
