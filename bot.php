@@ -4927,6 +4927,60 @@ if($data == "voltar_menu"){
     exit;
 }
 
+// =========================
+// CONTA
+// =========================
+if($data == "conta"){
+
+    $plano = isVip($id) ? "VIP" : "Grátis";
+
+    tg("editMessageCaption",[
+        "chat_id"=>$chat,
+        "message_id"=>$msg,
+        "caption"=>"👤 <b>MINHA CONTA</b>\n\n🆔 ID: <code>{$id}</code>\n👤 Nome: <b>{$nome}</b>\n⭐ Plano: <b>{$plano}</b>",
+        "parse_mode"=>"HTML",
+        "reply_markup"=>json_encode([
+            "inline_keyboard"=>[
+                [
+                    [
+                        "text"=>"⬅️ Menu",
+                        "callback_data"=>"voltar_menu"
+                    ]
+                ]
+            ]
+        ])
+    ]);
+
+    exit;
+}
+
+// =========================
+// PLANOS
+// =========================
+if($data == "planos"){
+
+    $texto = "🚀 <b>CONSULTAS ILIMITADAS</b>\n\n💎 Tenha acesso completo à nossa base de consultas avançadas:\n\n✅ RG, CPF e CNH\n✅ Endereços e dados completos\n✅ Score e dados financeiros\n✅ Parentes e vínculos\n✅ Veículos (chassi, motor, laudo)\n✅ Benefícios, CADSUS e muito mais...\n\n⚡ <b>Consultas ilimitadas + acesso instantâneo</b>\n\n👇 <b>Escolha seu plano:</b>";
+
+    $markup = json_encode([
+        "inline_keyboard"=>[
+            [
+                ["text"=>"📅 Diário - R$14,90","callback_data"=>"plano_diario"],
+                ["text"=>"📆 Semanal - R$24,90","callback_data"=>"plano_semanal"]
+            ],
+            [
+                ["text"=>"👑 Vitalício - R$20,90","callback_data"=>"plano_vitalicio"]
+            ],
+            [
+                ["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
+            ]
+        ]
+    ]);
+
+    editarMsg($callback, $chat, $msg, $texto, $markup);
+
+    exit;
+}
+
     // =========================
     // APAGAR MSG
     // =========================
@@ -5038,34 +5092,6 @@ if($data == "menu_cep"){
 }
 
 // =========================
-// PLANOS
-// =========================
-if($data == "planos"){
-
-    $texto = "🚀 <b>CONSULTAS ILIMITADAS</b>\n\n💎 Tenha acesso completo à nossa base de consultas avançadas:\n\n✅ RG, CPF e CNH\n✅ Endereços e dados completos\n✅ Score e dados financeiros\n✅ Parentes e vínculos\n✅ Veículos (chassi, motor, laudo)\n✅ Benefícios, CADSUS e muito mais...\n\n⚡ <b>Consultas ilimitadas + acesso instantâneo</b>\n\n👇 <b>Escolha seu plano:</b>";
-
-    $markup = json_encode([
-        "inline_keyboard"=>[
-            [
-                ["text"=>"📅 Diário - R$14,90","callback_data"=>"plano_diario"],
-                ["text"=>"📆 Semanal - R$24,90","callback_data"=>"plano_semanal"]
-            ],
-            [
-                ["text"=>"👑 Para Sempre - R$20,90 - Oferta.","callback_data"=>"plano_vitalicio"]
-            ],
-            [
-                ["text"=>"🏠 Início","callback_data"=>"voltar_menu"]
-            ]
-        ]
-    ]);
-
-    editarMsg($callback, $chat, $msg, $texto, $markup);
-
-    exit;
-}
-
-
-// =========================
 // ESCOLHA DO PLANO
 // =========================
 if(strpos($data, "plano_") === 0){
@@ -5134,28 +5160,6 @@ if(strpos($data, "pix_") === 0){
 
     exit;
 }
-
-    // =========================
-    // CONTA
-    // =========================
-    if($data == "conta"){
-
-        $plano = isVip($id) ? "VIP" : "Grátis";
-
-        tg("editMessageCaption",[
-            "chat_id"=>$chat,
-            "message_id"=>$msg,
-            "caption"=>"👤 <b>MINHA CONTA</b>\n\n🆔 ID: <code>{$id}</code>\n👤 Nome: <b>{$nome}</b>\n⭐ Plano: <b>{$plano}</b>",
-            "parse_mode"=>"HTML",
-            "reply_markup"=>json_encode([
-                "inline_keyboard"=>[
-                    [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
-                ]
-            ])
-        ]);
-
-        exit;
-    }
 
     // =========================
     // CPF CONSULTAS
