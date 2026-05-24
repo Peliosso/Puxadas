@@ -29,7 +29,7 @@ $TOKEN = "8773656360:AAET6l38pzvUcW7goTlUn_VEMU1_JMiVEM8";
 $API   = "https://api.telegram.org/bot{$TOKEN}";
 
 /* IMAGEM */
-$START_PHOTO = "https://www.image2url.com/r2/default/images/1778124626770-6ba419b8-a49f-4da8-a3f4-9a3ebc920e06.png";
+$START_PHOTO = "https://www.image2url.com/r2/default/images/1779595449159-582794a7-a3c0-4acc-8c51-a612a1c2909f.png";
 
 /* PIX */
 $PIX_VALOR = "20.00"; // ponto, não vírgula
@@ -255,7 +255,7 @@ if($message && isset($message["new_chat_members"])){
         $id   = $user["id"];
 
         $texto =
-"👋 <b>Bem-vindo ao Astro Search!</b>
+"👋 <b>Bem-vindo ao Astra Search!</b>
 
 Olá, <a href=\"tg://user?id={$id}\"><b>{$nome}</b></a> 🚀
 
@@ -429,7 +429,7 @@ function bloquearConsulta($chat){
 
     tg("sendPhoto",[
         "chat_id"=>$chat,
-        "photo"=>"https://www.image2url.com/r2/default/images/1778262184493-92c2e3a2-0377-4fbf-8341-c1520419e6da.png",
+        "photo"=>"https://www.image2url.com/r2/default/images/1779595449159-582794a7-a3c0-4acc-8c51-a612a1c2909f.png",
         "caption"=>
 "🔒 <b>ACESSO RESTRITO</b>
 
