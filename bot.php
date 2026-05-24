@@ -4908,18 +4908,15 @@ if($callback){
     $nome = $callback["from"]["first_name"] ?? "usuário";
     $data = $callback["data"] ?? "";
 
-    // =========================
-    // VOLTAR MENU
-    // =========================
+// =========================
+// VOLTAR MENU
+// =========================
 if($data == "voltar_menu"){
-
-    $tipo = $callback["message"]["chat"]["type"];
 
     menuPrincipal(
         $chat,
         $nome,
         $id,
-        $tipo,
         true,
         $msg
     );
