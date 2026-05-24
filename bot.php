@@ -1152,8 +1152,8 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado.
 
 ━━━━━━━━━━━━━━━
 
-🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @astrosearch
+🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 ";
 
     tg("sendMessage",[
@@ -1361,8 +1361,8 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado.
 
 ━━━━━━━━━━━━━━━
 
-🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @astrosearch
+🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 ";
 
     tg("sendMessage",[
@@ -1569,8 +1569,8 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado.
 
 ━━━━━━━━━━━━━━━
 
-🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @astrosearch
+🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 ";
 
     tg("sendMessage",[
@@ -2271,8 +2271,8 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 
 ━━━━━━━━━━━━━━━
 
-🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @astrosearch
+🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -2522,8 +2522,8 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 
 ━━━━━━━━━━━━━━━
 
-🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @astrosearch
+🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -3005,8 +3005,8 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 
 ━━━━━━━━━━━━━━━
 
-🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @astrosearch
+🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -3240,8 +3240,8 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 
 ━━━━━━━━━━━━━━━
 
-🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @astrosearch
+🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -4085,7 +4085,7 @@ function consultaPlaca($chat, $placa) {
         ]
     ]);
 
-    $api = "https://astrosearch.amorinha6767.workers.dev/";
+$api = "https://astrosearch.amorinha6767.workers.dev";
 
     $ch = curl_init($api . "/api/save");
 
@@ -4098,9 +4098,14 @@ function consultaPlaca($chat, $placa) {
         CURLOPT_POSTFIELDS => $payload
     ]);
 
-    curl_exec($ch);
+    $resp = curl_exec($ch);
 
-    curl_close($ch);
+file_put_contents(
+    "debug_placa.txt",
+    $resp
+);
+
+curl_close($ch);
 
     // =========================
     // 🔗 LINK
@@ -4123,8 +4128,8 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 
 ━━━━━━━━━━━━━━━
 
-🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @astrosearch
+🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -4530,8 +4535,8 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 
 ━━━━━━━━━━━━━━━
 
-🤖 <b>Bot:</b> @consultasdedados_bot
-📢 <b>Canal:</b> @astrosearch
+🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Premium</b>
