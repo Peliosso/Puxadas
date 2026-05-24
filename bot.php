@@ -2228,7 +2228,7 @@ function consultaTelefone($chat, $telefone) {
         ]
     ]);
 
-    $api = "https://astrosearch.amorinha6767.workers.dev/";
+$api = "https://astrosearch.amorinha6767.workers.dev";
 
     $ch = curl_init($api . "/api/save");
 
@@ -2241,9 +2241,14 @@ function consultaTelefone($chat, $telefone) {
         CURLOPT_POSTFIELDS => $payload
     ]);
 
-    curl_exec($ch);
+    $resp = curl_exec($ch);
 
-    curl_close($ch);
+file_put_contents(
+    "debug_tel.txt",
+    $resp
+);
+
+curl_close($ch);
 
     // =========================
     // 🔗 LINK
@@ -2487,9 +2492,14 @@ function consultaNome($chat, $nome) {
         CURLOPT_POSTFIELDS => $payload
     ]);
 
-    curl_exec($ch);
+$resp = curl_exec($ch);
 
-    curl_close($ch);
+file_put_contents(
+    "debug_tel.txt",
+    $resp
+);
+
+curl_close($ch);
 
     // =========================
     // 🔗 LINK
