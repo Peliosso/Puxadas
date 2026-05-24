@@ -3187,17 +3187,25 @@ $payload = json_encode([
     ]
 ]);
 
-    $api = "https://astrosearch.amorinha6767.workers.dev/";
+$api = "https://astrosearch.amorinha6767.workers.dev";
 
-    $ch = curl_init($api . "/api/save");
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => ["Content-Type: application/json"],
-        CURLOPT_POSTFIELDS => $payload
-    ]);
-    curl_exec($ch);
-    curl_close($ch);
+$ch = curl_init($api . "/api/save");
+
+curl_setopt_array($ch, [
+    CURLOPT_POST => true,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => ["Content-Type: application/json"],
+    CURLOPT_POSTFIELDS => $payload
+]);
+
+$resp = curl_exec($ch);
+
+file_put_contents(
+    "debug.txt",
+    $resp
+);
+
+curl_close($ch);
 
     // =========================
     // 🔗 LINK
@@ -3207,6 +3215,8 @@ $payload = json_encode([
     // =========================
     // 💎 PREVIEW
     // =========================
+    $nomePessoa =
+$json["dados"]["nome"] ?? "NÃO ENCONTRADO";
     $msg = "
 <b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
 
