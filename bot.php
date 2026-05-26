@@ -3041,33 +3041,20 @@ function consultaCPF1($chat, $cpf) {
 
     global $STICKER_LOADING, $user_id, $nome;
 
-function v($v) {
+    function v($v) {
 
-    if ($v === null) {
-        return "NÃO ENCONTRADO";
+        if ($v === null) {
+            return "NÃO ENCONTRADO";
+        }
+
+        $v = trim((string)$v);
+
+        if ($v === "" || mb_strtoupper($v) === "NÃO INFORMADO") {
+            return "NÃO ENCONTRADO";
+        }
+
+        return $v;
     }
-
-    $v = trim($v);
-
-    if ($v === "") {
-        return "NÃO ENCONTRADO";
-    }
-
-    // só substitui se o TEXTO TODO for sem informação
-    $invalidos = [
-        "SEM INFORMAÇÃO",
-        "SEM INFORMACAO",
-        "DESCONHECIDO",
-        "NULL",
-        "-"
-    ];
-
-    if (in_array(mb_strtoupper($v), $invalidos)) {
-        return "NÃO ENCONTRADO";
-    }
-
-    return $v;
-}
 
     // =========================
     // 🔄 LOADING
@@ -3076,17 +3063,22 @@ function v($v) {
         "chat_id"=>$chat,
         "sticker"=>$STICKER_LOADING
     ]);
+
     $stickerData = json_decode($sticker, true);
     $stickerMsgId = $stickerData["result"]["message_id"] ?? null;
 
     // =========================
-    // 📄 VALIDAÇÃO
+    // 📄 VALIDAR CPF
     // =========================
     $cpf = preg_replace('/\D/', '', $cpf);
 
-    if (strlen($cpf) != 11) {
-        if ($stickerMsgId) {
-            tg("deleteMessage", ["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
+    if(strlen($cpf) != 11){
+
+        if($stickerMsgId){
+            tg("deleteMessage", [
+                "chat_id"=>$chat,
+                "message_id"=>$stickerMsgId
+            ]);
         }
 
         tg("sendMessage", [
@@ -3094,19 +3086,23 @@ function v($v) {
             "text"=>"❌ CPF inválido.\nUse: <code>/cpf 00000000000</code>",
             "parse_mode"=>"HTML"
         ]);
+
         return;
     }
 
     // =========================
-    // 🔥 NOVA API
+    // 🌐 API NOVA
     // =========================
     $url = "https://boks.stherlionato.workers.dev/cpf?token=fxckbuscas&cpf={$cpf}";
 
     $ch = curl_init();
+
     curl_setopt_array($ch, [
-        CURLOPT_URL=>$url,
-        CURLOPT_RETURNTRANSFER=>true,
-        CURLOPT_TIMEOUT=>25
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_SSL_VERIFYPEER => false
     ]);
 
     $response = curl_exec($ch);
@@ -3115,65 +3111,97 @@ function v($v) {
     $json = json_decode($response, true);
 
     // remove loading
-    if ($stickerMsgId) {
-        tg("deleteMessage", ["chat_id"=>$chat,"message_id"=>$stickerMsgId]);
+    if($stickerMsgId){
+        tg("deleteMessage", [
+            "chat_id"=>$chat,
+            "message_id"=>$stickerMsgId
+        ]);
     }
 
-    if (!$json || empty($json["dados"]["resultado"])) {
+    // =========================
+    // ❌ SEM RESULTADO
+    // =========================
+    if(
+        !$json ||
+        empty($json["dados"]["resultado"]["dados"])
+    ){
         naoEncontrado($chat, "CPF", $cpf);
         return;
     }
 
-// =========================
-// 🧠 FORMATAR RESULTADO
-// =========================
-$resultadoFormatado = [];
+    // =========================
+    // 📦 DADOS PRINCIPAIS
+    // =========================
+    $dados = $json["dados"]["resultado"]["dados"];
 
-foreach ($json["dados"]["resultado"] as $item) {
+    $nomePessoa =
+        v($dados["dados_cadastrais"]["NOME"] ?? null);
 
-    $titulo = trim($item["titulo"] ?? "");
-    $conteudo = trim($item["conteudo"] ?? "");
+    // =========================
+    // 🧠 FORMATAR RESULTADO
+    // =========================
+    $resultadoFormatado = [];
 
-    if (!$titulo && !$conteudo) {
-        continue;
-    }
+    foreach($dados as $secaoNome => $secaoDados){
 
-    // cria seção
-    $secao = [
-        "secao" => $titulo,
-        "dados" => []
-    ];
+        $secao = [
+            "secao" => mb_strtoupper(
+                str_replace("_", " ", $secaoNome)
+            ),
+            "dados" => []
+        ];
 
-    // quebra linhas
-    $conteudo = str_replace(["\r\n", "\r"], "\n", $conteudo);
+        // =====================
+        // ARRAY
+        // =====================
+        if(is_array($secaoDados)){
 
-    foreach (explode("\n", $conteudo) as $linha) {
+            foreach($secaoDados as $k => $item){
 
-        $linha = trim($linha);
+                // objeto interno
+                if(is_array($item)){
 
-        if (!$linha) continue;
+                    $bloco = [];
 
-        // separa chave : valor
-        if (strpos($linha, ":") !== false) {
+                    foreach($item as $campo => $valor){
 
-            [$k, $v2] = explode(":", $linha, 2);
+                        // remove campos inúteis
+                        if(
+                            strtolower($campo) == "link" ||
+                            strtolower($campo) == "by"
+                        ){
+                            continue;
+                        }
 
-            $secao["dados"][] = [
-                "campo" => trim($k),
-                "valor" => v(trim($v2))
-            ];
+                        // array interno
+                        if(is_array($valor)){
+                            $valor = implode(", ", $valor);
+                        }
 
-        } else {
+                        $bloco[] = [
+                            "campo" => str_replace("_", " ", $campo),
+                            "valor" => v($valor)
+                        ];
+                    }
 
-            $secao["dados"][] = [
-                "campo" => "INFO",
-                "valor" => $linha
-            ];
+                    if(!empty($bloco)){
+                        $secao["dados"][] = $bloco;
+                    }
+
+                } else {
+
+                    $secao["dados"][] = [
+                        "campo" => str_replace("_", " ", $k),
+                        "valor" => v($item)
+                    ];
+                }
+            }
+        }
+
+        if(!empty($secao["dados"])){
+            $resultadoFormatado[] = $secao;
         }
     }
-
-    $resultadoFormatado[] = $secao;
-}
 
     // =========================
     // 🔐 TOKEN
@@ -3181,53 +3209,50 @@ foreach ($json["dados"]["resultado"] as $item) {
     $token = bin2hex(random_bytes(16));
 
     // =========================
-    // ☁️ SALVAR
+    // ☁️ SALVAR RESULTADO
     // =========================
-$payload = json_encode([
-    "token" => $token,
-    "tipo" => "cpf",
-    "query" => $cpf,
-    "plano" => "vip",
-    "resultado" => [
-        [
-            "consulta" => "CPF",
-            "documento" => $cpf,
-            "resultado" => $resultadoFormatado
+    $payload = json_encode([
+        "token" => $token,
+        "tipo" => "cpf",
+        "query" => $cpf,
+        "plano" => "vip",
+        "resultado" => [
+            [
+                "consulta" => "CPF",
+                "documento" => $cpf,
+                "resultado" => $resultadoFormatado
+            ]
         ]
-    ]
-]);
+    ], JSON_UNESCAPED_UNICODE);
 
-$api = "https://astrosearch.amorinha6767.workers.dev";
+    $api = "https://astrosearch.amorinha6767.workers.dev";
 
-$ch = curl_init($api . "/api/save");
+    $ch = curl_init($api . "/api/save");
 
-curl_setopt_array($ch, [
-    CURLOPT_POST => true,
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => ["Content-Type: application/json"],
-    CURLOPT_POSTFIELDS => $payload
-]);
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            "Content-Type: application/json"
+        ],
+        CURLOPT_POSTFIELDS => $payload
+    ]);
 
-$resp = curl_exec($ch);
-
-file_put_contents(
-    "debug.txt",
-    $resp
-);
-
-curl_close($ch);
+    curl_exec($ch);
+    curl_close($ch);
 
     // =========================
     // 🔗 LINK
     // =========================
     $link = $api . "/r/" . $token;
 
-    // =========================
-    // 💎 PREVIEW
-    // =========================
-    $nomePessoa =
-$json["dados"]["nome"] ?? "NÃO ENCONTRADO";
-    $msg = "
+// =========================
+// 📊 PREVIEW
+// =========================
+$nomePessoa =
+    v($dados["dados_cadastrais"]["NOME"] ?? null);
+
+$msg = "
 <b>📊 REQUISIÇÃO REALIZADA COM SUCESSO</b>
 
 <blockquote>🔎 <b>Base:</b> CPF • ULTRA COMPLETO</blockquote>
@@ -3245,7 +3270,10 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 
 <blockquote>
 <b>Astro Ultra</b>
-Sistema premium com dados avançados (endereços, score, parentes, vacinas, consumo e muito mais).
+Sistema premium com dados avançados:
+endereços, parentes, renda, benefícios,
+vacinas, empregos, emails, telefones,
+consumos, score e muito mais.
 </blockquote>
 ";
 
@@ -3256,22 +3284,31 @@ Sistema premium com dados avançados (endereços, score, parentes, vacinas, cons
         "chat_id" => $chat,
         "text" => $msg,
         "parse_mode" => "HTML",
+        "disable_web_page_preview" => true,
         "reply_markup" => json_encode([
-            "inline_keyboard"=>[
+            "inline_keyboard" => [
                 [
-                    ["text"=>"🔍 Ver Resultado","url"=>$link]
+                    [
+                        "text" => "🔍 Ver Resultado",
+                        "url" => $link
+                    ]
                 ],
                 [
-                    ["text"=>"💎 • Ativar VIP","callback_data"=>"planos"]
+                    [
+                        "text" => "💎 • Ativar VIP",
+                        "callback_data" => "planos"
+                    ]
                 ],
                 [
-                    ["text"=>"🗑 Apagar","callback_data"=>"del_{$user_id}"]
+                    [
+                        "text" => "🗑 Apagar",
+                        "callback_data" => "del_{$user_id}"
+                    ]
                 ]
             ]
         ])
     ]);
 }
-
 
 function consultaCPF2($chat,$cpf){
 
