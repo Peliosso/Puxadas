@@ -8,9 +8,9 @@ header("Content-Type: application/json");
 http_response_code(200);
 
 $PLANOS = [
-    "diario" => "14.90",
+    "diario" => "15.00",
     "semanal" => "24.90",
-    "vitalicio" => "20.90"
+    "vitalicio" => "25.90"
 ];
 
 $CHAVE_PIX = "de02994d-f391-4b9b-acf8-865b721d3082";
@@ -448,9 +448,8 @@ Seu plano atual é <b>Gratuito</b> e possui limitações.
 ━━━━━━━━━━━━━━━
 💰 <b>Planos disponíveis:</b>
 
-📅 Diário: R$ 14,90
-📆 Semanal: R$ 24,90
-👑 Para Sempre: R$ 20,90 - <b>Oferta!</b> 
+📅 Diário: R$ 15,00
+👑 Para Sempre: R$ 25,00 - <b>Oferta!</b> 
 
 🚀 Liberação automática após pagamento
 
@@ -5003,11 +5002,10 @@ if($data == "planos"){
     $markup = json_encode([
         "inline_keyboard"=>[
             [
-                ["text"=>"📅 Diário - R$14,90","callback_data"=>"plano_diario"],
-                ["text"=>"📆 Semanal - R$24,90","callback_data"=>"plano_semanal"]
-            ],
+                ["text"=>"📅 Diário - R$15,00","callback_data"=>"plano_diario"],
+
             [
-                ["text"=>"👑 Vitalício - R$20,90","callback_data"=>"plano_vitalicio"]
+                ["text"=>"👑 Vitalício - R$25,00","callback_data"=>"plano_vitalicio"]
             ],
             [
                 ["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
