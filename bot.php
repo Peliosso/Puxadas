@@ -5006,7 +5006,7 @@ if($data == "planos"){
                 ],
 
             [
-                ["text"=>"👑 Vitalício - R$25,00","callback_data"=>"plano_vitalicio"]
+                ["text"=>"👑 Para Sempre - R$25,00","callback_data"=>"plano_vitalicio"]
             ],
             [
                 ["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
