@@ -5002,7 +5002,8 @@ if($data == "planos"){
     $markup = json_encode([
         "inline_keyboard"=>[
             [
-                ["text"=>"📅 Diário - R$15,00","callback_data"=>"plano_diario"],
+                ["text"=>"📅 Diário - R$15,00","callback_data"=>"plano_diario"]
+                ],
 
             [
                 ["text"=>"👑 Vitalício - R$25,00","callback_data"=>"plano_vitalicio"]
