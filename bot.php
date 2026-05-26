@@ -10,7 +10,7 @@ http_response_code(200);
 $PLANOS = [
     "diario" => "15.00",
     "semanal" => "24.90",
-    "vitalicio" => "25.00"
+    "vitalicio" => "10.00"
 ];
 
 $CHAVE_PIX = "de02994d-f391-4b9b-acf8-865b721d3082";
@@ -449,7 +449,7 @@ Seu plano atual é <b>Gratuito</b> e possui limitações.
 💰 <b>Planos disponíveis:</b>
 
 📅 Diário: R$ 15,00
-👑 Para Sempre: R$ 25,00 - <b>Oferta!</b> 
+👑 Para Sempre: <b>R$ 10,00 - Só hoje!</b> 
 
 🚀 Liberação automática após pagamento
 
@@ -5006,7 +5006,7 @@ if($data == "planos"){
                 ],
 
             [
-                ["text"=>"👑 Para Sempre - R$25,00","callback_data"=>"plano_vitalicio"]
+                ["text"=>"👑 Para Sempre - R$10,00","callback_data"=>"plano_vitalicio"]
             ],
             [
                 ["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
