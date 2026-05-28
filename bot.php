@@ -612,7 +612,7 @@ Escolha uma opção abaixo:";
 
                 [
                     "text"=>"🛠 • Suporte",
-                    "url"=>"https://t.me/astrosuporte"
+                    "url"=>"https://t.me/puxadas71"
                 ]
             ]
 
@@ -5186,7 +5186,7 @@ if(strpos($data, "pix_") === 0){
     $markup = json_encode([
         "inline_keyboard"=>[
             [
-                ["text"=>"📄 Enviar Comprovante","url"=>"https://t.me/astrosuporte"]
+                ["text"=>"📄 Enviar Comprovante","url"=>"https://t.me/puxadas71"]
             ],
             [
                 ["text"=>"⬅️ Voltar","callback_data"=>"planos"]
