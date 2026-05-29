@@ -825,6 +825,75 @@ Acesso vitalício liberado.",
 
 define("VIP_DB","vip_groups.json");
 
+// =========================
+// 🗑️ APAGAR MENSAGENS DO GRUPO
+// Uso: /apagar ID_DO_GRUPO
+// =========================
+if(strpos($text,"/apagar") === 0){
+
+    if($userId != $OWNER_ID){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Apenas o dono pode usar este comando."
+        ]);
+        exit;
+    }
+
+    $parts = explode(" ",$text);
+    $grupoId = $parts[1] ?? null;
+
+    if(!$grupoId){
+        tg("sendMessage",[
+            "chat_id"=>$chat,
+            "text"=>"❌ Use: /apagar ID_DO_GRUPO"
+        ]);
+        exit;
+    }
+
+    // mensagem inicial
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>"🧹 Limpando mensagens do grupo..."
+    ]);
+
+    // pega updates recentes
+    $updates = tg("getUpdates",[]);
+
+    if(isset($updates["result"])){
+
+        foreach($updates["result"] as $upd){
+
+            if(isset($upd["message"])){
+
+                $msg = $upd["message"];
+
+                if(($msg["chat"]["id"] ?? null) == $grupoId){
+
+                    $msgId = $msg["message_id"] ?? null;
+
+                    if($msgId){
+
+                        tg("deleteMessage",[
+                            "chat_id" => $grupoId,
+                            "message_id" => $msgId
+                        ]);
+
+                        usleep(150000);
+                    }
+                }
+            }
+        }
+    }
+
+    tg("sendMessage",[
+        "chat_id"=>$chat,
+        "text"=>"✅ Limpeza concluída no grupo: <code>{$grupoId}</code>",
+        "parse_mode"=>"HTML"
+    ]);
+
+    exit;
+}
+
 function ativarVipGrupo($chat){
 
     $data = [];
