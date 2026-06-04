@@ -4,7 +4,7 @@ ignore_user_abort(true);
 set_time_limit(30);
 
 // ===== CONFIG =====
-$TOKEN = "8669340911:AAHgt35G_2PN_uFJV1xfSpjgxjaIrbsbx3I";
+$TOKEN = "8773656360:AAET6l38pzvUcW7goTlUn_VEMU1_JMiVEM8";
 $API   = "https://api.telegram.org/bot{$TOKEN}";
 
 // ===== REQUEST =====
