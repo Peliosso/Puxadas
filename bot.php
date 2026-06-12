@@ -5003,7 +5003,7 @@ if($data == "planos"){
                 ],
 
             [
-                ["text"=>"👑 Para Sempre - R$25,00 - Só hoje","callback_data"=>"plano_vitalicio"]
+                ["text"=>"👑 ILIMITADO - R$25,00 - Só hoje","callback_data"=>"plano_vitalicio"]
             ],
             [
                 ["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
