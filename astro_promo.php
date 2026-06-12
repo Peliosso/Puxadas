@@ -29,6 +29,18 @@ function bot($method, $data){
     return json_decode($res, true);
 }
 
+$update = json_decode(file_get_contents("php://input"), true);
+
+if(isset($update["callback_query"])){
+
+    $callback = $update["callback_query"];
+
+    $data = $callback["data"];
+    $chat_id = $callback["message"]["chat"]["id"];
+    $message_id = $callback["message"]["message_id"];
+
+}
+
 // ===== GRUPOS =====
 function getGrupos(){
     if(!file_exists("grupos.json")){
@@ -52,67 +64,55 @@ function saveControle($data){
 }
 
 // ===== COPY PESADA =====
+
+function gerarIdFake(){
+
+$inicio = rand(10,99);
+$fim = rand(1000,9999);
+
+return $inicio . "***" . $fim;
+}
+
 function mensagemPromo(){
+
+    $id = gerarIdFake();
 
     $msgs = [
 
-"💎 <b>ATIVE AS CONSULTAS ILIMITADAS</b>
+"💎 <b>MAIS UM CLIENTE ACABOU DE ADQUIRIR O VIP VITALÍCIO</b>
 
 ━━━━━━━━━━━━━━━
-📊 <b>Consultas disponíveis:</b>
 
-• Telefone  
-• Nome completo  
-• CPF  
-• RG  
-• Placa de veículo  
-• Endereço  
-• Parentes e vínculos  
+👤 <b>ID:</b> <code>{$id}</code>
+
+✅ Acesso liberado com sucesso
+✅ Consultas ilimitadas
+✅ Sem mensalidades
+✅ Liberação instantânea
+
+━━━━━━━━━━━━━━━
+
+🔎 <b>CONSULTAS DISPONÍVEIS</b>
+
+• Nome Completo
+• Telefone
+• CPF
+• RG
+• Placa de Veículo
+• Endereços
+• Vizinhos
+• Parentes
+• Compras
+• Óbito
 • E muito mais...
 
 ━━━━━━━━━━━━━━━
-⚡ <b>Acesso completo + sem limites</b>
 
-⏳ Liberação imediata
+🔥 <b>Centenas de usuários já utilizam o VIP diariamente.</b>
 
-👇 Toque abaixo para ativar:",
+⏳ Aproveite enquanto as vagas promocionais permanecem disponíveis.
 
-"🚀 <b>ACESSO COMPLETO EM SEGUNDOS</b>
-
-━━━━━━━━━━━━━━━
-📊 <b>Você poderá consultar:</b>
-
-✔ Telefone  
-✔ Nome  
-✔ CPF  
-✔ RG  
-✔ Placa  
-✔ Dados completos  
-
-━━━━━━━━━━━━━━━
-💎 <b>Consultas ilimitadas sem bloqueio</b>
-
-🔥 Ativação rápida
-
-👇 Ative agora:",
-
-"🔒 <b>LIBERE TODAS AS CONSULTAS</b>
-
-━━━━━━━━━━━━━━━
-📊 <b>Disponível no VIP:</b>
-
-• CPF e RG  
-• Telefones  
-• Placas e veículos  
-• Endereços completos  
-• Histórico e vínculos  
-
-━━━━━━━━━━━━━━━
-💎 <b>Acesso total sem limites</b>
-
-⚡ Liberação instantânea
-
-👇 Garanta seu acesso:"
+👇 Escolha uma opção abaixo:"
 
     ];
 
@@ -133,14 +133,69 @@ foreach($grupos as $chat_id => $v){
         ]);
     }
 
-    // 🔘 BOTÃO INLINE
-    $keyboard = json_encode([
-        "inline_keyboard"=>[
-            [
-                ["text"=>"💎 ATIVAR VIP AGORA","callback_data"=>"planos"]
-            ]
+$keyboard = json_encode([
+    "inline_keyboard" => [
+        [
+            ["text"=>"💎 Adquirir VIP Vitalício","callback_data"=>"vip"]
+        ],
+        [
+            ["text"=>"📋 Consultas Disponíveis","callback_data"=>"consultas"]
         ]
-    ]);
+    ]
+]);
+
+if($data == "consultas"){
+
+$texto = "📋 <b>CONSULTAS DISPONÍVEIS</b>
+
+━━━━━━━━━━━━━━━
+
+🔎 Nome Completo
+📞 Telefone
+🆔 CPF
+📄 RG
+🚗 Placa
+🏠 Endereços
+👨 Parentes
+👩 Nome da Mãe
+👨 Nome do Pai
+📍 CEP Completo
+🏢 CNPJ
+🛒 Compras
+⚰️ Óbito
+🏘️ Vizinhos
+
+✨ E diversas outras consultas.
+
+👇 Clique em voltar para retornar.";
+
+$voltar = json_encode([
+"inline_keyboard"=>[
+[
+["text"=>"⬅️ Voltar","callback_data"=>"inicio"]
+]
+]
+]);
+
+bot("editMessageText",[
+"chat_id"=>$chat_id,
+"message_id"=>$message_id,
+"text"=>$texto,
+"parse_mode"=>"HTML",
+"reply_markup"=>$voltar
+]);
+}
+
+if($data == "inicio"){
+
+bot("editMessageText",[
+"chat_id"=>$chat_id,
+"message_id"=>$message_id,
+"text"=>mensagemPromo(),
+"parse_mode"=>"HTML",
+"reply_markup"=>$keyboard
+]);
+}
 
 // 📤 ENVIA MSG
 $msg = bot("sendMessage", [
