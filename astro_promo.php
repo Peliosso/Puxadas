@@ -187,6 +187,63 @@ if(isset($update["callback_query"])){
 
     exit;
 }
+
+if($data == "vip"){
+
+    $keyboard = json_encode([
+        "inline_keyboard"=>[
+            [
+                ["text"=>"↩️ Voltar","callback_data"=>"inicio"]
+            ]
+        ]
+    ]);
+
+    bot("editMessageText",[
+        "chat_id"=>$chat_id,
+        "message_id"=>$message_id,
+        "parse_mode"=>"HTML",
+        "text"=>"💎 <b>VIP</b>\n\nEntre em contato com a administração para ativação.",
+        "reply_markup"=>$keyboard
+    ]);
+}
+
+if($data == "cnpj"){
+
+    $keyboard = json_encode([
+        "inline_keyboard"=>[
+            [
+                ["text"=>"↩️ Voltar","callback_data"=>"consultas"]
+            ]
+        ]
+    ]);
+
+    bot("editMessageText",[
+        "chat_id"=>$chat_id,
+        "message_id"=>$message_id,
+        "parse_mode"=>"HTML",
+        "text"=>"🏢 <b>Consulta por CNPJ</b>\n\nExemplo:\n<code>/cnpj 00000000000100</code>",
+        "reply_markup"=>$keyboard
+    ]);
+}
+
+if($data == "cep"){
+
+    $keyboard = json_encode([
+        "inline_keyboard"=>[
+            [
+                ["text"=>"↩️ Voltar","callback_data"=>"consultas"]
+            ]
+        ]
+    ]);
+
+    bot("editMessageText",[
+        "chat_id"=>$chat_id,
+        "message_id"=>$message_id,
+        "parse_mode"=>"HTML",
+        "text"=>"📮 <b>Consulta por CEP</b>\n\nExemplo:\n<code>/cep 30000000</code>",
+        "reply_markup"=>$keyboard
+    ]);
+}
     
 // ===== EXECUÇÃO =====    
 $grupos = getGrupos();    
