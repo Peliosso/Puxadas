@@ -88,14 +88,6 @@ $controle = getControle();
     
 foreach($grupos as $chat_id => $v){    
     
-    // 🧹 APAGA MSG ANTERIOR    
-    if(isset($controle[$chat_id])){    
-        bot("deleteMessage", [    
-            "chat_id" => $chat_id,    
-            "message_id" => $controle[$chat_id]    
-        ]);    
-    }    
-    
     // 🔘 BOTÃO INLINE    
     $keyboard = json_encode([    
         "inline_keyboard"=>[    
