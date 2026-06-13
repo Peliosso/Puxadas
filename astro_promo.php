@@ -75,7 +75,7 @@ function mensagemPromo(){
 
 ⚡ Liberação instantânea e sem limites.
 
-👇 Ative seu acesso abaixo.
+👇 Ative seu acesso abaixo."
     
     ];    
     
