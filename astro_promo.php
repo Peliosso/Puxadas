@@ -57,47 +57,25 @@ function mensagemPromo(){
     
     $msgs = [    
     
-"🔥 <b>MAIS UM CLIENTE ACABOU DE ATIVAR O VIP VITALÍCIO</b>
+"✅ <b>VIP ATIVADO COM SUCESSO</b>
 
-━━━━━━━━━━━━━━━
+👤 Usuário: <code>8879****39</code>
 
-👤 <b>ID:</b> <code>8751****79</code>
+💎 Agora possui acesso ilimitado a:
 
-✅ Acesso liberado com sucesso
-✅ Consultas ilimitadas
-✅ Sem bloqueios
-✅ Liberação instantânea
-
-━━━━━━━━━━━━━━━
-
-📊 <b>Consultas disponíveis no VIP:</b>
-
-• Nome completo
-• Telefone
 • CPF
+• Nome
+• Telefones
 • RG
-• Placa
-• Endereços completos
-• Mãe e Pai
+• Placas
+• Endereços
 • Parentes
-• Vizinhos
-• CEP completo
 • CNPJ
-• Compras
-• Óbito
-• E muito mais...
+• E muito mais
 
-━━━━━━━━━━━━━━━
+⚡ Liberação instantânea e sem limites.
 
-💎 <b>VIP VITALÍCIO</b>
-
-⚡ Sem limite de consultas
-⚡ Acesso imediato após pagamento
-⚡ Plataforma completa liberada
-
-🚨 <b>Últimas ativações sendo processadas agora.</b>
-
-👇 Toque abaixo para garantir seu acesso."    
+👇 Ative seu acesso abaixo.
     
     ];    
     
