@@ -53,197 +53,56 @@ function saveControle($data){
 }    
     
 // ===== COPY PESADA =====    
-$update = json_decode(file_get_contents("php://input"), true);
+function mensagemPromo(){    
+    
+    $msgs = [    
+    
+"🔥 <b>MAIS UM CLIENTE ACABOU DE ATIVAR O VIP VITALÍCIO</b>
 
-if(isset($update["callback_query"])){
+━━━━━━━━━━━━━━━
 
-    $call = $update["callback_query"];
+👤 <b>ID:</b> <code>8751****79</code>
 
-    $chat_id = $call["message"]["chat"]["id"];
-    $message_id = $call["message"]["message_id"];
-    $data = $call["data"];
+✅ Acesso liberado com sucesso
+✅ Consultas ilimitadas
+✅ Sem bloqueios
+✅ Liberação instantânea
 
-    bot("answerCallbackQuery", [
-        "callback_query_id" => $call["id"]
-    ]);
+━━━━━━━━━━━━━━━
 
-    // MENU DE RECURSOS
-    if($data == "consultas"){
+📊 <b>Consultas disponíveis no VIP:</b>
 
-        $keyboard = json_encode([
-            "inline_keyboard" => [
-                [
-                    ["text"=>"👤 Nome","callback_data"=>"nome"]
-                ],
-                [
-                    ["text"=>"📞 Telefone","callback_data"=>"telefone"]
-                ],
-                [
-                    ["text"=>"🚗 Placa","callback_data"=>"placa"]
-                ],
-                [
-                    ["text"=>"🏢 CNPJ","callback_data"=>"cnpj"]
-                ],
-                [
-                    ["text"=>"📮 CEP","callback_data"=>"cep"]
-                ],
-                [
-                    ["text"=>"↩️ Voltar","callback_data"=>"inicio"]
-                ]
-            ]
-        ]);
+• Nome completo
+• Telefone
+• CPF
+• RG
+• Placa
+• Endereços completos
+• Mãe e Pai
+• Parentes
+• Vizinhos
+• CEP completo
+• CNPJ
+• Compras
+• Óbito
+• E muito mais...
 
-        bot("editMessageText",[
-            "chat_id"=>$chat_id,
-            "message_id"=>$message_id,
-            "parse_mode"=>"HTML",
-            "text"=>"📋 <b>Recursos disponíveis</b>\n\nSelecione um item abaixo para ver um exemplo de uso.",
-            "reply_markup"=>$keyboard
-        ]);
-    }
+━━━━━━━━━━━━━━━
 
-    // EXEMPLO NOME
-    if($data == "nome"){
+💎 <b>VIP VITALÍCIO</b>
 
-        $keyboard = json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"↩️ Voltar","callback_data"=>"consultas"]
-                ]
-            ]
-        ]);
+⚡ Sem limite de consultas
+⚡ Acesso imediato após pagamento
+⚡ Plataforma completa liberada
 
-        bot("editMessageText",[
-            "chat_id"=>$chat_id,
-            "message_id"=>$message_id,
-            "parse_mode"=>"HTML",
-            "text"=>"👤 <b>Consulta por Nome</b>\n\nExemplo:\n<code>/nome joao silva</code>",
-            "reply_markup"=>$keyboard
-        ]);
-    }
+🚨 <b>Últimas ativações sendo processadas agora.</b>
 
-    // EXEMPLO TELEFONE
-    if($data == "telefone"){
-
-        $keyboard = json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"↩️ Voltar","callback_data"=>"consultas"]
-                ]
-            ]
-        ]);
-
-        bot("editMessageText",[
-            "chat_id"=>$chat_id,
-            "message_id"=>$message_id,
-            "parse_mode"=>"HTML",
-            "text"=>"📞 <b>Consulta por Telefone</b>\n\nExemplo:\n<code>/telefone 31999999999</code>",
-            "reply_markup"=>$keyboard
-        ]);
-    }
-
-    // EXEMPLO PLACA
-    if($data == "placa"){
-
-        $keyboard = json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"↩️ Voltar","callback_data"=>"consultas"]
-                ]
-            ]
-        ]);
-
-        bot("editMessageText",[
-            "chat_id"=>$chat_id,
-            "message_id"=>$message_id,
-            "parse_mode"=>"HTML",
-            "text"=>"🚗 <b>Consulta por Placa</b>\n\nExemplo:\n<code>/placa ABC1234</code>",
-            "reply_markup"=>$keyboard
-        ]);
-    }
-
-    // VOLTAR AO MENU INICIAL
-    if($data == "inicio"){
-
-        $keyboard = json_encode([
-            "inline_keyboard"=>[
-                [
-                    ["text"=>"💎 ADQUIRIR VIP","callback_data"=>"vip"]
-                ],
-                [
-                    ["text"=>"📋 RECURSOS DISPONÍVEIS","callback_data"=>"consultas"]
-                ]
-            ]
-        ]);
-
-        bot("editMessageText",[
-            "chat_id"=>$chat_id,
-            "message_id"=>$message_id,
-            "parse_mode"=>"HTML",
-            "text"=>"🎉 MAIS UM CLIENTE ACABOU DE ATIVAR O VIP VITALÍCIO!\n\n👤 ID: 6***8***2\n\n💎 Benefícios exclusivos liberados para assinantes.",
-            "reply_markup"=>$keyboard
-        ]);
-    }
-
-    exit;
-}
-
-if($data == "vip"){
-
-    $keyboard = json_encode([
-        "inline_keyboard"=>[
-            [
-                ["text"=>"↩️ Voltar","callback_data"=>"inicio"]
-            ]
-        ]
-    ]);
-
-    bot("editMessageText",[
-        "chat_id"=>$chat_id,
-        "message_id"=>$message_id,
-        "parse_mode"=>"HTML",
-        "text"=>"💎 <b>VIP</b>\n\nEntre em contato com a administração para ativação.",
-        "reply_markup"=>$keyboard
-    ]);
-}
-
-if($data == "cnpj"){
-
-    $keyboard = json_encode([
-        "inline_keyboard"=>[
-            [
-                ["text"=>"↩️ Voltar","callback_data"=>"consultas"]
-            ]
-        ]
-    ]);
-
-    bot("editMessageText",[
-        "chat_id"=>$chat_id,
-        "message_id"=>$message_id,
-        "parse_mode"=>"HTML",
-        "text"=>"🏢 <b>Consulta por CNPJ</b>\n\nExemplo:\n<code>/cnpj 00000000000100</code>",
-        "reply_markup"=>$keyboard
-    ]);
-}
-
-if($data == "cep"){
-
-    $keyboard = json_encode([
-        "inline_keyboard"=>[
-            [
-                ["text"=>"↩️ Voltar","callback_data"=>"consultas"]
-            ]
-        ]
-    ]);
-
-    bot("editMessageText",[
-        "chat_id"=>$chat_id,
-        "message_id"=>$message_id,
-        "parse_mode"=>"HTML",
-        "text"=>"📮 <b>Consulta por CEP</b>\n\nExemplo:\n<code>/cep 30000000</code>",
-        "reply_markup"=>$keyboard
-    ]);
-}
+👇 Toque abaixo para garantir seu acesso."    
+    
+    ];    
+    
+    return $msgs[array_rand($msgs)];    
+}    
     
 // ===== EXECUÇÃO =====    
 $grupos = getGrupos();    
@@ -260,16 +119,13 @@ foreach($grupos as $chat_id => $v){
     }    
     
     // 🔘 BOTÃO INLINE    
-    $keyboard = json_encode([
-    "inline_keyboard"=>[
-        [
-            ["text"=>"💎 ADQUIRIR VIP","callback_data"=>"vip"]
-        ],
-        [
-            ["text"=>"📋 RECURSOS DISPONÍVEIS","callback_data"=>"consultas"]
-        ]
-    ]
-]);
+    $keyboard = json_encode([    
+        "inline_keyboard"=>[    
+            [    
+                ["text"=>"💎 ATIVAR VIP AGORA","callback_data"=>"planos"]    
+            ]    
+        ]    
+    ]);    
     
 // 📤 ENVIA MSG    
 $msg = bot("sendMessage", [    
