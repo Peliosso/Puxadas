@@ -59,7 +59,7 @@ function mensagemPromo(){
     
 "✅ <b>VIP ATIVADO COM SUCESSO</b>
 
-👤 Usuário: <code>8879****39</code>
+👤 Usuário: <code>7625****56</code>
 
 💎 Agora possui acesso ilimitado a:
 
