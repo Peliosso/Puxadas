@@ -377,7 +377,7 @@ Seu plano atual é <b>Gratuito</b> e possui limitações.
 💰 <b>Planos disponíveis:</b>
 
 📅 Diário: R$ 10,00
-👑 Para Sempre: <b>R$ 25,00 - Só hoje!</b> 
+👑 Para Sempre: <b>R$ 25,00 - 1 Vaga!</b> 
 
 🚀 Liberação automática após pagamento
 
@@ -5003,7 +5003,8 @@ if($data == "planos"){
                 ],
 
             [
-                ["text"=>"👑 ILIMITADO - R$25,00 - Só hoje","callback_data"=>"plano_vitalicio"]
+                ["text"=>"👑 ILIMITADO - R$25,00 
+                    Última vaga!","callback_data"=>"plano_vitalicio"]
             ],
             [
                 ["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
