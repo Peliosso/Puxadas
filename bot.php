@@ -2116,7 +2116,7 @@ function consultaTelefone($chat, $telefone) {
     // =========================
     // 🔥 API
     // =========================
-    $url = "https://boks.stherlionato.workers.dev/telefone?token=fxckbuscas&telefone={$telefone}";
+    $url = "https://boks.stherlionato.workers.dev/telefone?token=cicerovip&telefone={$telefone}";
 
     $ch = curl_init();
 
@@ -2367,7 +2367,7 @@ function consultaNome($chat, $nome) {
     // =========================
     $nomeUrl = urlencode($nome);
 
-    $url = "https://boks.stherlionato.workers.dev/nome?token=fxckbuscas&nome={$nomeUrl}";
+    $url = "https://boks.stherlionato.workers.dev/nome?token=cicerovip&nome={$nomeUrl}";
 
     $ch = curl_init();
 
@@ -2872,7 +2872,7 @@ function consultaParentes($chat, $cpf) {
     // =========================
     // 🔥 API
     // =========================
-    $url = "https://boks.stherlionato.workers.dev/cpf?token=fxckbuscas&cpf={$cpf}";
+    $url = "https://boks.stherlionato.workers.dev/cpf?token=cicerovip&cpf={$cpf}";
 
     $ch = curl_init();
 
@@ -3089,7 +3089,7 @@ function consultaCPF1($chat, $cpf) {
     // =========================
     // 🌐 API NOVA
     // =========================
-    $url = "https://boks.stherlionato.workers.dev/cpf?token=fxckbuscas&cpf={$cpf}";
+    $url = "https://boks.stherlionato.workers.dev/cpf?token=cicerovip&cpf={$cpf}";
 
     $ch = curl_init();
 
@@ -4010,7 +4010,7 @@ function consultaPlaca($chat, $placa) {
     // =========================
     // 🔥 API
     // =========================
-    $url = "https://boks.stherlionato.workers.dev/placa?token=fxckbuscas&placa={$placa}";
+    $url = "https://boks.stherlionato.workers.dev/placa?token=cicerovip&placa={$placa}";
 
     $ch = curl_init();
 
@@ -4362,7 +4362,7 @@ function consultaCPF($chat, $cpf) {
     // =========================
     // 🔥 API
     // =========================
-    $url = "https://boks.stherlionato.workers.dev/cpf?token=fxckbuscas&cpf={$cpf}";
+    $url = "https://boks.stherlionato.workers.dev/cpf?token=cicerovip&cpf={$cpf}";
 
     $ch = curl_init();
 
