@@ -5003,8 +5003,7 @@ if($data == "planos"){
                 ],
 
             [
-                ["text"=>"👑 ILIMITADO - R$25,00 
-                    Última vaga!","callback_data"=>"plano_vitalicio"]
+                ["text"=>"👑 ILIMITADO - R$25,00 - 1 Vaga!","callback_data"=>"plano_vitalicio"]
             ],
             [
                 ["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
