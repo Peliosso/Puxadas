@@ -53,13 +53,22 @@ function saveControle($data){
 }    
     
 // ===== COPY PESADA =====    
-function mensagemPromo(){    
-    
-    $msgs = [    
-    
+function gerarUsuario(){
+    $inicio = str_pad(rand(1000, 9999), 4, "0", STR_PAD_LEFT);
+    $fim    = str_pad(rand(10, 99), 2, "0", STR_PAD_LEFT);
+
+    return "{$inicio}****{$fim}";
+}
+
+function mensagemPromo(){
+
+    $usuario = gerarUsuario();
+
+    $msgs = [
+
 "✅ <b>MAIS UM CLIENTE ADQUIRIU O VIP!</b>
 
-👤 Usuário: <code>1331****79</code>
+👤 Usuário: <code>{$usuario}</code>
 
 💎 Agora possui acesso ilimitado a:
 
@@ -77,11 +86,11 @@ function mensagemPromo(){
 ⚡ Liberação instantânea e sem limites.
 
 👇 Escolha seu plano:"
-    
-    ];    
-    
-    return $msgs[array_rand($msgs)];    
-}    
+
+    ];
+
+    return $msgs[array_rand($msgs)];
+}
     
 // ===== EXECUÇÃO =====    
 $grupos = getGrupos();    
