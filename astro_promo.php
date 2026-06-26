@@ -57,9 +57,9 @@ function mensagemPromo(){
     
     $msgs = [    
     
-"✅ <b>VIP ATIVADO COM SUCESSO</b>
+"✅ <b>VIP ADQUIRIDO COM SUCESSO</b>
 
-👤 Usuário: <code>7266****88</code>
+👤 Usuário: <code>7197****77</code>
 
 💎 Agora possui acesso ilimitado a:
 
@@ -76,7 +76,7 @@ function mensagemPromo(){
 
 ⚡ Liberação instantânea e sem limites.
 
-👇 Ative seu acesso abaixo."
+👇 Escolha seu plano:"
     
     ];    
     
