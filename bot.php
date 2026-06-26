@@ -377,8 +377,7 @@ Seu plano atual é <b>Gratuito</b> e possui limitações.
 ━━━━━━━━━━━━━━━
 💰 <b>Planos disponíveis:</b>
 
-📅 Diário: R$ 10,00
-👑 Para Sempre: <b>R$ 25,00 - 1 Vaga!</b> 
+👑 Para Sempre: <b>R$ 25,00!</b> 
 
 🚀 Liberação automática após pagamento
 
@@ -386,7 +385,7 @@ Seu plano atual é <b>Gratuito</b> e possui limitações.
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
-                [["text"=>"💳 Ver Planos","callback_data"=>"planos"]],
+                [["text"=>"💳 Adquirir o acesso","callback_data"=>"planos"]],
                 [["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]]
             ]
         ])
@@ -4995,16 +4994,13 @@ if($data == "conta"){
 // =========================
 if($data == "planos"){
 
-    $texto = "🚀 <b>CONSULTAS ILIMITADAS</b>\n\n💎 Tenha acesso completo à nossa base de consultas avançadas:\n\n✅ RG, CPF e CNH\n✅ Endereços e dados completos\n✅ Score e dados financeiros\n✅ Parentes e vínculos\n✅ Veículos (chassi, motor, laudo)\n✅ Benefícios, CADSUS e muito mais...\n\n⚡ <b>Consultas ilimitadas + acesso instantâneo</b>\n\n👇 <b>Escolha seu plano:</b>";
+    $texto = "🚀 <b>CONSULTAS ILIMITADAS</b>\n\n💎 Tenha acesso completo à nossa base de consultas avançadas:\n\n✅ RG, CPF e CNH\n✅ Endereços e dados completos\n✅ Score e dados financeiros\n✅ Parentes e vínculos\n✅ Veículos (chassi, motor, laudo)\n✅ Benefícios, CADSUS e muito mais...\n\n⚡ <b>Consultas ilimitadas + acesso instantâneo</b>\n\n👇 <b>garanta seu plano:</b>";
 
     $markup = json_encode([
         "inline_keyboard"=>[
-            [
-                ["text"=>"📅 Diário - R$10,00","callback_data"=>"plano_diario"]
-                ],
 
             [
-                ["text"=>"👑 ILIMITADO - R$25,00 - 1 Vaga!","callback_data"=>"plano_vitalicio"]
+                ["text"=>"👑 Acesso Ilimitado - R$25,00!","callback_data"=>"plano_vitalicio"]
             ],
             [
                 ["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
