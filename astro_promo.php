@@ -57,9 +57,9 @@ function mensagemPromo(){
     
     $msgs = [    
     
-"✅ <b>MAIS UM CLIENTE RENOVOU O VIP!</b>
+"✅ <b>MAIS UM CLIENTE ADQUIRIU O VIP!</b>
 
-👤 Usuário: <code>1228****74</code>
+👤 Usuário: <code>1331****79</code>
 
 💎 Agora possui acesso ilimitado a:
 
