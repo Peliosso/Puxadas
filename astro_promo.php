@@ -60,13 +60,6 @@ function gerarUsuario(){
     return "{$inicio}****{$fim}";
 }
 
-function gerarUsuario(){
-    $inicio = str_pad(rand(1000, 9999), 4, "0", STR_PAD_LEFT);
-    $fim    = str_pad(rand(10, 99), 2, "0", STR_PAD_LEFT);
-
-    return "{$inicio}****{$fim}";
-}
-
 function mensagemPromo(){
 
     return "🚀 <b>GRUPO + SISTEMA COMPLETO À VENDA</b>
