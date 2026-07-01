@@ -62,34 +62,25 @@ function gerarUsuario(){
 
 function mensagemPromo(){
 
-    $usuario = gerarUsuario();
+    return "🚨 <b>GRUPO E SISTEMA À VENDA</b>
 
-    $msgs = [
+👑 Torne-se o novo proprietário.
 
-"✅ <b>MAIS UM CLIENTE ADQUIRIU O VIP!</b>
+Você receberá:
 
-👤 Usuário: <code>{$usuario}</code>
+✅ Códigos-fonte completos do bot
+✅ Administração do grupo
+✅ APIs de consultas
+✅ Controle total do sistema
 
-💎 Agora possui acesso ilimitado a:
+⚠️ Venda exclusiva para o <b>primeiro comprador</b>.
 
-• CPF
-• Nome
-• Telefones
-• RG
-• Placas
-• Compras
-• Endereços
-• Parentes
-• CNPJ
-• E muito mais
+💰 <b>Valor: R$ 30,00</b>
 
-⚡ Liberação instantânea e sem limites.
+💳 <b>Chave Pix (copia e cola):</b>
+<code>7bf96d3d-92db-42ce-b5c1-00facbbd3d46</code>
 
-👇 Escolha seu plano:"
-
-    ];
-
-    return $msgs[array_rand($msgs)];
+Após realizar o pagamento, envie o comprovante para liberação imediata.";
 }
     
 // ===== EXECUÇÃO =====    
@@ -99,13 +90,24 @@ $controle = getControle();
 foreach($grupos as $chat_id => $v){    
     
     // 🔘 BOTÃO INLINE    
-    $keyboard = json_encode([    
-        "inline_keyboard"=>[    
-            [    
-                ["text"=>"💎 ATIVAR VIP AGORA","callback_data"=>"planos"]    
-            ]    
-        ]    
-    ]);    
+    $keyboard = json_encode([
+    "inline_keyboard" => [
+        [
+            [
+                "text" => "📋 Copiar Chave Pix",
+                "copy_text" => [
+                    "text" => "7bf96d3d-92db-42ce-b5c1-00facbbd3d46"
+                ]
+            ]
+        ],
+        [
+            [
+                "text" => "📤 Enviar Comprovante",
+                "url" => "https://t.me/puxadas71"
+            ]
+        ]
+    ]
+]);  
     
 // 📤 ENVIA MSG    
 $msg = bot("sendMessage", [    
