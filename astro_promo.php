@@ -60,29 +60,55 @@ function gerarUsuario(){
     return "{$inicio}****{$fim}";
 }
 
+function gerarUsuario(){
+    $inicio = str_pad(rand(1000, 9999), 4, "0", STR_PAD_LEFT);
+    $fim    = str_pad(rand(10, 99), 2, "0", STR_PAD_LEFT);
+
+    return "{$inicio}****{$fim}";
+}
+
 function mensagemPromo(){
 
-    return "🚨 <b>GRUPO E SISTEMA À VENDA</b>
+    return "🚀 <b>GRUPO + SISTEMA COMPLETO À VENDA</b>
 
-👑 Torne-se o novo proprietário.
+👑 <b>Assuma o projeto e tenha controle total.</b>
 
-Você receberá:
+━━━━━━━━━━━━━━━━━━
+📦 <b>O que você recebe:</b>
 
 ✅ Códigos-fonte completos
-✅ Tutorial de ativação
-✅ Controle pelo celular 
-✅ Administração do grupo
-✅ APIs de consultas
+✅ Tutorial de instalação
+✅ Painel administrativo
+✅ Controle pelo celular
+✅ Grupo completo
+✅ APIs integradas
 ✅ Controle total do sistema
 
-⚠️ Venda exclusiva para o <b>primeiro comprador</b>.
+━━━━━━━━━━━━━━━━━━
+🔎 <b>Módulos disponíveis:</b>
 
-💰 <b>Valor: R$ 30,00</b>
+• CPF
+• Placa
+• CNPJ
+• CEP
+• Nome
+• Telefone
+• Parentes
+• Compras
+• E muito mais...
 
-💳 <b>Chave Pix (copia e cola):</b>
+━━━━━━━━━━━━━━━━━━
+⚠️ <b>Venda exclusiva!</b>
+
+Apenas o <b>primeiro comprador</b> ficará com todo o projeto.
+
+💰 <b>Valor:</b> R$ 30,00
+
+💳 <b>Pix (Copia e Cola):</b>
+
 <code>7bf96d3d-92db-42ce-b5c1-00facbbd3d46</code>
 
-Após realizar o pagamento, envie o comprovante para liberação imediata.";
+📩 Após o pagamento, envie o comprovante para receber o acesso imediatamente.";
 }
     
 // ===== EXECUÇÃO =====    
