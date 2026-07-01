@@ -94,10 +94,8 @@ foreach($grupos as $chat_id => $v){
     "inline_keyboard" => [
         [
             [
-                "text" => "📋 Copiar Chave Pix",
-                "copy_text" => [
-                    "text" => "7bf96d3d-92db-42ce-b5c1-00facbbd3d46"
-                ]
+                "text" => "💳 Copiar Chave Pix",
+                "url" => "https://t.me/share/url?url=7bf96d3d-92db-42ce-b5c1-00facbbd3d46"
             ]
         ],
         [
@@ -107,7 +105,7 @@ foreach($grupos as $chat_id => $v){
             ]
         ]
     ]
-]);  
+]);
     
 // 📤 ENVIA MSG    
 $msg = bot("sendMessage", [    
