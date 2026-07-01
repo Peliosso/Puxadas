@@ -68,7 +68,9 @@ function mensagemPromo(){
 
 Você receberá:
 
-✅ Códigos-fonte completos do bot
+✅ Códigos-fonte completos
+✅ Tutorial de ativação
+✅ Controle pelo celular 
 ✅ Administração do grupo
 ✅ APIs de consultas
 ✅ Controle total do sistema
