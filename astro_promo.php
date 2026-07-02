@@ -66,6 +66,8 @@ function mensagemPromo(){
 
 👑 <b>Assuma o projeto e tenha controle total.</b>
 
+<b>Status: A venda</b>
+
 ━━━━━━━━━━━━━━━━━━
 📦 <b>O que você recebe:</b>
 
