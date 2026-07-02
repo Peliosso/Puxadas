@@ -82,15 +82,15 @@ function mensagemPromo(){
 ━━━━━━━━━━━━━━━━━━
 🔎 <b>Módulos disponíveis:</b>
 
-• CPF
-• Placa
-• CNPJ
-• CEP
-• Nome
-• Telefone
-• Parentes
-• Compras
-• E muito mais...
+<code>• CPF</code>
+<code>• Placa</code>
+<code>• CNPJ</code>
+<code>• CEP</code>
+<code>• Nome</code>
+<code>• Telefone</code>
+<code>• Parentes</code>
+<code>• Compras</code>
+<code>• E muito mais...</code>
 
 ━━━━━━━━━━━━━━━━━━
 ⚠️ <b>Venda exclusiva!</b>
