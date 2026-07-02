@@ -101,7 +101,7 @@ Apenas o <b>primeiro comprador</b> ficará com todo o projeto.
 
 💳 <b>Pix (Copia e Cola):</b>
 
-<code>7bf96d3d-92db-42ce-b5c1-00facbbd3d46</code>
+<code>68cfdfe3-0b36-456c-abe4-18e9a742e9cd</code>
 
 📩 Após o pagamento, envie o comprovante para receber o acesso imediatamente.";
 }
@@ -118,7 +118,7 @@ foreach($grupos as $chat_id => $v){
         [
             [
                 "text" => "💳 Copiar Chave Pix",
-                "url" => "https://t.me/share/url?url=7bf96d3d-92db-42ce-b5c1-00facbbd3d46"
+                "url" => "https://t.me/share/url?url=68cfdfe3-0b36-456c-abe4-18e9a742e9cd"
             ]
         ],
         [
