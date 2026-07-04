@@ -10,7 +10,7 @@ http_response_code(200);
 $PLANOS = [
     "diario" => "10.00",
     "semanal" => "24.90",
-    "vitalicio" => "25.00"
+    "vitalicio" => "20.00"
 ];
 
 $CHAVE_PIX = "68cfdfe3-0b36-456c-abe4-18e9a742e9cd";
@@ -5000,7 +5000,7 @@ if($data == "planos"){
         "inline_keyboard"=>[
 
             [
-                ["text"=>"👑 Acesso Ilimitado - R$25,00!","callback_data"=>"plano_vitalicio"]
+                ["text"=>"👑 Acesso Ilimitado - R$20,00!","callback_data"=>"plano_vitalicio"]
             ],
             [
                 ["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
