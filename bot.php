@@ -375,9 +375,9 @@ Seu plano atual é <b>Gratuito</b> e possui limitações.
 • Sem limites  
 
 ━━━━━━━━━━━━━━━
-💰 <b>Planos disponíveis:</b>
+💰 <b>Plano disponível:</b>
 
-👑 Para Sempre: <b>R$ 25,00!</b> 
+👑 Para Sempre: <b>R$ 20,00!</b> 
 
 🚀 Liberação automática após pagamento
 
