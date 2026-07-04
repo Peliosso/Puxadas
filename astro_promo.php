@@ -104,22 +104,13 @@ $controle = getControle();
 foreach($grupos as $chat_id => $v){    
     
     // 🔘 BOTÃO INLINE    
-    $keyboard = json_encode([
-    "inline_keyboard" => [
-        [
-            [
-                "text" => "💳 Copiar Chave Pix",
-                "url" => "https://t.me/share/url?url=68cfdfe3-0b36-456c-abe4-18e9a742e9cd"
-            ]
-        ],
-        [
-            [
-                "text" => "📤 Enviar Comprovante",
-                "url" => "https://t.me/puxadas71"
-            ]
-        ]
-    ]
-]);
+    $keyboard = json_encode([    
+        "inline_keyboard"=>[    
+            [    
+                ["text"=>"💎 ATIVAR VIP AGORA","callback_data"=>"planos"]    
+            ]    
+        ]    
+    ]);    
     
 // 📤 ENVIA MSG    
 $msg = bot("sendMessage", [    
