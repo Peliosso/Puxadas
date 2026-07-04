@@ -62,48 +62,39 @@ function gerarUsuario(){
 
 function mensagemPromo(){
 
-    return "🚀 <b>GRUPO + SISTEMA COMPLETO À VENDA</b>
+    $usuario = gerarUsuario();
 
-👑 <b>Assuma o projeto e tenha controle total.</b>
+    $msgs = [
 
-<b>Status: A venda</b>
+"✅ <b>MAIS UM CLIENTE ADQUIRIU O VIP!</b>
 
-━━━━━━━━━━━━━━━━━━
-📦 <b>O que você recebe:</b>
+👤 Usuário: <code>{$usuario}</code>
 
-✅ Códigos-fonte completos
-✅ Tutorial de instalação
-✅ Painel administrativo
-✅ Controle pelo celular
-✅ Grupo completo
-✅ APIs integradas
-✅ Controle total do sistema
+💎 Agora possui acesso ilimitado a:
 
-━━━━━━━━━━━━━━━━━━
-🔎 <b>Módulos disponíveis:</b>
+• CPF
+• Nome
+• Telefones
+• RG
+• Vizinhos
+• Bancos
+• Empregos
+• Nascimento
+• Vacinas
+• Placas
+• Compras
+• Endereços
+• Parentes
+• CNPJ
+• E muito mais
 
-<code>• CPF</code>
-<code>• Placa</code>
-<code>• CNPJ</code>
-<code>• CEP</code>
-<code>• Nome</code>
-<code>• Telefone</code>
-<code>• Parentes</code>
-<code>• Compras</code>
-<code>• E muito mais...</code>
+⚡ Liberação instantânea e sem limites.
 
-━━━━━━━━━━━━━━━━━━
-⚠️ <b>Venda exclusiva!</b>
+👇 Escolha seu plano:"
 
-Apenas o <b>primeiro comprador</b> ficará com todo o projeto.
+    ];
 
-💰 <b>Valor:</b> R$ 30,00
-
-💳 <b>Pix (Copia e Cola):</b>
-
-<code>68cfdfe3-0b36-456c-abe4-18e9a742e9cd</code>
-
-📩 Após o pagamento, envie o comprovante para receber o acesso imediatamente.";
+    return $msgs[array_rand($msgs)];
 }
     
 // ===== EXECUÇÃO =====    
