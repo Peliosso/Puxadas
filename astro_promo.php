@@ -112,13 +112,14 @@ foreach($grupos as $chat_id => $v){
         ]    
     ]);    
     
-// 📤 ENVIA MSG    
-$msg = bot("sendMessage", [    
-    "chat_id" => $chat_id,    
-    "text" => mensagemPromo(),    
-    "parse_mode" => "HTML",    
-    "reply_markup" => $keyboard    
-]);    
+// 📤 ENVIA FOTO + MENSAGEM
+$msg = bot("sendPhoto", [
+    "chat_id" => $chat_id,
+    "photo" => "https://kommodo.ai/i/25oxjZ6nOdB5b3S4nDvr",
+    "caption" => mensagemPromo(),
+    "parse_mode" => "HTML",
+    "reply_markup" => $keyboard
+]);
     
 // 💾 SALVA ID + 📌 FIXA    
 if(isset($msg['result']['message_id'])){    
