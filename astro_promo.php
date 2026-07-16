@@ -64,39 +64,31 @@ function mensagemPromo(){
 
     $usuario = gerarUsuario();
 
-    $msgs = [
+ $msgs = [
+"🎉 <b>Mais um cliente garantiu o acesso VIP!</b>
 
-"✅ <b>MAIS UM CLIENTE ADQUIRIU O VIP!</b>
+💎 <b>Consultas disponíveis:</b>
+📄 CPF • 👤 Nome • 📞 Telefones • 🆔 RG
+🏠 Endereços • 👨‍👩‍👧 Parentes • 🚗 Placas
+🏢 CNPJ • 💳 Bancos • 💼 Empregos
+✨ E muitos outros módulos.
 
-👤 Usuário: <code>{$usuario}</code>
+💳 • <b>Chave PIX para liberação: </b>
+<code>167a9ccb-7bd2-4441-bccd-79f00ac05210</code>
 
-💎 Agora possui acesso ilimitado a:
+🗒️ • <b>Clique na chave para copiar.</b>
 
-• CPF
-• Nome
-• Telefones
-• RG
-• Vizinhos
-• Bancos
-• Empregos
-• Nascimento
-• Vacinas
-• Placas
-• Compras
-• Endereços
-• Parentes
-• CNPJ
-• E muito mais
+⚡ • <b>Envie o comprovante e receba seu acesso em instantes.</b>
 
-⚡ Liberação instantânea e sem limites.
-
-👇 Escolha seu plano:"
-
-    ];
-
-    return $msgs[array_rand($msgs)];
-}
+👇 • <b>Escolha seu plano abaixo:</b>"
+];
     
+];  
+  
+    return $msgs[array_rand($msgs)];  
+}  
+    
+
 // ===== EXECUÇÃO =====    
 $grupos = getGrupos();    
 $controle = getControle();    
@@ -104,14 +96,17 @@ $controle = getControle();
 foreach($grupos as $chat_id => $v){    
     
     // 🔘 BOTÃO INLINE    
-    $keyboard = json_encode([    
-        "inline_keyboard"=>[    
-            [    
-                ["text"=>"💎 ATIVAR VIP AGORA","callback_data"=>"planos"]    
-            ]    
-        ]    
-    ]);    
-    
+    $keyboard = json_encode([
+    "inline_keyboard" => [
+        [
+            [
+                "text" => "📩 Enviar Comprovante",
+                "url"  => "https://t.me/puxadas71"
+            ]
+        ]
+    ]
+]);
+
 // 📤 ENVIA FOTO + MENSAGEM
 $msg = bot("sendPhoto", [
     "chat_id" => $chat_id,
