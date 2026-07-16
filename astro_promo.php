@@ -65,13 +65,16 @@ function mensagemPromo(){
     $usuario = gerarUsuario();
 
  $msgs = [
-"🎉 <b>Mais um cliente garantiu o acesso VIP!</b>
+"🎉 <b>Mais um cliente garantiu o sistema exclusivo!</b>
 
 💎 <b>Consultas disponíveis:</b>
+
 📄 CPF • 👤 Nome • 📞 Telefones • 🆔 RG
 🏠 Endereços • 👨‍👩‍👧 Parentes • 🚗 Placas
 🏢 CNPJ • 💳 Bancos • 💼 Empregos
 ✨ E muitos outros módulos.
+
+<b>ACESSO ILIMITADO: R$20,00</b>
 
 💳 • <b>Chave PIX para liberação: </b>
 <code>167a9ccb-7bd2-4441-bccd-79f00ac05210</code>
