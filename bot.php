@@ -8,7 +8,7 @@ header("Content-Type: application/json");
 http_response_code(200);
 
 $PLANOS = [
-    "diario" => "10.0",
+    "diario" => "10.00",
     "semanal" => "24.90",
     "vitalicio" => "20.00"
 ];
