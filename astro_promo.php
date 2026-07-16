@@ -69,10 +69,18 @@ function mensagemPromo(){
 
 💎 <b>Consultas disponíveis:</b>
 
-📄 CPF • 👤 Nome • 📞 Telefones • 🆔 RG
-🏠 Endereços • 👨‍👩‍👧 Parentes • 🚗 Placas
-🏢 CNPJ • 💳 Bancos • 💼 Empregos
-✨ E muitos outros módulos.
+├ 📄 CPF Completo
+├ 👤 Nome
+├ 📞 Telefones
+├ 🆔 RG
+├ 🏠 Endereços
+├ 👨‍👩‍👧 Parentes
+├ 💳 Compras
+├ 🚗 Placas
+├ 🏢 CNPJ
+├ 💳 Bancos
+├ 💼 Empregos
+└ ✨ + Diversos módulos exclusivos
 
 <b>ACESSO ILIMITADO: R$20,00</b>
 
