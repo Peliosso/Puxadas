@@ -81,8 +81,6 @@ function mensagemPromo(){
 ⚡ • <b>Envie o comprovante e receba seu acesso em instantes.</b>
 
 👇 • <b>Escolha seu plano abaixo:</b>"
-];
-    
 ];  
   
     return $msgs[array_rand($msgs)];  
