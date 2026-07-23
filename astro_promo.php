@@ -87,7 +87,7 @@ function mensagemPromo(){
 @puxadas71
 @puxadas71
 
-👆 Toque no @ e consulte agora."
+👆 <i>Toque no @ e consulte agora.</i>"
 ];  
   
     return $msgs[array_rand($msgs)];  
