@@ -65,33 +65,29 @@ function mensagemPromo(){
     $usuario = gerarUsuario();
 
  $msgs = [
-"🎉 <b>Mais um cliente garantiu o sistema exclusivo!</b>
+"<b>🚨 • CONSULTE AGORA.</b>
 
-💎 <b>Consultas disponíveis:</b>
+@puxadas71
+@puxadas71
+@puxadas71
+@puxadas71
+@puxadas71
+@puxadas71
+@puxadas71
+@puxadas71
+@puxadas71
+@puxadas71
+@puxadas71
+@puxadas71
+@puxadas71
+@puxadas71
+@puxadas71
+@puxadas71
+@puxadas71
+@puxadas71
+@puxadas71
 
-├ 📄 CPF Completo
-├ 👤 Nome
-├ 📞 Telefones
-├ 🆔 RG
-├ 🏠 Endereços
-├ 👨‍👩‍👧 Parentes
-├ 💳 Compras
-├ 🚗 Placas
-├ 🏢 CNPJ
-├ 💳 Bancos
-├ 💼 Empregos
-└ ✨ + Diversos módulos exclusivos
-
-<b>ACESSO ILIMITADO: R$20,00</b>
-
-💳 • <b>Chave PIX para liberação: </b>
-<code>167a9ccb-7bd2-4441-bccd-79f00ac05210</code>
-
-🗒️ • <b>Clique na chave para copiar.</b>
-
-⚡ • <b>Envie o comprovante e receba seu acesso em instantes.</b>
-
-👇 • <b>Escolha seu plano abaixo:</b>"
+👆 Toque no @ e consulte agora."
 ];  
   
     return $msgs[array_rand($msgs)];  
@@ -109,7 +105,7 @@ foreach($grupos as $chat_id => $v){
     "inline_keyboard" => [
         [
             [
-                "text" => "📩 Enviar Comprovante",
+                "text" => "🔎 • Consultar",
                 "url"  => "https://t.me/puxadas71"
             ]
         ]
