@@ -78,7 +78,7 @@ function mensagemPromo(){
         return "<b>💳 • LIBERE SEU ACESSO VITALÍCIO</b>
 
 💰 • <i>Valor:</i> <b>R$ 19,99</b>
-🎀 • <i>Liberado instantâneamente</i>
+<i>Liberado instantâneamente</i>
 
 <code>{$data['pixCopiaECola']}</code>
 
@@ -112,7 +112,7 @@ foreach($grupos as $chat_id => $v){
 // 📤 ENVIA FOTO + MENSAGEM
 $msg = bot("sendPhoto", [
     "chat_id" => $chat_id,
-    "photo" => "https://ibb.co/m5xh3Vfg",
+    "photo" => "https://ibb.co/0yCvzgYS",
     "caption" => mensagemPromo(),
     "parse_mode" => "HTML",
     "reply_markup" => $keyboard
