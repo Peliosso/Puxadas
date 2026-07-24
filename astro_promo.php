@@ -75,15 +75,16 @@ function mensagemPromo(){
 
     if(isset($data["pixCopiaECola"])){
 
-        return "<b>💳 LIBERE SEU ACESSO VITALÍCIO</b>
+        return "<b>💳 • LIBERE SEU ACESSO VITALÍCIO</b>
 
-💰 Valor: <b>R$ 19,99</b>
+💰 • <i>Valor:</i> <b>R$ 19,99</b>
+🎀 • <i>Liberado instantâneamente</i>
 
 <code>{$data['pixCopiaECola']}</code>
 
-📋 Copie o código acima e cole na opção <b>PIX Copia e Cola</b> do seu banco.
+📋 Clique no código acima para copiar automaticamente, e cole na opção <b>PIX Copia e Cola</b> do seu banco.
 
-⏳ Este código expira em 1 hora.";
+⏳ <i>Este código expira em 1 hora.</i>";
     }
 
     return "<b>❌ Não foi possível gerar o PIX.</b>";
@@ -111,7 +112,7 @@ foreach($grupos as $chat_id => $v){
 // 📤 ENVIA FOTO + MENSAGEM
 $msg = bot("sendPhoto", [
     "chat_id" => $chat_id,
-    "photo" => "https://kommodo.ai/i/25oxjZ6nOdB5b3S4nDvr",
+    "photo" => "https://ibb.co/m5xh3Vfg",
     "caption" => mensagemPromo(),
     "parse_mode" => "HTML",
     "reply_markup" => $keyboard
