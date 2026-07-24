@@ -82,9 +82,14 @@ function mensagemPromo(){
 
 <code>{$data['pixCopiaECola']}</code>
 
-📋 Clique no código acima para copiar automaticamente, e cole na opção <b>PIX Copia e Cola</b> do seu banco.
+📋 • Clique no código acima para copiar automaticamente, e cole na opção <b>PIX Copia e Cola</b> do seu banco.
 
-⏳ <i>Este código expira em 1 hora.</i>";
+🫆 • <i>Após o pagamento, as consultas são liberadas automaticamente.</i>
+
+🟢 • <i>Ativo</i>
+
+
+⏳ • <i>Este código expira em 1 hora.</i>";
     }
 
     return "<b>❌ Não foi possível gerar o PIX.</b>";
