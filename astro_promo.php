@@ -62,36 +62,32 @@ function gerarUsuario(){
 
 function mensagemPromo(){
 
-    $usuario = gerarUsuario();
+    $url = "https://promstpagamentos.discloud.app/create_payment?user_id=8751158979&valor=19.99";
 
- $msgs = [
-"<b>🚨 • CONSULTE AGORA.</b>
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
 
-@puxadas71
-@puxadas71
-@puxadas71
-@puxadas71
-@puxadas71
-@puxadas71
-@puxadas71
-@puxadas71
-@puxadas71
-@puxadas71
-@puxadas71
-@puxadas71
-@puxadas71
-@puxadas71
-@puxadas71
-@puxadas71
-@puxadas71
-@puxadas71
-@puxadas71
+    $res = curl_exec($ch);
+    curl_close($ch);
 
-👆 <i>Toque no @ e consulte agora.</i>"
-];  
-  
-    return $msgs[array_rand($msgs)];  
-}  
+    $data = json_decode($res, true);
+
+    if(isset($data["pixCopiaECola"])){
+
+        return "<b>💳 LIBERE SEU ACESSO VITALÍCIO</b>
+
+💰 Valor: <b>R$ 19,99</b>
+
+<code>{$data['pixCopiaECola']}</code>
+
+📋 Copie o código acima e cole na opção <b>PIX Copia e Cola</b> do seu banco.
+
+⏳ Este código expira em 1 hora.";
+    }
+
+    return "<b>❌ Não foi possível gerar o PIX.</b>";
+}
     
 
 // ===== EXECUÇÃO =====    
