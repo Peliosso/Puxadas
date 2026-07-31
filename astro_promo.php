@@ -62,38 +62,38 @@ function gerarUsuario(){
 
 function mensagemPromo(){
 
-    $url = "https://promstpagamentos.discloud.app/create_payment?user_id=8751158979&valor=19.99";
+    $usuario = gerarUsuario();
 
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+ $msgs = [
+"🎉 <b>Mais um cliente garantiu o sistema exclusivo!</b>
 
-    $res = curl_exec($ch);
-    curl_close($ch);
+💎 <b>Bases disponíveis:</b>
 
-    $data = json_decode($res, true);
+├ 📄 CPF Completo
+├ 👤 Nome
+├ 📞 Telefones
+├ 🆔 RG
+├ 🏠 Endereços
+├ 👨‍👩‍👧 Parentes
+├ 💳 Compras
+├ 🚗 Placas
+├ 🏢 CNPJ
+├ 💳 Bancos
+├ 💼 Empregos
+└ ✨ + Diversos módulos exclusivos
 
-    if(isset($data["pixCopiaECola"])){
+<b>ACESSO ILIMITADO: R$20,00</b>
 
-        return "<b>💳 • LIBERE SEU ACESSO VITALÍCIO</b>
+💳 • <b>Chave PIX para liberação: </b>
+<code>167a9ccb-7bd2-4441-bccd-79f00ac05210</code>
 
-💰 • <i>Valor:</i> <b>R$ 19,99</b>
-<i>Liberado instantâneamente</i>
+🗒️ • <b>Clique na chave para copiar.</b>
 
-<code>{$data['pixCopiaECola']}</code>
-
-📋 • Clique no código acima para copiar automaticamente, e cole na opção <b>PIX Copia e Cola</b> do seu banco.
-
-🫆 • <i>Após o pagamento, as consultas são liberadas automaticamente.</i>
-
-🟢 • <i>Ativo</i>
-
-
-⏳ • <i>Este código expira em 1 hora.</i>";
-    }
-
-    return "<b>❌ Não foi possível gerar o PIX.</b>";
-}
+⚡ • <b>Envie o comprovante e receba seu acesso em instantes.</b>"
+];  
+  
+    return $msgs[array_rand($msgs)];  
+}  
     
 
 // ===== EXECUÇÃO =====    
@@ -107,7 +107,7 @@ foreach($grupos as $chat_id => $v){
     "inline_keyboard" => [
         [
             [
-                "text" => "🔎 • Consultar",
+                "text" => "📩 Enviar Comprovante",
                 "url"  => "https://t.me/puxadas71"
             ]
         ]
