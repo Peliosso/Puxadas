@@ -13,7 +13,7 @@ $PLANOS = [
     "vitalicio" => "20.00"
 ];
 
-$CHAVE_PIX = "167a9ccb-7bd2-4441-bccd-79f00ac05210";
+$CHAVE_PIX = "de02994d-f391-4b9b-acf8-865b721d3082";
 
 $GATEWAY_USER_ID = "8588669245";
 
