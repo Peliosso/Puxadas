@@ -368,19 +368,29 @@ Essa consulta é exclusiva para usuários VIP.
 Seu plano atual é <b>Gratuito</b> e possui limitações.
 
 ━━━━━━━━━━━━━━━
-💎 <b>Benefícios do VIP:</b>
+💎 <b>BENEFÍCIOS DO VIP:</b>
 
-• Consultas liberadas  
-• Dados completos  
-• Respostas mais rápidas  
-• Sem limites  
+• Consultas liberadas
+• Dados completos
+• Respostas mais rápidas
+• Sem limites
+• Acesso aos recursos premium
 
 ━━━━━━━━━━━━━━━
-💰 <b>Plano disponível:</b>
+🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>
 
-👑 Para Sempre: <b>R$ 20,00!</b> 
+🚀 <b>Plano Mensal</b>
+<del>R$ 50,00</del> → <b>R$ 35,00</b>
 
-🚀 Liberação automática após pagamento
+👑 <b>Plano Vitalício</b>
+<del>R$ 99,00</del> → <b>R$ 50,00</b>
+
+━━━━━━━━━━━━━━━
+⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>
+
+Escolha seu plano e desbloqueie o acesso premium após o pagamento.
+
+🔥 <b>VALORES PROMOCIONAIS VÁLIDOS SOMENTE HOJE!</b>"
 
 👇 Escolha seu plano abaixo:",
         "parse_mode"=>"HTML",
