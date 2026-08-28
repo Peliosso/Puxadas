@@ -4991,17 +4991,32 @@ if($data == "conta"){
 // =========================
 if($data == "planos"){
 
-    $texto = "🚀 <b>CONSULTAS ILIMITADAS</b>\n\n💎 Tenha acesso completo à nossa base de consultas avançadas:\n\n✅ RG, CPF e CNH\n✅ Endereços e dados completos\n✅ Score e dados financeiros\n✅ Parentes e vínculos\n✅ Veículos (chassi, motor, laudo)\n✅ Benefícios, CADSUS e muito mais...\n\n⚡ <b>Consultas ilimitadas + acesso instantâneo</b>\n\n👇 <b>garanta seu plano:</b>";
+    $texto = "🚀 <b>CONSULTAS PREMIUM</b>\n\n💎 Tenha acesso completo ao sistema e desbloqueie todos os recursos disponíveis:\n\n✅ Consultas avançadas\n✅ Dados completos\n✅ Respostas mais rápidas\n✅ Consultas ilimitadas\n✅ Acesso aos recursos premium\n✅ Atualizações futuras\n\n━━━━━━━━━━━━━━━\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n🚀 <b>Plano Mensal</b>\n<del>R$ 50,00</del> → <b>R$ 35,00</b>\n\n👑 <b>Plano Vitalício</b>\n<del>R$ 99,00</del> → <b>R$ 50,00</b>\n\n━━━━━━━━━━━━━━━\n⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>\n\nEscolha seu plano abaixo e garanta seu acesso premium.\n\n🔥 <b>Valores promocionais válidos somente hoje!</b>";
 
     $markup = json_encode([
         "inline_keyboard"=>[
 
             [
-                ["text"=>"👑 Acesso Ilimitado - R$20,00!","callback_data"=>"plano_vitalicio"]
+                [
+                    "text"=>"🚀 Plano Mensal • R$35,00",
+                    "callback_data"=>"plano_mensal"
+                ]
             ],
+
             [
-                ["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
+                [
+                    "text"=>"👑 Plano Vitalício • R$50,00",
+                    "callback_data"=>"plano_vitalicio"
+                ]
+            ],
+
+            [
+                [
+                    "text"=>"⬅️ Menu",
+                    "callback_data"=>"voltar_menu"
+                ]
             ]
+
         ]
     ]);
 
