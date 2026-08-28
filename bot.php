@@ -7,10 +7,16 @@ set_time_limit(0);
 header("Content-Type: application/json");
 http_response_code(200);
 
+// =========================
+// VALORES DOS PLANOS
+// =========================
+
 $PLANOS = [
-    "diario" => "10.00",
-    "semanal" => "24.90",
-    "vitalicio" => "20.00"
+
+    "mensal" => "35,00",
+
+    "vitalicio" => "50,00"
+
 ];
 
 $CHAVE_PIX = "7bf96d3d-92db-42ce-b5c1-00facbbd3d46";
@@ -5025,18 +5031,22 @@ if($data == "planos"){
     exit;
 }
 
-    // =========================
-    // APAGAR MSG
-    // =========================
-    if($data == "apagar_msg"){
-        tg("deleteMessage",[
-            "chat_id"=>$chat,
-            "message_id"=>$msg
-        ]);
-        exit;
-    }
-    
-    // =========================
+
+// =========================
+// APAGAR MSG
+// =========================
+if($data == "apagar_msg"){
+
+    tg("deleteMessage",[
+        "chat_id"=>$chat,
+        "message_id"=>$msg
+    ]);
+
+    exit;
+}
+
+
+// =========================
 // ABRIR MENUS
 // =========================
 
@@ -5044,7 +5054,6 @@ if($data == "menu_vip"){
     menuVip($chat,$msg);
     exit;
 }
-
 
 if($data == "menu_free"){
     menuFree($chat,$msg);
@@ -5056,27 +5065,41 @@ if($data == "catalogo_1"){
     exit;
 }
 
+
+// =========================
+// PROTEÇÃO DOS MENUS VIP
+// =========================
+
 if(strpos($data,"menu_") === 0){
 
-$vipMenus = ["menu_cpf","menu_nome","menu_tel","menu_placa","menu_parentes","menu_vizinhos","menu_foto","menu_email"];
+    $vipMenus = [
+        "menu_cpf",
+        "menu_nome",
+        "menu_tel",
+        "menu_placa",
+        "menu_parentes",
+        "menu_vizinhos",
+        "menu_foto",
+        "menu_email"
+    ];
 
-if(in_array($data,$vipMenus)){
+    if(in_array($data,$vipMenus)){
 
-    if(!isVip($id) && !isFreeGroup($chat)){
+        if(!isVip($id) && !isFreeGroup($chat)){
 
-        tg("answerCallbackQuery",[
-            "callback_query_id"=>$callback["id"],
-            "text"=>"🔒 Apenas VIP",
-            "show_alert"=>true
-        ]);
+            tg("answerCallbackQuery",[
+                "callback_query_id"=>$callback["id"],
+                "text"=>"🔒 Apenas VIP",
+                "show_alert"=>true
+            ]);
 
-        return;
+            return;
+        }
     }
+}
 
-}
-}
-    
-    // =========================
+
+// =========================
 // MENUS DE CONSULTA
 // =========================
 
@@ -5135,6 +5158,7 @@ if($data == "menu_cep"){
     exit;
 }
 
+
 // =========================
 // ESCOLHA DO PLANO
 // =========================
@@ -5142,15 +5166,40 @@ if(strpos($data, "plano_") === 0){
 
     $plano = str_replace("plano_", "", $data);
 
-    $texto = "💎 <b>Plano ".strtoupper($plano)."</b>\n\n💰 Clique abaixo para ver a chave PIX e realizar o pagamento.";
+    $nomes = [
+        "mensal" => "Plano Mensal",
+        "vitalicio" => "Plano Vitalício"
+    ];
+
+    if(!isset($PLANOS[$plano])){
+
+        tg("answerCallbackQuery",[
+            "callback_query_id"=>$callback["id"],
+            "text"=>"❌ Plano inválido",
+            "show_alert"=>true
+        ]);
+
+        exit;
+    }
+
+    $nomePlano = $nomes[$plano];
+    $valor = $PLANOS[$plano];
+
+    $texto = "💎 <b>{$nomePlano}</b>\n\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n💰 Valor promocional: <b>R$ {$valor}</b>\n\n⚡ Após o pagamento, envie o comprovante para que seu acesso seja liberado.";
 
     $markup = json_encode([
         "inline_keyboard"=>[
             [
-                ["text"=>"💳 Chave Pix","callback_data"=>"pix_{$plano}"]
+                [
+                    "text"=>"💳 Pagar • R$ {$valor}",
+                    "callback_data"=>"pix_{$plano}"
+                ]
             ],
             [
-                ["text"=>"⬅️ Voltar","callback_data"=>"planos"]
+                [
+                    "text"=>"⬅️ Voltar",
+                    "callback_data"=>"planos"
+                ]
             ]
         ]
     ]);
@@ -5171,31 +5220,45 @@ if(strpos($data, "pix_") === 0){
     $plano = str_replace("pix_", "", $data);
 
     if(!isset($PLANOS[$plano])){
+
         tg("answerCallbackQuery",[
             "callback_query_id"=>$callback["id"],
             "text"=>"❌ Plano inválido",
             "show_alert"=>true
         ]);
+
         exit;
     }
 
+    $nomes = [
+        "mensal" => "PLANO MENSAL",
+        "vitalicio" => "PLANO VITALÍCIO"
+    ];
+
     $valor = $PLANOS[$plano];
+    $nomePlano = $nomes[$plano];
 
     tg("answerCallbackQuery",[
         "callback_query_id"=>$callback["id"],
-        "text"=>"📋 Copie a chave e faça o pagamento",
+        "text"=>"📋 Copie a chave PIX e faça o pagamento",
         "show_alert"=>false
     ]);
 
-    $texto = "💎 <b>PLANO ".strtoupper($plano)."</b>\n\n💰 Valor: <b>R$ {$valor}</b>\n\n📌 <b>Chave PIX:</b>\n<code>{$CHAVE_PIX}</code>\n\n📋 <i>Clique na chave acima para copiar automaticamente</i>\n\n⚠️ <b>IMPORTANTE:</b>\n⏳ Envie o comprovante para liberação imediata";
+    $texto = "💎 <b>{$nomePlano}</b>\n\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n💰 Valor: <b>R$ {$valor}</b>\n\n📌 <b>Chave PIX:</b>\n<code>{$CHAVE_PIX}</code>\n\n📋 <i>Clique na chave acima para copiar automaticamente.</i>\n\n⚠️ <b>IMPORTANTE:</b>\n⏳ Após realizar o pagamento, envie o comprovante para liberação do acesso.";
 
     $markup = json_encode([
         "inline_keyboard"=>[
             [
-                ["text"=>"📄 Enviar Comprovante","url"=>"https://t.me/puxadas71"]
+                [
+                    "text"=>"📄 Enviar Comprovante",
+                    "url"=>"https://t.me/puxadas71"
+                ]
             ],
             [
-                ["text"=>"⬅️ Voltar","callback_data"=>"planos"]
+                [
+                    "text"=>"⬅️ Voltar",
+                    "callback_data"=>"planos"
+                ]
             ]
         ]
     ]);
