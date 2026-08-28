@@ -390,7 +390,7 @@ Seu plano atual é <b>Gratuito</b> e possui limitações.
 
 Escolha seu plano e desbloqueie o acesso premium após o pagamento.
 
-🔥 <b>VALORES PROMOCIONAIS VÁLIDOS SOMENTE HOJE!</b>"
+🔥 <b>VALORES PROMOCIONAIS VÁLIDOS SOMENTE HOJE!</b>
 
 👇 Escolha seu plano abaixo:",
         "parse_mode"=>"HTML",
