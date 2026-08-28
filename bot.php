@@ -509,44 +509,39 @@ Escolha uma opção abaixo:";
 
     }
 
-    $kb = [
-        "inline_keyboard"=>[
+$kb = [
+    "inline_keyboard"=>[
+
+        [
+            $botaoConsultas,
 
             [
-                $botaoConsultas,
-
-                [
-                    "text"=>"👤 • Conta",
-                    "callback_data"=>"conta"
-                ]
-            ],
-
-            [
-                [
-                    "text"=>"⭐ • Planos VIP",
-                    "callback_data"=>"planos"
-                ],
-
-                [
-                    "text"=>"🚀 • Site",
-                    "url"=>"https://astrosearch.amorinha6767.workers.dev"
-                ]
-            ],
-
-            [
-                [
-                    "text"=>"📢 • Canal Oficial",
-                    "url"=>"https://t.me/consultarcpff"
-                ],
-
-                [
-                    "text"=>"🛠 • Suporte",
-                    "url"=>"https://t.me/puxadas71"
-                ]
+                "text"=>"👤 • Conta",
+                "callback_data"=>"conta"
             ]
+        ],
 
+        [
+            [
+                "text"=>"⭐ • Planos VIP",
+                "callback_data"=>"planos"
+            ],
+
+            [
+                "text"=>"🚀 • Site",
+                "url"=>"https://astrosearch.amorinha6767.workers.dev"
+            ]
+        ],
+
+        [
+            [
+                "text"=>"🛠 • Suporte",
+                "url"=>"https://t.me/puxadas71"
+            ]
         ]
-    ];
+
+    ]
+];
 
     if($edit){
 
@@ -1150,7 +1145,6 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado.
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
-📢 <b>Canal:</b> @consultarcpff
 ";
 
     tg("sendMessage",[
@@ -1359,7 +1353,6 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado.
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
-📢 <b>Canal:</b> @consultarcpff
 ";
 
     tg("sendMessage",[
@@ -1567,7 +1560,6 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado.
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
-📢 <b>Canal:</b> @consultarcpff
 ";
 
     tg("sendMessage",[
@@ -2269,7 +2261,6 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
-📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -2520,7 +2511,6 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
-📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -3003,7 +2993,6 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
-📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -3263,7 +3252,6 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
-📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -4163,7 +4151,6 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
-📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -4570,7 +4557,6 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
-📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Premium</b>
