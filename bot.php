@@ -13,9 +13,9 @@ http_response_code(200);
 
 $PLANOS = [
 
-    "mensal" => "35,00",
+    "mensal" => "20,00",
 
-    "vitalicio" => "50,00"
+    "vitalicio" => "25,00"
 
 ];
 
@@ -386,10 +386,10 @@ Seu plano atual é <b>Gratuito</b> e possui limitações.
 🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>
 
 🚀 <b>Plano Mensal</b>
-<del>R$ 50,00</del> → <b>R$ 35,00</b>
+<del>R$ 50,00</del> → <b>R$ 20,00</b>
 
 👑 <b>Plano Vitalício</b>
-<del>R$ 99,00</del> → <b>R$ 50,00</b>
+<del>R$ 99,00</del> → <b>R$ 25,00</b>
 
 ━━━━━━━━━━━━━━━
 ⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>
@@ -4997,21 +4997,21 @@ if($data == "conta"){
 // =========================
 if($data == "planos"){
 
-    $texto = "🚀 <b>CONSULTAS PREMIUM</b>\n\n💎 Tenha acesso completo ao sistema e desbloqueie todos os recursos disponíveis:\n\n✅ Consultas avançadas\n✅ Dados completos\n✅ Respostas mais rápidas\n✅ Consultas ilimitadas\n✅ Acesso aos recursos premium\n✅ Atualizações futuras\n\n━━━━━━━━━━━━━━━\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n🚀 <b>Plano Mensal</b>\n<del>R$ 50,00</del> → <b>R$ 35,00</b>\n\n👑 <b>Plano Vitalício</b>\n<del>R$ 99,00</del> → <b>R$ 50,00</b>\n\n━━━━━━━━━━━━━━━\n⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>\n\nEscolha seu plano abaixo e garanta seu acesso premium.\n\n🔥 <b>Valores promocionais válidos somente hoje!</b>";
+    $texto = "🚀 <b>CONSULTAS PREMIUM</b>\n\n💎 Tenha acesso completo ao sistema e desbloqueie todos os recursos disponíveis:\n\n✅ Consultas avançadas\n✅ Dados completos\n✅ Respostas mais rápidas\n✅ Consultas ilimitadas\n✅ Acesso aos recursos premium\n✅ Atualizações futuras\n\n━━━━━━━━━━━━━━━\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n🚀 <b>Plano Mensal</b>\n<del>R$ 50,00</del> → <b>R$ 20,00</b>\n\n👑 <b>Plano Vitalício</b>\n<del>R$ 99,00</del> → <b>R$ 25,00</b>\n\n━━━━━━━━━━━━━━━\n⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>\n\nEscolha seu plano abaixo e garanta seu acesso premium.\n\n🔥 <b>Valores promocionais válidos somente hoje!</b>";
 
     $markup = json_encode([
         "inline_keyboard"=>[
 
             [
                 [
-                    "text"=>"🚀 Plano Mensal • R$35,00",
+                    "text"=>"🚀 Plano Mensal • R$20,00",
                     "callback_data"=>"plano_mensal"
                 ]
             ],
 
             [
                 [
-                    "text"=>"👑 Plano Vitalício • R$50,00",
+                    "text"=>"👑 Plano Vitalício • R$25,00",
                     "callback_data"=>"plano_vitalicio"
                 ]
             ],
