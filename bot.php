@@ -19,7 +19,7 @@ $PLANOS = [
 
 ];
 
-$CHAVE_PIX = "7bf96d3d-92db-42ce-b5c1-00facbbd3d46";
+$CHAVE_PIX = "de02994d-f391-4b9b-acf8-865b721d3082";
 
 $GATEWAY_USER_ID = "8588669245";
 
