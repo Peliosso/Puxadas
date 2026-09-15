@@ -367,38 +367,30 @@ function bloquearConsulta($chat){
         "chat_id"=>$chat,
         "photo"=>"https://www.image2url.com/r2/default/images/1779595449159-582794a7-a3c0-4acc-8c51-a612a1c2909f.png",
         "caption"=>
-"🔒 <b>ACESSO RESTRITO</b>
+"🔒 <b>ACESSO VIP</b>
 
-Essa consulta é exclusiva para usuários VIP.
+⚠️ Esta consulta é exclusiva para usuários <b>VIP</b>.
 
-Seu plano atual é <b>Gratuito</b> e possui limitações.
-
-━━━━━━━━━━━━━━━
-💎 <b>BENEFÍCIOS DO VIP:</b>
-
-• Consultas liberadas
+💎 <b>Com VIP você desbloqueia:</b>
+• Consultas ilimitadas
 • Dados completos
-• Respostas mais rápidas
-• Sem limites
-• Acesso aos recursos premium
+• Respostas rápidas
+• Recursos Premium
 
 ━━━━━━━━━━━━━━━
-🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>
+🔥 <b>ÚLTIMA VAGA</b>
 
-🚀 <b>Plano Mensal</b>
-<del>R$ 50,00</del> → <b>R$ 20,00</b>
-
-👑 <b>Plano Vitalício</b>
-<del>R$ 99,00</del> → <b>R$ 25,00</b>
+🚀 <b>Mensal:</b> <del>R$ 50</del> → <b>R$ 20</b>
+👑 <b>Vitalício:</b> <del>R$ 99</del> → <b>R$ 25</b>
 
 ━━━━━━━━━━━━━━━
 ⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>
 
-Escolha seu plano e desbloqueie o acesso premium após o pagamento.
+⏳ <b>1 única vaga</b> nesta condição.
 
-🔥 <b>VALORES PROMOCIONAIS VÁLIDOS SOMENTE HOJE!</b>
+🔥 Garanta seu VIP agora antes que a oferta encerre!
 
-👇 Escolha seu plano abaixo:",
+👇 <b>Escolha seu plano:</b>",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
@@ -4997,7 +4989,8 @@ if($data == "conta"){
 // =========================
 if($data == "planos"){
 
-    $texto = "🚀 <b>CONSULTAS PREMIUM</b>\n\n💎 Tenha acesso completo ao sistema e desbloqueie todos os recursos disponíveis:\n\n✅ Consultas avançadas\n✅ Dados completos\n✅ Respostas mais rápidas\n✅ Consultas ilimitadas\n✅ Acesso aos recursos premium\n✅ Atualizações futuras\n\n━━━━━━━━━━━━━━━\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n🚀 <b>Plano Mensal</b>\n<del>R$ 50,00</del> → <b>R$ 20,00</b>\n\n👑 <b>Plano Vitalício</b>\n<del>R$ 99,00</del> → <b>R$ 25,00</b>\n\n━━━━━━━━━━━━━━━\n⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>\n\nEscolha seu plano abaixo e garanta seu acesso premium.\n\n🔥 <b>Valores promocionais válidos somente hoje!</b>";
+    $texto = "🚀 <b>ACESSO PREMIUM</b>\n\n💎 Desbloqueie o sistema completo e tenha:\n\n✅ Consultas avançadas e ilimitadas\n✅ Dados completos\n✅ Respostas rápidas\n✅ Todos os recursos Premium\n✅ Atualizações futuras\n\n━━━━━━━━━━━━━━━\n🔥 <b>ÚLTIMA VAGA DISPONÍVEL</b>\n\n🚀 <b>Mensal:</b> <del>R$ 50,00</del> → <b>R$ 20,00</b>\n👑 <b>Vitalício:</b> <del>R$ 99,00</del> → <b>R$ 25,00</b>\n\n⚠️ <b>ATENÇÃO:</b> esta condição promocional está disponível somente para a última vaga. Após o preenchimento, o valor poderá voltar ao normal.\n\n⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>\n\n🔥 Se você quer acesso completo, aproveite agora antes que a última vaga seja ocupada!";
+}
 
     $markup = json_encode([
         "inline_keyboard"=>[
