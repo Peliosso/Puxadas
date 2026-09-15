@@ -4997,8 +4997,7 @@ if($data == "conta"){
 // =========================
 if($data == "planos"){
 
-    $texto = "🚀 <b>ACESSO PREMIUM</b>\n\n💎 Desbloqueie o sistema completo e tenha:\n\n✅ Consultas avançadas e ilimitadas\n✅ Dados completos\n✅ Respostas rápidas\n✅ Todos os recursos Premium\n✅ Atualizações futuras\n\n━━━━━━━━━━━━━━━\n🔥 <b>ÚLTIMA VAGA DISPONÍVEL</b>\n\n🚀 <b>Mensal:</b> <del>R$ 50,00</del> → <b>R$ 20,00</b>\n👑 <b>Vitalício:</b> <del>R$ 99,00</del> → <b>R$ 25,00</b>\n\n⚠️ <b>ATENÇÃO:</b> esta condição promocional está disponível somente para a última vaga. Após o preenchimento, o valor poderá voltar ao normal.\n\n⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>\n\n🔥 Se você quer acesso completo, aproveite agora antes que a última vaga seja ocupada!";
-}
+    $texto = "🚀 <b>CONSULTAS PREMIUM</b>\n\n💎 Tenha acesso completo ao sistema e desbloqueie todos os recursos disponíveis:\n\n✅ Consultas avançadas\n✅ Dados completos\n✅ Respostas mais rápidas\n✅ Consultas ilimitadas\n✅ Acesso aos recursos premium\n✅ Atualizações futuras\n\n━━━━━━━━━━━━━━━\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n🚀 <b>Plano Mensal</b>\n<del>R$ 50,00</del> → <b>R$ 20,00</b>\n\n👑 <b>Plano Vitalício</b>\n<del>R$ 99,00</del> → <b>R$ 25,00</b>\n\n━━━━━━━━━━━━━━━\n⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>\n\nEscolha seu plano abaixo e garanta seu acesso premium.\n\n🔥 <b>Valores promocionais válidos somente hoje!</b>";
 
     $markup = json_encode([
         "inline_keyboard"=>[
