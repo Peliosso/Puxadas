@@ -367,30 +367,38 @@ function bloquearConsulta($chat){
         "chat_id"=>$chat,
         "photo"=>"https://www.image2url.com/r2/default/images/1779595449159-582794a7-a3c0-4acc-8c51-a612a1c2909f.png",
         "caption"=>
-"🔒 <b>ACESSO VIP</b>
+"🔒 <b>ACESSO RESTRITO</b>
 
-⚠️ Esta consulta é exclusiva para usuários <b>VIP</b>.
+Essa consulta é exclusiva para usuários VIP.
 
-💎 <b>Com VIP você desbloqueia:</b>
-• Consultas ilimitadas
-• Dados completos
-• Respostas rápidas
-• Recursos Premium
+Seu plano atual é <b>Gratuito</b> e possui limitações.
 
 ━━━━━━━━━━━━━━━
-🔥 <b>ÚLTIMA VAGA</b>
+💎 <b>BENEFÍCIOS DO VIP:</b>
 
-🚀 <b>Mensal:</b> <del>R$ 50</del> → <b>R$ 20</b>
-👑 <b>Vitalício:</b> <del>R$ 99</del> → <b>R$ 25</b>
+• Consultas liberadas
+• Dados completos
+• Respostas mais rápidas
+• Sem limites
+• Acesso aos recursos premium
+
+━━━━━━━━━━━━━━━
+🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>
+
+🚀 <b>Plano Mensal</b>
+<del>R$ 50,00</del> → <b>R$ 20,00</b>
+
+👑 <b>Plano Vitalício</b>
+<del>R$ 99,00</del> → <b>R$ 25,00</b>
 
 ━━━━━━━━━━━━━━━
 ⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>
 
-⏳ <b>1 única vaga</b> nesta condição.
+Escolha seu plano e desbloqueie o acesso premium após o pagamento.
 
-🔥 Garanta seu VIP agora antes que a oferta encerre!
+🔥 <b>VALORES PROMOCIONAIS VÁLIDOS SOMENTE HOJE!</b>
 
-👇 <b>Escolha seu plano:</b>",
+👇 Escolha seu plano abaixo:",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
@@ -5178,7 +5186,7 @@ if(strpos($data, "plano_") === 0){
     $nomePlano = $nomes[$plano];
     $valor = $PLANOS[$plano];
 
-    $texto = "💎 <b>{$nomePlano}</b>\n\n🔥 <b>OFERTA ESPECIAL — ÚLTIMA VAGA!</b>\n\n💰 Valor promocional: <b>R$ {$valor}</b>\n\n⚡ Após o pagamento, envie o comprovante para que seu acesso seja liberado.";
+    $texto = "💎 <b>{$nomePlano}</b>\n\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n💰 Valor promocional: <b>R$ {$valor}</b>\n\n⚡ Após o pagamento, envie o comprovante para que seu acesso seja liberado.";
 
     $markup = json_encode([
         "inline_keyboard"=>[
@@ -5237,7 +5245,7 @@ if(strpos($data, "pix_") === 0){
         "show_alert"=>false
     ]);
 
-    $texto = "💎 <b>{$nomePlano}</b>\n\n🔥 <b>OFERTA ESPECIAL — ÚLTIMA VAGA!</b>\n\n💰 Valor: <b>R$ {$valor}</b>\n\n📌 <b>Chave PIX:</b>\n<code>{$CHAVE_PIX}</code>\n\n📋 <i>Clique na chave acima para copiar automaticamente.</i>\n\n⚠️ <b>IMPORTANTE:</b>\n⏳ Após realizar o pagamento, envie o comprovante para liberação do acesso.";
+    $texto = "💎 <b>{$nomePlano}</b>\n\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n💰 Valor: <b>R$ {$valor}</b>\n\n📌 <b>Chave PIX:</b>\n<code>{$CHAVE_PIX}</code>\n\n📋 <i>Clique na chave acima para copiar automaticamente.</i>\n\n⚠️ <b>IMPORTANTE:</b>\n⏳ Após realizar o pagamento, envie o comprovante para liberação do acesso.";
 
     $markup = json_encode([
         "inline_keyboard"=>[
