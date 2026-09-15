@@ -367,38 +367,34 @@ function bloquearConsulta($chat){
         "chat_id"=>$chat,
         "photo"=>"https://www.image2url.com/r2/default/images/1779595449159-582794a7-a3c0-4acc-8c51-a612a1c2909f.png",
         "caption"=>
-"🔒 <b>ACESSO RESTRITO</b>
+"🔒 <b>ADQUIRA O VIP</b>
 
-Essa consulta é exclusiva para usuários VIP.
+Seu plano <b>Grátis</b> possui limitações.
 
-Seu plano atual é <b>Gratuito</b> e possui limitações.
-
-━━━━━━━━━━━━━━━
-💎 <b>BENEFÍCIOS DO VIP:</b>
-
+💎 <b>COM O VIP VOCÊ TEM:</b>
 • Consultas liberadas
 • Dados completos
-• Respostas mais rápidas
+• Mais rapidez
+• Recursos premium
 • Sem limites
-• Acesso aos recursos premium
 
 ━━━━━━━━━━━━━━━
-🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>
+🔥 <b>OFERTA ESPECIAL — HOJE!</b>
 
-🚀 <b>Plano Mensal</b>
+🚀 <b>MENSAL</b>
 <del>R$ 50,00</del> → <b>R$ 20,00</b>
 
-👑 <b>Plano Vitalício</b>
+👑 <b>VITALÍCIO</b>
 <del>R$ 99,00</del> → <b>R$ 25,00</b>
 
 ━━━━━━━━━━━━━━━
-⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>
+⚡ <b>ACESSO AUTOMÁTICO</b>
 
-Escolha seu plano e desbloqueie o acesso premium após o pagamento.
+Pague e tenha seu VIP liberado automaticamente.
 
-🔥 <b>VALORES PROMOCIONAIS VÁLIDOS SOMENTE HOJE!</b>
+⏳ <b>APROVEITE ENQUANTO A OFERTA ESTÁ ATIVA!</b>
 
-👇 Escolha seu plano abaixo:",
+👇 <b>ESCOLHA SEU PLANO:</b>",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
@@ -4997,7 +4993,7 @@ if($data == "conta"){
 // =========================
 if($data == "planos"){
 
-    $texto = "🚀 <b>CONSULTAS PREMIUM</b>\n\n💎 Tenha acesso completo ao sistema e desbloqueie todos os recursos disponíveis:\n\n✅ Consultas avançadas\n✅ Dados completos\n✅ Respostas mais rápidas\n✅ Consultas ilimitadas\n✅ Acesso aos recursos premium\n✅ Atualizações futuras\n\n━━━━━━━━━━━━━━━\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n🚀 <b>Plano Mensal</b>\n<del>R$ 50,00</del> → <b>R$ 20,00</b>\n\n👑 <b>Plano Vitalício</b>\n<del>R$ 99,00</del> → <b>R$ 25,00</b>\n\n━━━━━━━━━━━━━━━\n⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>\n\nEscolha seu plano abaixo e garanta seu acesso premium.\n\n🔥 <b>Valores promocionais válidos somente hoje!</b>";
+    $texto = "🚀 <b>CONSULTAS PREMIUM</b>\n\n💎 Desbloqueie todo o potencial do sistema e tenha acesso completo:\n\n✅ Consultas avançadas\n✅ Dados completos\n✅ Mais rapidez\n✅ Consultas ilimitadas\n✅ Recursos premium\n\n━━━━━━━━━━━━━━━\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n🚀 <b>Plano Mensal</b>\n<del>R$ 50,00</del> → <b>R$ 20,00</b>\n\n👑 <b>Plano Vitalício</b>\n<del>R$ 99,00</del> → <b>R$ 25,00</b>\n\n━━━━━━━━━━━━━━━\n⚡ <b>ACESSO AUTOMÁTICO</b>\n\nEscolha seu plano, efetue o pagamento e desbloqueie seu acesso premium.\n\n🔥 <b>Garanta seu plano promocional antes que a oferta termine!</b>";
 
     $markup = json_encode([
         "inline_keyboard"=>[
