@@ -379,7 +379,7 @@ Seu plano <b>Grátis</b> possui limitações.
 • Sem limites
 
 ━━━━━━━━━━━━━━━
-🔥 <b>OFERTA ESPECIAL — HOJE!</b>
+🔥 <b>OFERTA ESPECIAL — última vaga!</b>
 
 🚀 <b>MENSAL</b>
 <del>R$ 50,00</del> → <b>R$ 20,00</b>
@@ -4993,7 +4993,7 @@ if($data == "conta"){
 // =========================
 if($data == "planos"){
 
-    $texto = "🚀 <b>CONSULTAS PREMIUM</b>\n\n💎 Desbloqueie todo o potencial do sistema e tenha acesso completo:\n\n✅ Consultas avançadas\n✅ Dados completos\n✅ Mais rapidez\n✅ Consultas ilimitadas\n✅ Recursos premium\n\n━━━━━━━━━━━━━━━\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n🚀 <b>Plano Mensal</b>\n<del>R$ 50,00</del> → <b>R$ 20,00</b>\n\n👑 <b>Plano Vitalício</b>\n<del>R$ 99,00</del> → <b>R$ 25,00</b>\n\n━━━━━━━━━━━━━━━\n⚡ <b>ACESSO AUTOMÁTICO</b>\n\nEscolha seu plano, efetue o pagamento e desbloqueie seu acesso premium.\n\n🔥 <b>Garanta seu plano promocional antes que a oferta termine!</b>";
+    $texto = "🚀 <b>CONSULTAS PREMIUM</b>\n\n💎 Desbloqueie todo o potencial do sistema e tenha acesso completo:\n\n✅ Consultas avançadas\n✅ Dados completos\n✅ Mais rapidez\n✅ Consultas ilimitadas\n✅ Recursos premium\n\n━━━━━━━━━━━━━━━\n🔥 <b>OFERTA ESPECIAL — última vaga!</b>\n\n🚀 <b>Plano Mensal</b>\n<del>R$ 50,00</del> → <b>R$ 20,00</b>\n\n👑 <b>Plano Vitalício</b>\n<del>R$ 99,00</del> → <b>R$ 25,00</b>\n\n━━━━━━━━━━━━━━━\n⚡ <b>ACESSO AUTOMÁTICO</b>\n\nEscolha seu plano, efetue o pagamento e desbloqueie seu acesso premium.\n\n🔥 <b>Garanta seu plano promocional antes que a oferta termine!</b>";
 
     $markup = json_encode([
         "inline_keyboard"=>[
@@ -5181,7 +5181,7 @@ if(strpos($data, "plano_") === 0){
     $nomePlano = $nomes[$plano];
     $valor = $PLANOS[$plano];
 
-    $texto = "💎 <b>{$nomePlano}</b>\n\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n💰 Valor promocional: <b>R$ {$valor}</b>\n\n⚡ Após o pagamento, envie o comprovante para que seu acesso seja liberado.";
+    $texto = "💎 <b>{$nomePlano}</b>\n\n🔥 <b>OFERTA ESPECIAL — última vaga!</b>\n\n💰 Valor promocional: <b>R$ {$valor}</b>\n\n⚡ Após o pagamento, envie o comprovante para que seu acesso seja liberado.";
 
     $markup = json_encode([
         "inline_keyboard"=>[
@@ -5240,7 +5240,7 @@ if(strpos($data, "pix_") === 0){
         "show_alert"=>false
     ]);
 
-    $texto = "💎 <b>{$nomePlano}</b>\n\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n💰 Valor: <b>R$ {$valor}</b>\n\n📌 <b>Chave PIX:</b>\n<code>{$CHAVE_PIX}</code>\n\n📋 <i>Clique na chave acima para copiar automaticamente.</i>\n\n⚠️ <b>IMPORTANTE:</b>\n⏳ Após realizar o pagamento, envie o comprovante para liberação do acesso.";
+    $texto = "💎 <b>{$nomePlano}</b>\n\n🔥 <b>OFERTA ESPECIAL — última vaga!</b>\n\n💰 Valor: <b>R$ {$valor}</b>\n\n📌 <b>Chave PIX:</b>\n<code>{$CHAVE_PIX}</code>\n\n📋 <i>Clique na chave acima para copiar automaticamente.</i>\n\n⚠️ <b>IMPORTANTE:</b>\n⏳ Após realizar o pagamento, envie o comprovante para liberação do acesso.";
 
     $markup = json_encode([
         "inline_keyboard"=>[
