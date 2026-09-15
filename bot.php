@@ -545,7 +545,7 @@ $kb = [
 
             [
                 "text"=>"🚀 • Site",
-                "url"=>"https://astrosearch.amorinha6767.workers.dev"
+                "url"=>"https://astro-search.stherlionato.workers.dev/"
             ]
         ],
 
