@@ -367,34 +367,38 @@ function bloquearConsulta($chat){
         "chat_id"=>$chat,
         "photo"=>"https://www.image2url.com/r2/default/images/1779595449159-582794a7-a3c0-4acc-8c51-a612a1c2909f.png",
         "caption"=>
-"🔒 <b>ADQUIRA O VIP</b>
+"🔒 <b>ACESSO RESTRITO</b>
 
-Seu plano <b>Grátis</b> possui limitações.
+Essa consulta é exclusiva para usuários VIP.
 
-💎 <b>COM O VIP VOCÊ TEM:</b>
-• Consultas liberadas
-• Dados completos
-• Mais rapidez
-• Recursos premium
-• Sem limites
+Seu plano atual é <b>Gratuito</b> e possui limitações.
 
 ━━━━━━━━━━━━━━━
-🔥 <b>OFERTA ESPECIAL — última vaga!</b>
+💎 <b>BENEFÍCIOS DO VIP:</b>
 
-🚀 <b>MENSAL</b>
+• Consultas liberadas
+• Dados completos
+• Respostas mais rápidas
+• Sem limites
+• Acesso aos recursos premium
+
+━━━━━━━━━━━━━━━
+🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>
+
+🚀 <b>Plano Mensal</b>
 <del>R$ 50,00</del> → <b>R$ 20,00</b>
 
-👑 <b>VITALÍCIO</b>
+👑 <b>Plano Vitalício</b>
 <del>R$ 99,00</del> → <b>R$ 25,00</b>
 
 ━━━━━━━━━━━━━━━
-⚡ <b>ACESSO AUTOMÁTICO</b>
+⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>
 
-Pague e tenha seu VIP liberado automaticamente.
+Escolha seu plano e desbloqueie o acesso premium após o pagamento.
 
-⏳ <b>APROVEITE ENQUANTO A OFERTA ESTÁ ATIVA!</b>
+🔥 <b>VALORES PROMOCIONAIS VÁLIDOS SOMENTE HOJE!</b>
 
-👇 <b>ESCOLHA SEU PLANO:</b>",
+👇 Escolha seu plano abaixo:",
         "parse_mode"=>"HTML",
         "reply_markup"=>json_encode([
             "inline_keyboard"=>[
@@ -541,7 +545,7 @@ $kb = [
 
             [
                 "text"=>"🚀 • Site",
-                "url"=>"https://astro-search.stherlionato.workers.dev/"
+                "url"=>"https://astrosearch.amorinha6767.workers.dev"
             ]
         ],
 
@@ -4993,7 +4997,7 @@ if($data == "conta"){
 // =========================
 if($data == "planos"){
 
-    $texto = "🚀 <b>CONSULTAS PREMIUM</b>\n\n💎 Desbloqueie todo o potencial do sistema e tenha acesso completo:\n\n✅ Consultas avançadas\n✅ Dados completos\n✅ Mais rapidez\n✅ Consultas ilimitadas\n✅ Recursos premium\n\n━━━━━━━━━━━━━━━\n🔥 <b>OFERTA ESPECIAL — última vaga!</b>\n\n🚀 <b>Plano Mensal</b>\n<del>R$ 50,00</del> → <b>R$ 20,00</b>\n\n👑 <b>Plano Vitalício</b>\n<del>R$ 99,00</del> → <b>R$ 25,00</b>\n\n━━━━━━━━━━━━━━━\n⚡ <b>ACESSO AUTOMÁTICO</b>\n\nEscolha seu plano, efetue o pagamento e desbloqueie seu acesso premium.\n\n🔥 <b>Garanta seu plano promocional antes que a oferta termine!</b>";
+    $texto = "🚀 <b>CONSULTAS PREMIUM</b>\n\n💎 Tenha acesso completo ao sistema e desbloqueie todos os recursos disponíveis:\n\n✅ Consultas avançadas\n✅ Dados completos\n✅ Respostas mais rápidas\n✅ Consultas ilimitadas\n✅ Acesso aos recursos premium\n✅ Atualizações futuras\n\n━━━━━━━━━━━━━━━\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n🚀 <b>Plano Mensal</b>\n<del>R$ 50,00</del> → <b>R$ 20,00</b>\n\n👑 <b>Plano Vitalício</b>\n<del>R$ 99,00</del> → <b>R$ 25,00</b>\n\n━━━━━━━━━━━━━━━\n⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>\n\nEscolha seu plano abaixo e garanta seu acesso premium.\n\n🔥 <b>Valores promocionais válidos somente hoje!</b>";
 
     $markup = json_encode([
         "inline_keyboard"=>[
@@ -5181,7 +5185,7 @@ if(strpos($data, "plano_") === 0){
     $nomePlano = $nomes[$plano];
     $valor = $PLANOS[$plano];
 
-    $texto = "💎 <b>{$nomePlano}</b>\n\n🔥 <b>OFERTA ESPECIAL — última vaga!</b>\n\n💰 Valor promocional: <b>R$ {$valor}</b>\n\n⚡ Após o pagamento, envie o comprovante para que seu acesso seja liberado.";
+    $texto = "💎 <b>{$nomePlano}</b>\n\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n💰 Valor promocional: <b>R$ {$valor}</b>\n\n⚡ Após o pagamento, envie o comprovante para que seu acesso seja liberado.";
 
     $markup = json_encode([
         "inline_keyboard"=>[
@@ -5240,7 +5244,7 @@ if(strpos($data, "pix_") === 0){
         "show_alert"=>false
     ]);
 
-    $texto = "💎 <b>{$nomePlano}</b>\n\n🔥 <b>OFERTA ESPECIAL — última vaga!</b>\n\n💰 Valor: <b>R$ {$valor}</b>\n\n📌 <b>Chave PIX:</b>\n<code>{$CHAVE_PIX}</code>\n\n📋 <i>Clique na chave acima para copiar automaticamente.</i>\n\n⚠️ <b>IMPORTANTE:</b>\n⏳ Após realizar o pagamento, envie o comprovante para liberação do acesso.";
+    $texto = "💎 <b>{$nomePlano}</b>\n\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n💰 Valor: <b>R$ {$valor}</b>\n\n📌 <b>Chave PIX:</b>\n<code>{$CHAVE_PIX}</code>\n\n📋 <i>Clique na chave acima para copiar automaticamente.</i>\n\n⚠️ <b>IMPORTANTE:</b>\n⏳ Após realizar o pagamento, envie o comprovante para liberação do acesso.";
 
     $markup = json_encode([
         "inline_keyboard"=>[
