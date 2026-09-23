@@ -7,19 +7,13 @@ set_time_limit(0);
 header("Content-Type: application/json");
 http_response_code(200);
 
-// =========================
-// VALORES DOS PLANOS
-// =========================
-
 $PLANOS = [
-
-    "mensal" => "35,00",
-
-    "vitalicio" => "50,00"
-
+    "diario" => "10.00",
+    "semanal" => "24.90",
+    "vitalicio" => "20.00"
 ];
 
-$CHAVE_PIX = "7bf96d3d-92db-42ce-b5c1-00facbbd3d46";
+$CHAVE_PIX = "de02994d-f391-4b9b-acf8-865b721d3082";
 
 $GATEWAY_USER_ID = "8588669245";
 
@@ -374,29 +368,19 @@ Essa consulta é exclusiva para usuários VIP.
 Seu plano atual é <b>Gratuito</b> e possui limitações.
 
 ━━━━━━━━━━━━━━━
-💎 <b>BENEFÍCIOS DO VIP:</b>
+💎 <b>Benefícios do VIP:</b>
 
-• Consultas liberadas
-• Dados completos
-• Respostas mais rápidas
-• Sem limites
-• Acesso aos recursos premium
-
-━━━━━━━━━━━━━━━
-🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>
-
-🚀 <b>Plano Mensal</b>
-<del>R$ 50,00</del> → <b>R$ 35,00</b>
-
-👑 <b>Plano Vitalício</b>
-<del>R$ 99,00</del> → <b>R$ 50,00</b>
+• Consultas liberadas  
+• Dados completos  
+• Respostas mais rápidas  
+• Sem limites  
 
 ━━━━━━━━━━━━━━━
-⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>
+💰 <b>Plano disponível:</b>
 
-Escolha seu plano e desbloqueie o acesso premium após o pagamento.
+👑 Para Sempre: <b>R$ 20,00!</b> 
 
-🔥 <b>VALORES PROMOCIONAIS VÁLIDOS SOMENTE HOJE!</b>
+🚀 Liberação automática após pagamento
 
 👇 Escolha seu plano abaixo:",
         "parse_mode"=>"HTML",
@@ -525,39 +509,44 @@ Escolha uma opção abaixo:";
 
     }
 
-$kb = [
-    "inline_keyboard"=>[
-
-        [
-            $botaoConsultas,
+    $kb = [
+        "inline_keyboard"=>[
 
             [
-                "text"=>"👤 • Conta",
-                "callback_data"=>"conta"
-            ]
-        ],
+                $botaoConsultas,
 
-        [
-            [
-                "text"=>"⭐ • Planos VIP",
-                "callback_data"=>"planos"
+                [
+                    "text"=>"👤 • Conta",
+                    "callback_data"=>"conta"
+                ]
             ],
 
             [
-                "text"=>"🚀 • Site",
-                "url"=>"https://astrosearch.amorinha6767.workers.dev"
-            ]
-        ],
+                [
+                    "text"=>"⭐ • Planos VIP",
+                    "callback_data"=>"planos"
+                ],
 
-        [
+                [
+                    "text"=>"🚀 • Site",
+                    "url"=>"https://astrosearch.amorinha6767.workers.dev"
+                ]
+            ],
+
             [
-                "text"=>"🛠 • Suporte",
-                "url"=>"https://t.me/puxadas71"
-            ]
-        ]
+                [
+                    "text"=>"📢 • Canal Oficial",
+                    "url"=>"https://t.me/consultarcpff"
+                ],
 
-    ]
-];
+                [
+                    "text"=>"🛠 • Suporte",
+                    "url"=>"https://t.me/puxadas71"
+                ]
+            ]
+
+        ]
+    ];
 
     if($edit){
 
@@ -1161,6 +1150,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado.
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 ";
 
     tg("sendMessage",[
@@ -1369,6 +1359,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado.
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 ";
 
     tg("sendMessage",[
@@ -1576,6 +1567,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado.
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 ";
 
     tg("sendMessage",[
@@ -2277,6 +2269,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -2527,6 +2520,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -3009,6 +3003,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -3268,6 +3263,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -4167,6 +4163,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Ultra</b>
@@ -4573,6 +4570,7 @@ Clique no botão abaixo ou <a href='{$link}'>AQUI</a> para acessar o resultado c
 ━━━━━━━━━━━━━━━
 
 🤖 <b>Bot:</b> @consultafree_bot
+📢 <b>Canal:</b> @consultarcpff
 
 <blockquote>
 <b>Astro Premium</b>
@@ -4997,32 +4995,17 @@ if($data == "conta"){
 // =========================
 if($data == "planos"){
 
-    $texto = "🚀 <b>CONSULTAS PREMIUM</b>\n\n💎 Tenha acesso completo ao sistema e desbloqueie todos os recursos disponíveis:\n\n✅ Consultas avançadas\n✅ Dados completos\n✅ Respostas mais rápidas\n✅ Consultas ilimitadas\n✅ Acesso aos recursos premium\n✅ Atualizações futuras\n\n━━━━━━━━━━━━━━━\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n🚀 <b>Plano Mensal</b>\n<del>R$ 50,00</del> → <b>R$ 35,00</b>\n\n👑 <b>Plano Vitalício</b>\n<del>R$ 99,00</del> → <b>R$ 50,00</b>\n\n━━━━━━━━━━━━━━━\n⚡ <b>LIBERAÇÃO AUTOMÁTICA</b>\n\nEscolha seu plano abaixo e garanta seu acesso premium.\n\n🔥 <b>Valores promocionais válidos somente hoje!</b>";
+    $texto = "🚀 <b>CONSULTAS ILIMITADAS</b>\n\n💎 Tenha acesso completo à nossa base de consultas avançadas:\n\n✅ RG, CPF e CNH\n✅ Endereços e dados completos\n✅ Score e dados financeiros\n✅ Parentes e vínculos\n✅ Veículos (chassi, motor, laudo)\n✅ Benefícios, CADSUS e muito mais...\n\n⚡ <b>Consultas ilimitadas + acesso instantâneo</b>\n\n👇 <b>garanta seu plano:</b>";
 
     $markup = json_encode([
         "inline_keyboard"=>[
 
             [
-                [
-                    "text"=>"🚀 Plano Mensal • R$35,00",
-                    "callback_data"=>"plano_mensal"
-                ]
+                ["text"=>"👑 Acesso Ilimitado - R$20,00!","callback_data"=>"plano_vitalicio"]
             ],
-
             [
-                [
-                    "text"=>"👑 Plano Vitalício • R$50,00",
-                    "callback_data"=>"plano_vitalicio"
-                ]
-            ],
-
-            [
-                [
-                    "text"=>"⬅️ Menu",
-                    "callback_data"=>"voltar_menu"
-                ]
+                ["text"=>"⬅️ Menu","callback_data"=>"voltar_menu"]
             ]
-
         ]
     ]);
 
@@ -5031,22 +5014,18 @@ if($data == "planos"){
     exit;
 }
 
-
-// =========================
-// APAGAR MSG
-// =========================
-if($data == "apagar_msg"){
-
-    tg("deleteMessage",[
-        "chat_id"=>$chat,
-        "message_id"=>$msg
-    ]);
-
-    exit;
-}
-
-
-// =========================
+    // =========================
+    // APAGAR MSG
+    // =========================
+    if($data == "apagar_msg"){
+        tg("deleteMessage",[
+            "chat_id"=>$chat,
+            "message_id"=>$msg
+        ]);
+        exit;
+    }
+    
+    // =========================
 // ABRIR MENUS
 // =========================
 
@@ -5054,6 +5033,7 @@ if($data == "menu_vip"){
     menuVip($chat,$msg);
     exit;
 }
+
 
 if($data == "menu_free"){
     menuFree($chat,$msg);
@@ -5065,41 +5045,27 @@ if($data == "catalogo_1"){
     exit;
 }
 
-
-// =========================
-// PROTEÇÃO DOS MENUS VIP
-// =========================
-
 if(strpos($data,"menu_") === 0){
 
-    $vipMenus = [
-        "menu_cpf",
-        "menu_nome",
-        "menu_tel",
-        "menu_placa",
-        "menu_parentes",
-        "menu_vizinhos",
-        "menu_foto",
-        "menu_email"
-    ];
+$vipMenus = ["menu_cpf","menu_nome","menu_tel","menu_placa","menu_parentes","menu_vizinhos","menu_foto","menu_email"];
 
-    if(in_array($data,$vipMenus)){
+if(in_array($data,$vipMenus)){
 
-        if(!isVip($id) && !isFreeGroup($chat)){
+    if(!isVip($id) && !isFreeGroup($chat)){
 
-            tg("answerCallbackQuery",[
-                "callback_query_id"=>$callback["id"],
-                "text"=>"🔒 Apenas VIP",
-                "show_alert"=>true
-            ]);
+        tg("answerCallbackQuery",[
+            "callback_query_id"=>$callback["id"],
+            "text"=>"🔒 Apenas VIP",
+            "show_alert"=>true
+        ]);
 
-            return;
-        }
+        return;
     }
+
 }
-
-
-// =========================
+}
+    
+    // =========================
 // MENUS DE CONSULTA
 // =========================
 
@@ -5158,7 +5124,6 @@ if($data == "menu_cep"){
     exit;
 }
 
-
 // =========================
 // ESCOLHA DO PLANO
 // =========================
@@ -5166,40 +5131,15 @@ if(strpos($data, "plano_") === 0){
 
     $plano = str_replace("plano_", "", $data);
 
-    $nomes = [
-        "mensal" => "Plano Mensal",
-        "vitalicio" => "Plano Vitalício"
-    ];
-
-    if(!isset($PLANOS[$plano])){
-
-        tg("answerCallbackQuery",[
-            "callback_query_id"=>$callback["id"],
-            "text"=>"❌ Plano inválido",
-            "show_alert"=>true
-        ]);
-
-        exit;
-    }
-
-    $nomePlano = $nomes[$plano];
-    $valor = $PLANOS[$plano];
-
-    $texto = "💎 <b>{$nomePlano}</b>\n\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n💰 Valor promocional: <b>R$ {$valor}</b>\n\n⚡ Após o pagamento, envie o comprovante para que seu acesso seja liberado.";
+    $texto = "💎 <b>Plano ".strtoupper($plano)."</b>\n\n💰 Clique abaixo para ver a chave PIX e realizar o pagamento.";
 
     $markup = json_encode([
         "inline_keyboard"=>[
             [
-                [
-                    "text"=>"💳 Pagar • R$ {$valor}",
-                    "callback_data"=>"pix_{$plano}"
-                ]
+                ["text"=>"💳 Chave Pix","callback_data"=>"pix_{$plano}"]
             ],
             [
-                [
-                    "text"=>"⬅️ Voltar",
-                    "callback_data"=>"planos"
-                ]
+                ["text"=>"⬅️ Voltar","callback_data"=>"planos"]
             ]
         ]
     ]);
@@ -5220,45 +5160,31 @@ if(strpos($data, "pix_") === 0){
     $plano = str_replace("pix_", "", $data);
 
     if(!isset($PLANOS[$plano])){
-
         tg("answerCallbackQuery",[
             "callback_query_id"=>$callback["id"],
             "text"=>"❌ Plano inválido",
             "show_alert"=>true
         ]);
-
         exit;
     }
 
-    $nomes = [
-        "mensal" => "PLANO MENSAL",
-        "vitalicio" => "PLANO VITALÍCIO"
-    ];
-
     $valor = $PLANOS[$plano];
-    $nomePlano = $nomes[$plano];
 
     tg("answerCallbackQuery",[
         "callback_query_id"=>$callback["id"],
-        "text"=>"📋 Copie a chave PIX e faça o pagamento",
+        "text"=>"📋 Copie a chave e faça o pagamento",
         "show_alert"=>false
     ]);
 
-    $texto = "💎 <b>{$nomePlano}</b>\n\n🔥 <b>OFERTA ESPECIAL — SÓ HOJE!</b>\n\n💰 Valor: <b>R$ {$valor}</b>\n\n📌 <b>Chave PIX:</b>\n<code>{$CHAVE_PIX}</code>\n\n📋 <i>Clique na chave acima para copiar automaticamente.</i>\n\n⚠️ <b>IMPORTANTE:</b>\n⏳ Após realizar o pagamento, envie o comprovante para liberação do acesso.";
+    $texto = "💎 <b>PLANO ".strtoupper($plano)."</b>\n\n💰 Valor: <b>R$ {$valor}</b>\n\n📌 <b>Chave PIX:</b>\n<code>{$CHAVE_PIX}</code>\n\n📋 <i>Clique na chave acima para copiar automaticamente</i>\n\n⚠️ <b>IMPORTANTE:</b>\n⏳ Envie o comprovante para liberação imediata";
 
     $markup = json_encode([
         "inline_keyboard"=>[
             [
-                [
-                    "text"=>"📄 Enviar Comprovante",
-                    "url"=>"https://t.me/puxadas71"
-                ]
+                ["text"=>"📄 Enviar Comprovante","url"=>"https://t.me/puxadas71"]
             ],
             [
-                [
-                    "text"=>"⬅️ Voltar",
-                    "callback_data"=>"planos"
-                ]
+                ["text"=>"⬅️ Voltar","callback_data"=>"planos"]
             ]
         ]
     ]);
